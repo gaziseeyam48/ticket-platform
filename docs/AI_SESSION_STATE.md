@@ -124,7 +124,8 @@ None — database schema typed in code; migration scripts planned for Phase 2.
 0
 
 ## Git Commit
-c4997d2 — feat: Phase 1 - Project foundation with Next.js 16, TypeScript, Tailwind v4, Supabase client, error handling, and testing
+0d9c942 — docs: record Phase 1 commit hash in session state
+Remote: https://github.com/gaziseeyam48/ticket-platform.git (branch: main)
 
 ## Resume Instructions
 1. Read this file.
