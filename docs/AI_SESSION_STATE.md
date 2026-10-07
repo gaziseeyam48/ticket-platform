@@ -124,7 +124,7 @@ None — database schema typed in code; migration scripts planned for Phase 2.
 0
 
 ## Git Commit
-Pending commit for Phase 1.
+c4997d2 — feat: Phase 1 - Project foundation with Next.js 16, TypeScript, Tailwind v4, Supabase client, error handling, and testing
 
 ## Resume Instructions
 1. Read this file.
