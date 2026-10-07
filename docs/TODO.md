@@ -1,21 +1,19 @@
 # TODO
 
-## Immediate (Phase 1)
-- [ ] Initialize Next.js project with TypeScript and App Router
-- [ ] Configure Tailwind CSS v4
-- [ ] Set up ESLint and Prettier
-- [ ] Create .env.example with all required variables
-- [ ] Set up Supabase client (server + client)
-- [ ] Create project directory structure
-- [ ] Build error handling foundation
-- [ ] Create basic UI layout and theme
-- [ ] Write README.md
+## Immediate (Phase 2 — Organization Authentication & Authorization)
+- [ ] Configure Supabase Auth client & middleware session handlers
+- [ ] Implement Organization Signup flow with automatic organization creation
+- [ ] Implement Organization Login / Logout flows
+- [ ] Implement Protected Dashboard Layout
+- [ ] Implement Organization membership model (OWNER vs ADMIN roles)
+- [ ] Implement strict organization-isolation checks on all queries
+- [ ] Add unit and integration tests for authentication and authorization isolation
 
 ## Upcoming
-- [ ] Implement organization authentication (Phase 2)
-- [ ] Build event management (Phase 3)
+- [ ] Build event management & state machine (Phase 3)
 - [ ] Build registration form builder (Phase 4)
-- [ ] Build public registration (Phase 5)
+- [ ] Build public registration flow (Phase 5)
+- [ ] Implement free event ticket issuance (Phase 6)
 
 ## Technical Debt
 - (none yet)
