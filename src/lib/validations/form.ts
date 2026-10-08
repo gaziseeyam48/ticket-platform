@@ -17,11 +17,11 @@ export const formFieldSchema = z.object({
   id: z.string().min(1, "Field ID is required"),
   type: z.enum(FIELD_TYPES),
   label: z.string().min(1, "Label is required").max(100, "Label cannot exceed 100 characters"),
-  placeholder: z.string().max(200).optional().default(""),
+  placeholder: z.string().max(200).optional(),
   required: z.boolean().default(false),
-  options: z.array(z.string().min(1, "Option cannot be empty")).optional().default([]),
+  options: z.array(z.string().min(1, "Option cannot be empty")).optional(),
   order: z.number().int().min(0).default(0),
-  isSystem: z.boolean().optional().default(false),
+  isSystem: z.boolean().optional(),
 }).refine(
   (data) => {
     if (data.type === "dropdown" || data.type === "radio") {
@@ -98,7 +98,7 @@ export const DEFAULT_FORM_FIELDS: FormField[] = [
 /**
  * Validates participant submission data against dynamic form field definitions.
  */
-export function validateSubmissionData(fields: FormField[], submission: Record<string, any>) {
+export function validateSubmissionData(fields: FormField[], submission: Record<string, unknown>) {
   const errors: Record<string, string> = {};
 
   for (const field of fields) {
@@ -135,7 +135,7 @@ export function validateSubmissionData(fields: FormField[], submission: Record<s
         }
         case "dropdown":
         case "radio": {
-          if (field.options && !field.options.includes(value)) {
+          if (field.options && !field.options.includes(String(value))) {
             errors[field.id] = `Selected value must be one of: ${field.options.join(", ")}`;
           }
           break;

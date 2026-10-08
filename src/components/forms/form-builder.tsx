@@ -27,6 +27,7 @@ import {
   AlertCircle,
   HelpCircle,
   Sparkles,
+  type LucideIcon,
 } from "lucide-react";
 
 interface FormBuilderProps {
@@ -38,7 +39,7 @@ interface FormBuilderProps {
 
 const FIELD_TYPE_METADATA: Record<
   FieldType,
-  { label: string; description: string; icon: any; defaultPlaceholder: string }
+  { label: string; description: string; icon: LucideIcon; defaultPlaceholder: string }
 > = {
   text: {
     label: "Short Text",
@@ -127,13 +128,13 @@ export function FormBuilder({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [previewValues, setPreviewValues] = useState<Record<string, any>>({});
+  const [previewValues, setPreviewValues] = useState<Record<string, unknown>>({});
   const [previewSubmitted, setPreviewSubmitted] = useState(false);
 
   // Field manipulation functions
   const addField = (type: FieldType) => {
     const meta = FIELD_TYPE_METADATA[type];
-    const newId = `field_${Math.random().toString(36).substring(2, 9)}`;
+    const newId = `field_${Date.now().toString(36)}_${fields.length + 1}`;
     const newField: FormField = {
       id: newId,
       type,
@@ -221,8 +222,9 @@ export function FormBuilder({
       await saveRegistrationForm(eventId, fields);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 4000);
-    } catch (err: any) {
-      setErrorMessage(err.message || "Failed to save registration form.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to save registration form.";
+      setErrorMessage(message);
     } finally {
       setIsSaving(false);
     }
@@ -243,8 +245,8 @@ export function FormBuilder({
             </Badge>
           </div>
           <p className="text-sm text-zinc-400 mt-1">
-            Configure the questions and information collected from participants registering for{" "}
-            <span className="text-zinc-200 font-medium">{eventName}</span>.
+            Configure questions for attendees registering for{" "}
+            <span className="text-zinc-200 font-medium">{eventName}</span> ({`/${eventSlug}`}).
           </p>
         </div>
 
@@ -568,7 +570,7 @@ export function FormBuilder({
             <CardContent className="pt-6 space-y-5">
               {fields.map((field) => {
                 const isFieldRequired = field.required;
-                const value = previewValues[field.id] || "";
+                const value = (previewValues[field.id] as string | undefined) ?? "";
 
                 return (
                   <div key={field.id} className="space-y-1.5">
