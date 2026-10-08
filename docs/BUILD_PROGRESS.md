@@ -43,16 +43,16 @@
 - [x] Auth error handling
 
 ## Phase 3 — Event Management
-- [ ] Create event
-- [ ] Edit event
-- [ ] Event listing
-- [ ] Event details page
-- [ ] Event state machine (DRAFT → PUBLISHED → LIVE → ENDED)
-- [ ] State transition validation
-- [ ] Event slug generation
-- [ ] Public registration URL
-- [ ] Organization isolation tests
-- [ ] Invalid transition tests
+- [x] Create event
+- [x] Edit event
+- [x] Event listing
+- [x] Event details page
+- [x] Event state machine (DRAFT → PUBLISHED → LIVE → ENDED)
+- [x] State transition validation
+- [x] Event slug generation
+- [x] Public registration URL
+- [x] Organization isolation tests
+- [x] Invalid transition tests
 
 ## Phase 4 — Registration Form Builder
 - [ ] Form builder UI

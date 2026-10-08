@@ -1,11 +1,11 @@
 # TODO
 
 ## Immediate (Phase 3 — Event Management)
-- [ ] Create Event flow (UI & Action)
-- [ ] Edit Event
-- [ ] Event Listing page
-- [ ] Event Details page
-- [ ] Event state machine (DRAFT -> PUBLISHED, etc.)
+- [x] Create Event flow (UI & Action)
+- [x] Edit Event
+- [x] Event Listing page
+- [x] Event Details page
+- [x] Event state machine (DRAFT -> PUBLISHED, etc.)
 
 ## Upcoming
 - [ ] Build registration form builder (Phase 4)
