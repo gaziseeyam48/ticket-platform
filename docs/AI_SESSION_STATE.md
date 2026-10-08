@@ -1,35 +1,40 @@
 # AI Session State
 
 ## Current Phase
-PHASE 2
+PHASE 4
 
 ## Phase Status
 COMPLETED
 
 ## Last Completed Task
-Phase 2 — Organization Authentication & Authorization:
-- Supabase Auth setup for organization users
-- Signup, login, logout flows
-- Protected organization dashboard layout
-- Organization creation and membership assignment (OWNER vs ADMIN)
-- Database schema and RLS policies created
-- Organization isolation enforcement configured
+Phase 4 — Registration Form Builder:
+- Form Builder UI with dynamic field addition, removal, reordering, and editing
+- Supported field types: text, email, phone, number, dropdown, radio, checkbox, textarea
+- Live interactive participant form preview mode
+- Options configuration for dropdown and radio choices
+- JSONB schema storage in `registration_forms` with uniqueness and validation
+- Dynamic submission validation helper `validateSubmissionData`
+- Server-side form validation and publishing guard enforcement
+- Form Builder integration in event management dashboard (/org/events/[id]/form)
 
 ## Current Task
-None — Phase 2 completed.
+None — Phase 4 completed. Ready for Phase 5.
 
 ## Next Task
-Phase 3 — Event Management:
-- Create event
-- Edit event
-- Event listing
-- Event details page
-- Event state machine (DRAFT → PUBLISHED → LIVE → ENDED)
+Phase 5 — Public Registration:
+- Public event registration page (/events/[slug])
+- Registration form rendering from dynamic JSONB schema
+- Server-side form submission validation
+- Duplicate registration detection (by email per event)
+- Rate limiting and anti-abuse protection
+- Post-registration routing (free vs paid)
 
 ## Completed Phases
 - Phase 0: Discovery, Requirements & Architecture
 - Phase 1: Project Foundation
 - Phase 2: Organization Authentication & Authorization
+- Phase 3: Event Management
+- Phase 4: Registration Form Builder
 
 ## Current Architecture
 - **Framework:** Next.js 16 (App Router) with TypeScript 5

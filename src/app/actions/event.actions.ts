@@ -63,6 +63,37 @@ export async function createEvent(organizationId: string, formData: FormData) {
     throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to create event.");
   }
 
+  // Automatically initialize default registration form with Name and Email
+  await (supabase as any)
+    .from("registration_forms")
+    .insert([
+      {
+        event_id: event.id,
+        fields: [
+          {
+            id: "field_name",
+            type: "text",
+            label: "Full Name",
+            placeholder: "e.g. Jane Doe",
+            required: true,
+            options: [],
+            order: 0,
+            isSystem: true,
+          },
+          {
+            id: "field_email",
+            type: "email",
+            label: "Email Address",
+            placeholder: "e.g. jane@example.com",
+            required: true,
+            options: [],
+            order: 1,
+            isSystem: true,
+          },
+        ],
+      },
+    ]);
+
   revalidatePath("/org/events");
   
   return event;
@@ -131,6 +162,21 @@ export async function updateEventStatus(eventId: string, status: string) {
   const validationResult = updateEventStatusSchema.safeParse({ status });
   if (!validationResult.success) {
     throw new AppError(ERROR_CODES.VALIDATION_ERROR, "Invalid status.");
+  }
+
+  if (validationResult.data.status === "PUBLISHED") {
+    const { data: form } = await (supabase
+      .from("registration_forms")
+      .select("fields")
+      .eq("event_id", eventId)
+      .maybeSingle() as any);
+
+    if (!form || !Array.isArray(form.fields) || form.fields.length === 0) {
+      throw new AppError(
+        ERROR_CODES.VALIDATION_ERROR,
+        "Cannot publish event: Please configure the registration form first."
+      );
+    }
   }
   
   const { data: event, error } = await ((supabase as any)

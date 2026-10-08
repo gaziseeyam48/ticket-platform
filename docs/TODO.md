@@ -1,16 +1,21 @@
 # TODO
 
-## Immediate (Phase 3 — Event Management)
-- [x] Create Event flow (UI & Action)
-- [x] Edit Event
-- [x] Event Listing page
-- [x] Event Details page
-- [x] Event state machine (DRAFT -> PUBLISHED, etc.)
+## Immediate (Phase 5 — Public Registration)
+- [ ] Build public event registration page (/events/[slug])
+- [ ] Dynamic form submission rendering
+- [ ] Rate limiting & anti-abuse checks
+- [ ] Free event post-registration flow
+- [ ] Duplicate registration checks
+
+## Completed
+- [x] Phase 1 — Foundation & Security Infrastructure
+- [x] Phase 2 — Organization Authentication & Authorization
+- [x] Phase 3 — Event Management
+- [x] Phase 4 — Registration Form Builder
 
 ## Upcoming
-- [ ] Build registration form builder (Phase 4)
-- [ ] Build public registration flow (Phase 5)
 - [ ] Implement free event ticket issuance (Phase 6)
+- [ ] Paid event & manual payment verification (Phase 7)
 
 ## Technical Debt
 - (none yet)

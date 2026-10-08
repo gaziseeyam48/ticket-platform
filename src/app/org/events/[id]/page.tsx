@@ -1,10 +1,11 @@
 import { getEventById } from "@/app/actions/event.actions";
+import { getRegistrationForm } from "@/app/actions/form.actions";
 import { createServerDbClient } from "@/lib/db/server";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Calendar, MapPin, Tag } from "lucide-react";
+import { ArrowLeft, ExternalLink, Calendar, MapPin, Tag, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { EventStatusManager } from "@/components/events/event-status-manager";
 
@@ -44,6 +45,8 @@ export default async function EventDetailsPage(props: { params: Promise<{ id: st
     redirect("/org");
   }
 
+  const form = await getRegistrationForm(event.id);
+
   const statusColors = {
     DRAFT: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
     PUBLISHED: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
@@ -74,6 +77,12 @@ export default async function EventDetailsPage(props: { params: Promise<{ id: st
               <Button variant="outline">
                 <ExternalLink className="mr-2 h-4 w-4" />
                 View Public Page
+              </Button>
+            </Link>
+            <Link href={`/org/events/${event.id}/form`}>
+              <Button variant="outline" className="border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10">
+                <FileText className="mr-2 h-4 w-4 text-indigo-400" />
+                Form Builder
               </Button>
             </Link>
             <Link href={`/org/events/${event.id}/edit`}>
@@ -133,7 +142,43 @@ export default async function EventDetailsPage(props: { params: Promise<{ id: st
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+          <div className="space-y-6">
+          <Card className="bg-zinc-900/50 border-zinc-800">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-indigo-400" />
+                  Registration Form
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  {form?.fields?.length || 0} fields configured
+                </CardDescription>
+              </div>
+              <Link href={`/org/events/${event.id}/form`}>
+                <Button size="sm" variant="outline" className="text-xs border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10">
+                  Configure
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-2">
+              <div className="flex flex-wrap gap-1.5">
+                {(form?.fields || []).slice(0, 6).map((f: any) => (
+                  <span
+                    key={f.id}
+                    className="text-[11px] px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700/60"
+                  >
+                    {f.label} {f.required && "*"}
+                  </span>
+                ))}
+                {(form?.fields?.length || 0) > 6 && (
+                  <span className="text-[11px] px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-500">
+                    +{(form?.fields?.length || 0) - 6} more
+                  </span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader>
               <CardTitle>Status Configuration</CardTitle>

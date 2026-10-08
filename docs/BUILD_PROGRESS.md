@@ -55,16 +55,16 @@
 - [x] Invalid transition tests
 
 ## Phase 4 — Registration Form Builder
-- [ ] Form builder UI
-- [ ] Field types (text, email, phone, number, dropdown, radio, checkbox, long text)
-- [ ] Add/remove/edit fields
-- [ ] Required field toggle
-- [ ] Field label/placeholder configuration
-- [ ] Options configuration (dropdown/radio)
-- [ ] Field reorder
-- [ ] Form schema storage (JSONB)
-- [ ] Server-side form validation
-- [ ] Form preview
+- [x] Form builder UI
+- [x] Field types (text, email, phone, number, dropdown, radio, checkbox, long text)
+- [x] Add/remove/edit fields
+- [x] Required field toggle
+- [x] Field label/placeholder configuration
+- [x] Options configuration (dropdown/radio)
+- [x] Field reorder
+- [x] Form schema storage (JSONB)
+- [x] Server-side form validation
+- [x] Form preview
 
 ## Phase 5 — Public Registration
 - [ ] Public event page (/events/{slug})
