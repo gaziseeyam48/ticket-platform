@@ -1,7 +1,8 @@
 import { getEventBySlug } from "@/app/actions/event.actions";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { format } from "date-fns";
-import { Calendar, MapPin, Tag } from "lucide-react";
+import { Calendar, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -99,9 +100,11 @@ export default async function PublicEventPage(props: { params: Promise<{ slug: s
                       </div>
                     ) : (
                       <div className="mt-6 space-y-4">
-                        <Button className="w-full text-lg h-12" size="lg">
-                          Register Now
-                        </Button>
+                        <Link href={`/events/${event.slug}/register`} className="block w-full">
+                          <Button className="w-full text-lg h-12 bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20" size="lg">
+                            Register Now
+                          </Button>
+                        </Link>
                         <p className="text-xs text-center text-zinc-500">
                           {event.event_type === "FREE" ? "Free registration" : "Paid event"}
                         </p>

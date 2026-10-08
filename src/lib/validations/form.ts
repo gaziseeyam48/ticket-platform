@@ -115,7 +115,8 @@ export function validateSubmissionData(fields: FormField[], submission: Record<s
       switch (field.type) {
         case "email": {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (typeof value !== "string" || !emailRegex.test(value)) {
+          const str = typeof value === "string" ? value.trim() : "";
+          if (!str || !emailRegex.test(str)) {
             errors[field.id] = "Please provide a valid email address";
           }
           break;
@@ -128,7 +129,8 @@ export function validateSubmissionData(fields: FormField[], submission: Record<s
         }
         case "phone": {
           const phoneRegex = /^[+0-9\s\-()]{6,25}$/;
-          if (typeof value !== "string" || !phoneRegex.test(value)) {
+          const str = typeof value === "string" ? value.trim() : "";
+          if (!str || !phoneRegex.test(str)) {
             errors[field.id] = "Please provide a valid phone number";
           }
           break;

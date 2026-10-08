@@ -1,33 +1,32 @@
 # AI Session State
 
 ## Current Phase
-PHASE 4
+PHASE 5
 
 ## Phase Status
 COMPLETED
 
 ## Last Completed Task
-Phase 4 — Registration Form Builder:
-- Form Builder UI with dynamic field addition, removal, reordering, and editing
-- Supported field types: text, email, phone, number, dropdown, radio, checkbox, textarea
-- Live interactive participant form preview mode
-- Options configuration for dropdown and radio choices
-- JSONB schema storage in `registration_forms` with uniqueness and validation
-- Dynamic submission validation helper `validateSubmissionData`
-- Server-side form validation and publishing guard enforcement
-- Form Builder integration in event management dashboard (/org/events/[id]/form)
+Phase 5 — Public Registration:
+- Dedicated public registration page at `/events/[slug]/register`
+- Interactive `RegistrationForm` component with dynamic JSONB field rendering
+- In-memory sliding-window rate limiter per client IP
+- Anti-abuse honeypot trap to silently catch bots
+- Event state validation (`PUBLISHED` and `LIVE` accept registrations; `DRAFT`, `ENDED`, and `CANCELLED` properly blocked)
+- Duplicate registration prevention by normalized email per event
+- Post-registration paths: Free event reservation confirmation & Paid event manual payment instructions with transaction ID submission
 
 ## Current Task
-None — Phase 4 completed. Ready for Phase 5.
+None — Phase 5 completed. Ready for Phase 6.
 
 ## Next Task
-Phase 5 — Public Registration:
-- Public event registration page (/events/[slug])
-- Registration form rendering from dynamic JSONB schema
-- Server-side form submission validation
-- Duplicate registration detection (by email per event)
-- Rate limiting and anti-abuse protection
-- Post-registration routing (free vs paid)
+Phase 6 — Free Event Ticket Issuance:
+- Unified `issueTicket()` pipeline
+- Cryptographically secure ticket tokens & SHA-256 token hashing
+- QR code generation
+- Resend email sending integration with clean HTML template
+- Automatic ticket issuance hook on free registration
+- Idempotency & error handling for email delivery
 
 ## Completed Phases
 - Phase 0: Discovery, Requirements & Architecture
@@ -35,6 +34,7 @@ Phase 5 — Public Registration:
 - Phase 2: Organization Authentication & Authorization
 - Phase 3: Event Management
 - Phase 4: Registration Form Builder
+- Phase 5: Public Registration
 
 ## Current Architecture
 - **Framework:** Next.js 16 (App Router) with TypeScript 5

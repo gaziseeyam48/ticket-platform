@@ -67,15 +67,15 @@
 - [x] Form preview
 
 ## Phase 5 — Public Registration
-- [ ] Public event page (/events/{slug})
-- [ ] Registration form rendering
-- [ ] Server-side form submission validation
-- [ ] Duplicate registration detection
-- [ ] Rate limiting
-- [ ] Registration creation
-- [ ] Post-registration flow (free vs paid)
-- [ ] Anti-abuse protection
-- [ ] Error handling for closed events
+- [x] Public event page (/events/{slug})
+- [x] Registration form rendering
+- [x] Server-side form submission validation
+- [x] Duplicate registration detection
+- [x] Rate limiting
+- [x] Registration creation
+- [x] Post-registration flow (free vs paid)
+- [x] Anti-abuse protection
+- [x] Error handling for closed events
 
 ## Phase 6 — Free Event Ticket Issuance
 - [ ] Unified issueTicket() service

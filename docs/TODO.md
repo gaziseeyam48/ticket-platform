@@ -1,21 +1,22 @@
 # TODO
 
-## Immediate (Phase 5 — Public Registration)
-- [ ] Build public event registration page (/events/[slug])
-- [ ] Dynamic form submission rendering
-- [ ] Rate limiting & anti-abuse checks
-- [ ] Free event post-registration flow
-- [ ] Duplicate registration checks
+## Immediate (Phase 6 — Free Event Ticket Issuance)
+- [ ] Unified issueTicket() service
+- [ ] Cryptographic ticket token hashing & database storage
+- [ ] QR code generation for tickets
+- [ ] Transactional email dispatch via Resend
+- [ ] Automatic ticket issuance hook on free registration
 
 ## Completed
 - [x] Phase 1 — Foundation & Security Infrastructure
 - [x] Phase 2 — Organization Authentication & Authorization
 - [x] Phase 3 — Event Management
 - [x] Phase 4 — Registration Form Builder
+- [x] Phase 5 — Public Registration
 
 ## Upcoming
-- [ ] Implement free event ticket issuance (Phase 6)
 - [ ] Paid event & manual payment verification (Phase 7)
+- [ ] Admin direct ticket issuance (Phase 8)
 
 ## Technical Debt
 - (none yet)
