@@ -5,6 +5,7 @@ import { AppError } from "@/lib/errors/app-error";
 import { ERROR_CODES } from "@/lib/errors/error-codes";
 import { rateLimiter } from "@/lib/utils/rate-limiter";
 import { validateSubmissionData, FormField } from "@/lib/validations/form";
+import { issueTicket } from "@/lib/services/ticket.service";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
@@ -231,6 +232,29 @@ export async function submitRegistration(
     throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to complete registration. Please try again.");
   }
 
+  // 9. Automatically issue ticket immediately for FREE events
+  let ticketPayload: { ticketNumber: string; ticketUrl: string; qrCodeDataUrl: string } | null = null;
+  if (event.event_type === "FREE") {
+    try {
+      const ticketResult = await issueTicket({
+        eventId: event.id,
+        participantName,
+        participantEmail: normalizedEmail,
+        registrationId: newRegistration.id,
+        participantData: submission,
+      });
+
+      ticketPayload = {
+        ticketNumber: ticketResult.ticket.ticket_number,
+        ticketUrl: ticketResult.ticketUrl,
+        qrCodeDataUrl: ticketResult.qrCodeDataUrl,
+      };
+    } catch (ticketError) {
+      console.error("Automatic ticket issuance error for free event:", ticketError);
+      // Registration is preserved; ticket can be issued/retried
+    }
+  }
+
   revalidatePath(`/events/${slug}`);
   revalidatePath(`/events/${slug}/register`);
 
@@ -242,6 +266,7 @@ export async function submitRegistration(
     email: normalizedEmail,
     eventName: event.name,
     paymentConfig: event.payment_config || null,
+    ticket: ticketPayload,
   };
 }
 

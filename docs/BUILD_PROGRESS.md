@@ -78,16 +78,16 @@
 - [x] Error handling for closed events
 
 ## Phase 6 — Free Event Ticket Issuance
-- [ ] Unified issueTicket() service
-- [ ] Secure token generation
-- [ ] Token hashing and storage
-- [ ] QR code generation
-- [ ] Ticket email template
-- [ ] Email sending via Resend
-- [ ] Automatic issuance on free registration
-- [ ] Idempotency protection
-- [ ] Email failure handling
-- [ ] Resend ticket action
+- [x] Unified issueTicket() service
+- [x] Secure token generation
+- [x] Token hashing and storage
+- [x] QR code generation
+- [x] Ticket email template
+- [x] Email sending via Resend
+- [x] Automatic issuance on free registration
+- [x] Idempotency protection
+- [x] Email failure handling
+- [x] Resend ticket action
 
 ## Phase 7 — Paid Event & Manual Payment Verification
 - [ ] Paid event configuration

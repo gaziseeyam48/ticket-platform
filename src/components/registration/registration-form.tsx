@@ -49,6 +49,11 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
     participantName: string;
     email: string;
     paymentConfig?: any;
+    ticket?: {
+      ticketNumber: string;
+      ticketUrl: string;
+      qrCodeDataUrl: string;
+    } | null;
   } | null>(null);
 
   // Paid event transaction ID submission
@@ -83,6 +88,7 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
         participantName: result.participantName,
         email: result.email,
         paymentConfig: result.paymentConfig,
+        ticket: result.ticket,
       });
     } catch (err: unknown) {
       if (err && typeof err === "object" && "details" in err) {
@@ -116,8 +122,10 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
     }
   };
 
-  // SUCCESS VIEW: Free Event
+  // SUCCESS VIEW: Free Event (with issued ticket & QR code)
   if (registrationResult && registrationResult.eventType === "FREE") {
+    const ticket = registrationResult.ticket;
+
     return (
       <Card className="bg-zinc-900/90 border-zinc-800 shadow-2xl backdrop-blur overflow-hidden animate-in fade-in zoom-in-95 duration-300">
         <div className="h-2 bg-gradient-to-r from-emerald-500 to-indigo-500" />
@@ -127,32 +135,61 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-zinc-100">Registration Confirmed!</h2>
+            <h2 className="text-2xl font-bold text-zinc-100">Ticket Issued Successfully!</h2>
             <p className="text-zinc-400 max-w-md mx-auto text-sm">
               Thank you, <span className="text-zinc-200 font-semibold">{registrationResult.participantName}</span>.
-              Your spot for <span className="text-zinc-200 font-medium">{event.name}</span> has been successfully reserved.
+              Your official ticket for <span className="text-zinc-200 font-medium">{event.name}</span> is active and ready.
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-zinc-950/60 border border-zinc-800/80 text-left space-y-2 max-w-sm mx-auto text-xs text-zinc-400">
+          {ticket && (
+            <div className="p-6 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 space-y-4 max-w-sm mx-auto shadow-inner">
+              <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+                <span className="text-xs text-zinc-400">Digital Pass</span>
+                <span className="font-mono text-xs font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                  {ticket.ticketNumber}
+                </span>
+              </div>
+
+              {/* QR Code Presentation */}
+              <div className="p-3 bg-white rounded-xl inline-block shadow-md">
+                <img
+                  src={ticket.qrCodeDataUrl}
+                  alt={`QR code for ticket ${ticket.ticketNumber}`}
+                  className="w-44 h-44 object-contain mx-auto"
+                />
+              </div>
+
+              <p className="text-[11px] text-zinc-400">
+                Present this QR code at the event entrance for verification.
+              </p>
+
+              <a
+                href={ticket.ticketUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="block w-full pt-1"
+              >
+                <Button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs h-10 shadow-lg shadow-indigo-600/20">
+                  Open Digital Ticket View
+                </Button>
+              </a>
+            </div>
+          )}
+
+          <div className="p-4 rounded-xl bg-zinc-950/40 border border-zinc-800/60 text-left space-y-2 max-w-sm mx-auto text-xs text-zinc-400">
             <div className="flex justify-between">
               <span className="text-zinc-500">Attendee:</span>
               <span className="text-zinc-200 font-medium">{registrationResult.participantName}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-zinc-500">Email:</span>
+              <span className="text-zinc-500">Delivered to:</span>
               <span className="text-zinc-200 font-medium">{registrationResult.email}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-500">Status:</span>
-              <span className="text-emerald-400 font-semibold uppercase">Confirmed</span>
+              <span className="text-emerald-400 font-semibold uppercase">ACTIVE (ISSUED)</span>
             </div>
-          </div>
-
-          <div className="pt-2">
-            <p className="text-xs text-zinc-500">
-              A digital ticket confirmation will be delivered to your registered email address.
-            </p>
           </div>
         </CardContent>
       </Card>
