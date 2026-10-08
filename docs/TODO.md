@@ -1,16 +1,13 @@
 # TODO
 
-## Immediate (Phase 2 — Organization Authentication & Authorization)
-- [ ] Configure Supabase Auth client & middleware session handlers
-- [ ] Implement Organization Signup flow with automatic organization creation
-- [ ] Implement Organization Login / Logout flows
-- [ ] Implement Protected Dashboard Layout
-- [ ] Implement Organization membership model (OWNER vs ADMIN roles)
-- [ ] Implement strict organization-isolation checks on all queries
-- [ ] Add unit and integration tests for authentication and authorization isolation
+## Immediate (Phase 3 — Event Management)
+- [ ] Create Event flow (UI & Action)
+- [ ] Edit Event
+- [ ] Event Listing page
+- [ ] Event Details page
+- [ ] Event state machine (DRAFT -> PUBLISHED, etc.)
 
 ## Upcoming
-- [ ] Build event management & state machine (Phase 3)
 - [ ] Build registration form builder (Phase 4)
 - [ ] Build public registration flow (Phase 5)
 - [ ] Implement free event ticket issuance (Phase 6)
