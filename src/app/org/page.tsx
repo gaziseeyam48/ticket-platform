@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { createServerDbClient } from "@/lib/db/server";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,9 @@ export const metadata = {
 
 export const instant = false;
 
+
 export default async function DashboardPage() {
+  await connection();
   const supabase = await createServerDbClient();
   const { data: { user } } = await supabase.auth.getUser();
 

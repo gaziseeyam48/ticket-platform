@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { getEventBySlug } from "@/app/actions/event.actions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -9,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 export const instant = false;
 
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }) {
+  await connection();
   const params = await props.params;
   try {
     const event = await getEventBySlug(params.slug);
@@ -24,6 +26,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
 }
 
 export default async function PublicEventPage(props: { params: Promise<{ slug: string }> }) {
+  await connection();
   const params = await props.params;
   
   let event;

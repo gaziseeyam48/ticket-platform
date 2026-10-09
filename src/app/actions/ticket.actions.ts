@@ -83,7 +83,7 @@ export async function resendTicketEmail(ticketId: string) {
   }
 
   // Verify that the user belongs to the owning organization
-  const { data: membership } = await (supabase
+  const { data: membership } = await (adminDb
     .from("organization_users")
     .select("role")
     .eq("organization_id", ticket.events.organization_id)

@@ -1,20 +1,38 @@
 "use server";
 
 import { createServerDbClient as createClient } from "@/lib/db/server";
+import { getAdminClient } from "@/lib/db/admin";
 import { AppError } from "@/lib/errors/app-error";
 import { ERROR_CODES } from "@/lib/errors/error-codes";
 import { createEventSchema, updateEventSchema, updateEventStatusSchema } from "@/lib/validations/event";
 import { revalidatePath } from "next/cache";
+
+async function verifyOrgMembership(adminDb: any, organizationId: string, userId: string) {
+  const { data: membership } = await adminDb
+    .from("organization_users")
+    .select("role")
+    .eq("organization_id", organizationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  return !!membership;
+}
 
 export async function createEvent(organizationId: string, formData: FormData) {
   const supabase = await createClient();
 
   // Validate session
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session) {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
     throw new AppError(ERROR_CODES.UNAUTHORIZED, "You must be logged in to create an event.");
+  }
+
+  const adminDb = getAdminClient();
+  const isMember = await verifyOrgMembership(adminDb, organizationId, user.id);
+  if (!isMember) {
+    throw new AppError(ERROR_CODES.FORBIDDEN, "You do not have permission to create events in this organization.");
   }
 
   // Parse form data
@@ -37,7 +55,7 @@ export async function createEvent(organizationId: string, formData: FormData) {
   const data = validationResult.data;
 
   // Insert event
-  const { data: event, error } = await ((supabase as any)
+  const { data: event, error } = await ((adminDb as any)
     .from("events")
     .insert([
       {
@@ -59,12 +77,12 @@ export async function createEvent(organizationId: string, formData: FormData) {
     if (error.code === "23505") { // Unique violation for slug
       throw new AppError(ERROR_CODES.VALIDATION_ERROR, "An event with this slug already exists in your organization.");
     }
-    console.error("Error creating event:", error);
+    console.error("Error creating event:", error.message || error);
     throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to create event.");
   }
 
   // Automatically initialize default registration form with Name and Email
-  await (supabase as any)
+  await (adminDb as any)
     .from("registration_forms")
     .insert([
       {
@@ -95,31 +113,53 @@ export async function createEvent(organizationId: string, formData: FormData) {
     ]);
 
   revalidatePath("/org/events");
+  revalidatePath("/org");
   
   return event;
 }
 
 export async function getEvents(organizationId: string) {
   const supabase = await createClient();
-  
-  const { data: events, error } = await (supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new AppError(ERROR_CODES.UNAUTHORIZED, "Unauthorized");
+  }
+
+  const adminDb = getAdminClient();
+  const isMember = await verifyOrgMembership(adminDb, organizationId, user.id);
+  if (!isMember) {
+    throw new AppError(ERROR_CODES.FORBIDDEN, "You do not have access to this organization's events.");
+  }
+
+  const { data: events, error } = await (adminDb
     .from("events")
     .select("*")
     .eq("organization_id", organizationId)
     .order("created_at", { ascending: false }) as any);
     
   if (error) {
-    console.error("Error fetching events:", error);
+    console.error("Error fetching events:", error.message || error);
     throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to fetch events.");
   }
   
-  return events;
+  return events || [];
 }
 
 export async function getEventById(eventId: string) {
   const supabase = await createClient();
-  
-  const { data: event, error } = await (supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new AppError(ERROR_CODES.UNAUTHORIZED, "Unauthorized");
+  }
+
+  const adminDb = getAdminClient();
+  const { data: event, error } = await (adminDb
     .from("events")
     .select("*")
     .eq("id", eventId)
@@ -129,17 +169,22 @@ export async function getEventById(eventId: string) {
     if (error.code === "PGRST116") {
       throw new AppError(ERROR_CODES.NOT_FOUND, "Event not found.");
     }
-    console.error("Error fetching event:", error);
+    console.error("Error fetching event:", error.message || error);
     throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to fetch event.");
+  }
+
+  const isMember = await verifyOrgMembership(adminDb, event.organization_id, user.id);
+  if (!isMember) {
+    throw new AppError(ERROR_CODES.FORBIDDEN, "You do not have permission to access this event.");
   }
   
   return event;
 }
 
 export async function getEventBySlug(slug: string) {
-  const supabase = await createClient();
+  const adminDb = getAdminClient();
   
-  const { data: event, error } = await (supabase
+  const { data: event, error } = await (adminDb
     .from("events")
     .select("*, organizations(name, slug)")
     .eq("slug", slug)
@@ -149,7 +194,7 @@ export async function getEventBySlug(slug: string) {
     if (error.code === "PGRST116") {
       throw new AppError(ERROR_CODES.NOT_FOUND, "Event not found.");
     }
-    console.error("Error fetching event by slug:", error);
+    console.error("Error fetching event by slug:", error.message || error);
     throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to fetch event.");
   }
   
@@ -158,14 +203,37 @@ export async function getEventBySlug(slug: string) {
 
 export async function updateEventStatus(eventId: string, status: string) {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new AppError(ERROR_CODES.UNAUTHORIZED, "Unauthorized");
+  }
   
   const validationResult = updateEventStatusSchema.safeParse({ status });
   if (!validationResult.success) {
     throw new AppError(ERROR_CODES.VALIDATION_ERROR, "Invalid status.");
   }
 
+  const adminDb = getAdminClient();
+  const { data: existingEvent } = await (adminDb
+    .from("events")
+    .select("organization_id")
+    .eq("id", eventId)
+    .single() as any);
+
+  if (!existingEvent) {
+    throw new AppError(ERROR_CODES.NOT_FOUND, "Event not found.");
+  }
+
+  const isMember = await verifyOrgMembership(adminDb, existingEvent.organization_id, user.id);
+  if (!isMember) {
+    throw new AppError(ERROR_CODES.FORBIDDEN, "Forbidden");
+  }
+
   if (validationResult.data.status === "PUBLISHED") {
-    const { data: form } = await (supabase
+    const { data: form } = await (adminDb
       .from("registration_forms")
       .select("fields")
       .eq("event_id", eventId)
@@ -179,7 +247,7 @@ export async function updateEventStatus(eventId: string, status: string) {
     }
   }
   
-  const { data: event, error } = await ((supabase as any)
+  const { data: event, error } = await ((adminDb as any)
     .from("events")
     .update({ status: validationResult.data.status })
     .eq("id", eventId)
@@ -187,12 +255,13 @@ export async function updateEventStatus(eventId: string, status: string) {
     .single() as any);
     
   if (error) {
-    console.error("Error updating event status:", error);
+    console.error("Error updating event status:", error.message || error);
     throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to update event status.");
   }
   
   revalidatePath(`/org/events/${eventId}`);
   revalidatePath("/org/events");
+  revalidatePath("/org");
   
   return event;
 }
@@ -201,10 +270,26 @@ export async function updateEvent(eventId: string, formData: FormData) {
   const supabase = await createClient();
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session) {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
     throw new AppError(ERROR_CODES.UNAUTHORIZED, "You must be logged in to update an event.");
+  }
+
+  const adminDb = getAdminClient();
+  const { data: existingEvent } = await (adminDb
+    .from("events")
+    .select("organization_id")
+    .eq("id", eventId)
+    .single() as any);
+
+  if (!existingEvent) {
+    throw new AppError(ERROR_CODES.NOT_FOUND, "Event not found.");
+  }
+
+  const isMember = await verifyOrgMembership(adminDb, existingEvent.organization_id, user.id);
+  if (!isMember) {
+    throw new AppError(ERROR_CODES.FORBIDDEN, "Forbidden");
   }
 
   const rawData = {
@@ -232,7 +317,7 @@ export async function updateEvent(eventId: string, formData: FormData) {
   if (data.date_end) updateData.date_end = new Date(data.date_end).toISOString();
   else if (data.date_end === "") updateData.date_end = null;
 
-  const { data: event, error } = await ((supabase as any)
+  const { data: event, error } = await ((adminDb as any)
     .from("events")
     .update(updateData)
     .eq("id", eventId)
@@ -243,12 +328,13 @@ export async function updateEvent(eventId: string, formData: FormData) {
     if (error.code === "23505") {
       throw new AppError(ERROR_CODES.VALIDATION_ERROR, "An event with this slug already exists.");
     }
-    console.error("Error updating event:", error);
+    console.error("Error updating event:", error.message || error);
     throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to update event.");
   }
 
   revalidatePath(`/org/events/${eventId}`);
   revalidatePath("/org/events");
+  revalidatePath("/org");
   
   return event;
 }

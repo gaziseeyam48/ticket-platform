@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { createServerDbClient } from "@/lib/db/server";
 import { EventForm } from "@/components/events/event-form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -13,7 +14,9 @@ export const metadata = {
 
 export const instant = false;
 
+
 export default async function NewEventPage() {
+  await connection();
   const supabase = await createServerDbClient();
   const { data: { user } } = await supabase.auth.getUser();
 

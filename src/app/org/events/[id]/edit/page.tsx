@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { getEventById } from "@/app/actions/event.actions";
 import { createServerDbClient } from "@/lib/db/server";
 import { EventForm } from "@/components/events/event-form";
@@ -14,7 +15,9 @@ export const metadata = {
 
 export const instant = false;
 
+
 export default async function EditEventPage(props: { params: Promise<{ id: string }> }) {
+  await connection();
   const params = await props.params;
   const { id } = params;
 

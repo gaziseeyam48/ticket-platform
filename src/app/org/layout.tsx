@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { connection } from "next/server";
 import { createServerDbClient } from "@/lib/db/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -8,7 +9,9 @@ import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
 
 export const instant = false;
 
+
 export default async function OrgLayout({ children }: { children: ReactNode }) {
+  await connection();
   const supabase = await createServerDbClient();
   const { data: { user } } = await supabase.auth.getUser();
 

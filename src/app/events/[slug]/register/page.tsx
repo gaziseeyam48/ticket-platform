@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { getPublicEventRegistrationData } from "@/app/actions/registration.actions";
 import { RegistrationForm } from "@/components/registration/registration-form";
 import { notFound } from "next/navigation";
@@ -12,6 +13,7 @@ export const instant = false;
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>;
 }) {
+  await connection();
   const params = await props.params;
   try {
     const data = await getPublicEventRegistrationData(params.slug);
@@ -29,6 +31,7 @@ export async function generateMetadata(props: {
 export default async function EventRegistrationPage(props: {
   params: Promise<{ slug: string }>;
 }) {
+  await connection();
   const params = await props.params;
   const { slug } = params;
 

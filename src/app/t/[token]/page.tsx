@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { getTicketByPublicToken } from "@/app/actions/ticket.actions";
 import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +11,7 @@ export const instant = false;
 export async function generateMetadata(props: {
   params: Promise<{ token: string }>;
 }) {
+  await connection();
   const params = await props.params;
   try {
     const ticket = await getTicketByPublicToken(params.token);
@@ -27,6 +29,7 @@ export async function generateMetadata(props: {
 export default async function PublicTicketPage(props: {
   params: Promise<{ token: string }>;
 }) {
+  await connection();
   const params = await props.params;
   const { token } = params;
 

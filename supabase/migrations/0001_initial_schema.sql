@@ -196,13 +196,11 @@ USING (id IN (
     SELECT organization_id FROM organization_users WHERE user_id = auth.uid() AND role = 'OWNER'
 ));
 
--- Organization Users: users can view members of their orgs
+-- Organization Users: users can view their own membership rows
 CREATE POLICY "Users can view members of their orgs"
 ON organization_users FOR SELECT
 TO authenticated
-USING (organization_id IN (
-    SELECT organization_id FROM organization_users WHERE user_id = auth.uid()
-));
+USING (user_id = auth.uid());
 
 CREATE POLICY "Users can insert their own initial membership"
 ON organization_users FOR INSERT

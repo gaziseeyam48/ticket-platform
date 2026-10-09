@@ -1,6 +1,7 @@
 "use server";
 
 import { createServerDbClient as createClient } from "@/lib/db/server";
+import { getAdminClient } from "@/lib/db/admin";
 import { AppError } from "@/lib/errors/app-error";
 import { ERROR_CODES } from "@/lib/errors/error-codes";
 import {
@@ -9,6 +10,27 @@ import {
   registrationFormSchema,
 } from "@/lib/validations/form";
 import { revalidatePath } from "next/cache";
+
+async function verifyEventOrgMembership(adminDb: any, eventId: string, userId: string) {
+  const { data: event } = await adminDb
+    .from("events")
+    .select("id, organization_id, slug, status")
+    .eq("id", eventId)
+    .single();
+
+  if (!event) {
+    return { event: null, isMember: false };
+  }
+
+  const { data: membership } = await adminDb
+    .from("organization_users")
+    .select("role")
+    .eq("organization_id", event.organization_id)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  return { event, isMember: !!membership };
+}
 
 /**
  * Retrieves the registration form schema for an event.
@@ -26,21 +48,32 @@ export async function getRegistrationForm(eventId: string) {
     throw new AppError(ERROR_CODES.UNAUTHORIZED, "You must be logged in to view form settings.");
   }
 
+  const adminDb = getAdminClient();
+  const { event, isMember } = await verifyEventOrgMembership(adminDb, eventId, user.id);
+
+  if (!event) {
+    throw new AppError(ERROR_CODES.NOT_FOUND, "Event not found.");
+  }
+
+  if (!isMember) {
+    throw new AppError(ERROR_CODES.FORBIDDEN, "You do not have permission to view form settings.");
+  }
+
   // Fetch form
-  const { data: form, error } = await (supabase
+  const { data: form, error } = await (adminDb
     .from("registration_forms")
     .select("*")
     .eq("event_id", eventId)
     .maybeSingle() as any);
 
   if (error) {
-    console.error("Error fetching registration form:", error);
+    console.error("Error fetching registration form:", error.message || error);
     throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to fetch registration form.");
   }
 
   if (!form) {
     // If not found, insert default form
-    const { data: newForm, error: insertError } = await ((supabase as any)
+    const { data: newForm, error: insertError } = await ((adminDb as any)
       .from("registration_forms")
       .insert([
         {
@@ -52,7 +85,7 @@ export async function getRegistrationForm(eventId: string) {
       .single() as any);
 
     if (insertError) {
-      console.error("Error creating default registration form:", insertError);
+      console.error("Error creating default registration form:", insertError.message || insertError);
       // Fallback: return virtual default form
       return {
         id: "default",
@@ -82,25 +115,14 @@ export async function saveRegistrationForm(eventId: string, fields: FormField[])
     throw new AppError(ERROR_CODES.UNAUTHORIZED, "You must be logged in to update the form.");
   }
 
-  // Check event and organization ownership
-  const { data: event, error: eventError } = await (supabase
-    .from("events")
-    .select("id, organization_id, slug, status")
-    .eq("id", eventId)
-    .single() as any);
+  const adminDb = getAdminClient();
+  const { event, isMember } = await verifyEventOrgMembership(adminDb, eventId, user.id);
 
-  if (eventError || !event) {
+  if (!event) {
     throw new AppError(ERROR_CODES.NOT_FOUND, "Event not found.");
   }
 
-  const { data: membership } = await (supabase
-    .from("organization_users")
-    .select("role")
-    .eq("organization_id", event.organization_id)
-    .eq("user_id", user.id)
-    .maybeSingle() as any);
-
-  if (!membership) {
+  if (!isMember) {
     throw new AppError(
       ERROR_CODES.FORBIDDEN,
       "You do not have permission to modify this event's form."
@@ -125,7 +147,7 @@ export async function saveRegistrationForm(eventId: string, fields: FormField[])
   }));
 
   // Upsert form schema into database
-  const { data: updatedForm, error: updateError } = await ((supabase as any)
+  const { data: updatedForm, error: updateError } = await ((adminDb as any)
     .from("registration_forms")
     .upsert(
       {
@@ -139,7 +161,7 @@ export async function saveRegistrationForm(eventId: string, fields: FormField[])
     .single() as any);
 
   if (updateError) {
-    console.error("Error saving registration form:", updateError);
+    console.error("Error saving registration form:", updateError.message || updateError);
     throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to save registration form.");
   }
 
