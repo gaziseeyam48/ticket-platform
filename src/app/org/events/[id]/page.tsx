@@ -8,6 +8,7 @@ import Link from "next/link";
 import { ArrowLeft, ExternalLink, Calendar, MapPin, Tag, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { EventStatusManager } from "@/components/events/event-status-manager";
+import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
 
 export const metadata = {
   title: "Event Details - Ticket Platform",
@@ -28,20 +29,16 @@ export default async function EventDetailsPage(props: { params: Promise<{ id: st
   }
 
   // Get user's organization
-  const { data: orgUser } = await (supabase
-    .from("organization_users")
-    .select("organization_id")
-    .eq("user_id", user.id)
-    .single() as any);
+  const orgInfo = await getOrCreateUserOrganization(user.id, user.email);
 
-  if (!orgUser) {
+  if (!orgInfo) {
     redirect("/login");
   }
 
   const event = await getEventById(id);
 
   // Security check: event must belong to user's org
-  if (event.organization_id !== orgUser.organization_id) {
+  if (event.organization_id !== orgInfo.organizationId) {
     redirect("/org");
   }
 

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { logoutAction } from "@/app/actions/auth.actions";
 import { Button } from "@/components/ui/button";
+import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
 
 export const instant = false;
 
@@ -15,20 +16,9 @@ export default async function OrgLayout({ children }: { children: ReactNode }) {
     redirect("/login");
   }
 
-  // Fetch the organization for this user
-  const { data: orgUsers } = await supabase
-    .from("organization_users")
-    .select("role, organizations(name, slug)")
-    .eq("user_id", user.id)
-    .single();
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const organization = (orgUsers as any)?.organizations as any; // Type workaround for now
-  
-  if (!organization) {
-    // If they have no org for some reason, we might want to handle it (e.g. redirect to an org creation page). 
-    // For now we just display a generic header.
-  }
+  // Fetch or auto-provision organization for this user
+  const orgInfo = await getOrCreateUserOrganization(user.id, user.email);
+  const organization = orgInfo?.organization || null;
 
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col">

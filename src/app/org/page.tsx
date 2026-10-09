@@ -5,6 +5,7 @@ import { PlusCircle, Calendar, Users, Activity, Settings, ExternalLink } from "l
 import Link from "next/link";
 import { getEvents } from "@/app/actions/event.actions";
 import { format } from "date-fns";
+import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
 
 export const metadata = {
   title: "Dashboard - Ticket Platform",
@@ -19,15 +20,10 @@ export default async function DashboardPage() {
 
   if (!user) return null;
 
-  const { data: orgUser } = await (supabase
-    .from("organization_users")
-    .select("organization_id")
-    .eq("user_id", user.id)
-    .single() as any);
+  const orgInfo = await getOrCreateUserOrganization(user.id, user.email);
+  if (!orgInfo) return null;
 
-  if (!orgUser) return null;
-
-  const events = await getEvents(orgUser.organization_id);
+  const events = await getEvents(orgInfo.organizationId);
 
   const activeEventsCount = events.filter((e: any) => e.status === "PUBLISHED" || e.status === "LIVE").length;
   const totalRegistrations = 0; // Will be implemented in Phase 4/5

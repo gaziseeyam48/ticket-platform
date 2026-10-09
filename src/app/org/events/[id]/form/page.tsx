@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
 
 export const metadata = {
   title: "Registration Form Builder - Ticket Platform",
@@ -30,20 +31,16 @@ export default async function EventFormBuilderPage(props: {
   }
 
   // Get user's organization
-  const { data: orgUser } = await (supabase
-    .from("organization_users")
-    .select("organization_id")
-    .eq("user_id", user.id)
-    .single() as any);
+  const orgInfo = await getOrCreateUserOrganization(user.id, user.email);
 
-  if (!orgUser) {
+  if (!orgInfo) {
     redirect("/login");
   }
 
   const event = await getEventById(id);
 
   // Security check: event must belong to user's organization
-  if (event.organization_id !== orgUser.organization_id) {
+  if (event.organization_id !== orgInfo.organizationId) {
     redirect("/org");
   }
 

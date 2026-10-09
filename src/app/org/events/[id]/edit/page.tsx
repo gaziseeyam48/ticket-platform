@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
 
 export const metadata = {
   title: "Edit Event - Ticket Platform",
@@ -25,20 +26,16 @@ export default async function EditEventPage(props: { params: Promise<{ id: strin
   }
 
   // Get user's organization
-  const { data: orgUser } = await (supabase
-    .from("organization_users")
-    .select("organization_id")
-    .eq("user_id", user.id)
-    .single() as any);
+  const orgInfo = await getOrCreateUserOrganization(user.id, user.email);
 
-  if (!orgUser) {
+  if (!orgInfo) {
     redirect("/login");
   }
 
   const event = await getEventById(id);
 
   // Security check: event must belong to user's org
-  if (event.organization_id !== orgUser.organization_id) {
+  if (event.organization_id !== orgInfo.organizationId) {
     redirect("/org");
   }
 
@@ -62,7 +59,7 @@ export default async function EditEventPage(props: { params: Promise<{ id: strin
         </CardHeader>
         <CardContent>
           <EventForm 
-            organizationId={orgUser.organization_id} 
+            organizationId={orgInfo.organizationId} 
             eventId={event.id}
             initialData={event}
           />
