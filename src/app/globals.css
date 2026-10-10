@@ -37,3 +37,45 @@
     background: #a1a1aa;
   }
 }
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes float-delayed {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes scan-line {
+  0%, 100% {
+    transform: translateY(0%);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(280%);
+    opacity: 0.9;
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-delayed 8s ease-in-out 1s infinite;
+}
+
+.animate-scan-line {
+  animation: scan-line 3s ease-in-out infinite;
+}
+

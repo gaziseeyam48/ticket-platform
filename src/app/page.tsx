@@ -10,12 +10,9 @@ import {
   CheckCircle2,
   AlertTriangle,
   ArrowRight,
-  Sparkles,
   ShieldCheck,
   Users,
-  Calendar,
   Smartphone,
-  Search,
   Volume2,
   Sun,
   Flashlight,
@@ -24,16 +21,14 @@ import {
   ChevronUp,
   Share2,
   Clock,
-  Building,
-  Star,
-  ExternalLink,
+  Sparkles,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { playScanSound } from "@/lib/utils/audio";
 
 export default function HomePage() {
   const router = useRouter();
   const [emailInput, setEmailInput] = useState("");
-  const [scannerDemoState, setScannerDemoState] = useState<"valid" | "duplicate" | "sunlight">("valid");
+  const [activeScanDemo, setActiveScanDemo] = useState<"valid" | "duplicate">("valid");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const handleStartWithEmail = (e: React.FormEvent) => {
@@ -45,52 +40,61 @@ export default function HomePage() {
     }
   };
 
+  const handleSimulateScan = (type: "valid" | "duplicate") => {
+    setActiveScanDemo(type);
+    if (type === "valid") {
+      playScanSound("VALID");
+    } else {
+      playScanSound("ALREADY_CHECKED_IN");
+    }
+  };
+
   const faqs = [
     {
-      q: "Do my attendees need to download an app or create an account?",
-      a: "No! Your guests never have to download anything or remember a password. When they register, their digital ticket pass opens directly in their browser and arrives instantly in their email. They can save it to their phone or show it at the door.",
+      q: "Do guests need an app or an account?",
+      a: "No. Guests never need to download anything or create a password. Their ticket pass arrives directly in their email and opens in any mobile browser with one tap.",
     },
     {
-      q: "Can my staff and volunteers scan tickets without seeing my private data?",
-      a: "Yes! You can invite door staff with a simple 1-click link. They can open the scanner on their own phones and verify tickets immediately, without having access to your financial dashboard or guest lists.",
+      q: "Can volunteers scan tickets without seeing my private data?",
+      a: "Yes. You can generate a 1-click staff link. Staff open the scanner on their own phone and check guests in without accessing your ticket sales, bank details, or private guest database.",
     },
     {
-      q: "What happens if someone tries to use a ticket twice?",
-      a: "The scanner instantly flashes yellow, plays a warning sound, and tells you the exact time that ticket was already used. It's physically impossible for the same ticket to be admitted twice.",
+      q: "What stops someone from copying or screenshotting a ticket?",
+      a: "The instant a ticket is scanned at any entrance, the system permanently locks that ticket. If someone presents the same QR code again, the scanner immediately sounds a warning tone and displays the exact time it was already used.",
     },
     {
-      q: "Can I collect custom information from guests, like dietary needs or job titles?",
-      a: "Absolutely. With our simple form builder, you can add any questions you need—multiple choice, text, phone numbers, or checkboxes—in just a few clicks.",
+      q: "Can I ask custom questions when guests register?",
+      a: "Yes. You can add any question you need—like dietary requirements, t-shirt size, company name, or phone numbers—with required or optional toggles.",
     },
     {
-      q: "Does the scanner work outdoors in bright sunlight or at night?",
-      a: "Yes! Every ticket includes a one-tap 'Outdoor Brightness' mode for direct sunlight, and the door scanner includes a built-in flashlight toggle for low-light evening venues.",
+      q: "Does the scanner work outdoors in direct sunlight?",
+      a: "Yes. Every ticket pass includes a 1-tap Outdoor Brightness Mode that maximizes QR contrast for bright daylight, and the scanner includes a flashlight toggle for dark evening venues.",
     },
     {
       q: "How much does it cost?",
-      a: "TicketPlatform is 100% free forever for free community events, meetups, and gatherings. For paid events, you can collect payments directly with zero hidden platform cuts.",
+      a: "TicketPlatform is completely free for free events. For paid events, you can collect payments directly with zero platform deductions.",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-[#fafaf8] text-zinc-900 flex flex-col font-sans selection:bg-zinc-900 selection:text-zinc-50 antialiased">
+    <div className="min-h-screen bg-[#fcfcfb] text-zinc-900 flex flex-col font-sans selection:bg-zinc-900 selection:text-white antialiased">
       {/* --------------------------------------------------------------------- */}
-      {/* 1. TOP NAVIGATION BAR                                                 */}
+      {/* 1. CLEAN NAVIGATION (Minimal, spacious, no heavy borders)              */}
       {/* --------------------------------------------------------------------- */}
-      <header className="sticky top-0 z-50 bg-[#fafaf8]/85 backdrop-blur-md border-b border-zinc-200/70">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-50 bg-[#fcfcfb]/80 backdrop-blur-md transition-colors">
+        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="h-9 w-9 rounded-xl bg-zinc-900 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-              <Ticket className="h-5 w-5 text-zinc-100" />
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-zinc-900 text-white flex items-center justify-center">
+              <Ticket className="h-4 w-4 text-zinc-100" />
             </div>
-            <span className="font-bold text-lg sm:text-xl tracking-tight text-zinc-900">
+            <span className="font-semibold text-lg tracking-tight text-zinc-900">
               TicketPlatform
             </span>
           </Link>
 
-          {/* Center Navigation Links (Desktop) */}
-          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-zinc-600">
+          {/* Navigation Links */}
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600">
             <a href="#features" className="hover:text-zinc-900 transition-colors">
               Features
             </a>
@@ -108,219 +112,157 @@ export default function HomePage() {
             </a>
           </nav>
 
-          {/* Right Action Buttons */}
-          <div className="flex items-center gap-3">
+          {/* Action CTAs */}
+          <div className="flex items-center gap-4">
             <Link
               href="/login"
-              className="text-xs sm:text-sm font-semibold text-zinc-600 hover:text-zinc-900 px-2 py-1 transition-colors"
+              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
             >
               Sign In
             </Link>
             <Link href="/signup">
-              <Button
-                size="sm"
-                className="rounded-full px-4 text-xs font-semibold shadow-xs hover:shadow-md transition-all cursor-pointer"
+              <button
+                type="button"
+                className="h-10 px-5 rounded-full bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-all cursor-pointer shadow-xs hover:scale-[1.02] active:scale-[0.98]"
               >
-                Create Free Event
-              </Button>
+                Create Event
+              </button>
             </Link>
           </div>
         </div>
       </header>
 
       {/* --------------------------------------------------------------------- */}
-      {/* 2. HERO SECTION WITH FLOATING VISUAL CARDS                            */}
+      {/* 2. HERO SECTION (ChronoTask & Edgelabs Inspired: Pure aesthetic)       */}
       {/* --------------------------------------------------------------------- */}
-      <section className="relative pt-12 pb-20 sm:pt-20 sm:pb-28 overflow-hidden">
-        {/* Subtle background radial dot pattern */}
+      <section className="relative pt-12 pb-24 sm:pt-20 sm:pb-36 overflow-hidden">
+        {/* Subtle radial dot backdrop */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-[0.35]"
+          className="absolute inset-0 pointer-events-none opacity-40"
           style={{
-            backgroundImage: `radial-gradient(#d4d4d8 1px, transparent 1px)`,
-            backgroundSize: "24px 24px",
+            backgroundImage: `radial-gradient(#e4e4e7 1px, transparent 1px)`,
+            backgroundSize: "28px 28px",
           }}
         />
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative">
-          {/* Main Hero Header Center */}
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            {/* Pill Tag */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-zinc-200 shadow-2xs text-xs font-semibold text-zinc-800 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Event ticketing made delightfully simple</span>
-              <span className="text-zinc-300">|</span>
-              <span className="text-emerald-700 font-bold">100% Free to Start</span>
+        <div className="max-w-6xl mx-auto px-6 relative">
+          {/* Top Label & Tactile Icon (ChronoTask reference) */}
+          <div className="flex flex-col items-center text-center space-y-4 mb-6">
+            <div className="h-12 w-12 rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)] flex items-center justify-center p-2.5">
+              <div className="grid grid-cols-2 gap-1.5 w-full h-full">
+                <div className="rounded-full bg-blue-500" />
+                <div className="rounded-full bg-zinc-900" />
+                <div className="rounded-full bg-zinc-900" />
+                <div className="rounded-full bg-zinc-900" />
+              </div>
             </div>
+          </div>
 
-            {/* Main Headline */}
-            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-zinc-900 leading-[1.1] sm:leading-[1.12]">
-              Create, sell, and check in tickets.{" "}
-              <span className="text-zinc-500 font-normal">All in one place.</span>
+          {/* Central Typographic Lede */}
+          <div className="max-w-3xl mx-auto text-center space-y-6">
+            <h1 className="text-4xl sm:text-6xl font-bold tracking-[-0.03em] text-zinc-900 leading-[1.08]">
+              Think, host, and check in guests all in one place
             </h1>
 
-            {/* Human-friendly Subheadline */}
-            <p className="text-base sm:text-lg text-zinc-600 max-w-2xl mx-auto leading-relaxed">
-              No apps to download. No accounts or passwords for your guests. Create your event
-              page in 2 minutes and scan tickets at the door with any phone camera.
+            <p className="text-base sm:text-lg text-zinc-500 max-w-xl mx-auto font-normal leading-relaxed">
+              No apps to download. No passwords for your guests. Create your event page in minutes and scan tickets at the door with any phone camera.
             </p>
 
-            {/* Lead Capture Form */}
+            {/* Email Lead Capture Box */}
             <div className="pt-2 max-w-md mx-auto">
               <form
                 onSubmit={handleStartWithEmail}
-                className="flex flex-col sm:flex-row gap-2.5 p-1.5 bg-white border border-zinc-200 rounded-2xl shadow-sm focus-within:border-zinc-400 focus-within:ring-2 focus-within:ring-zinc-900/5 transition-all"
+                className="flex items-center p-1.5 bg-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all focus-within:shadow-[0_8px_30px_rgb(0,0,0,0.1)]"
               >
                 <input
                   type="email"
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="Enter your email to get started..."
-                  aria-label="Enter your email address"
-                  className="flex-1 px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 bg-transparent focus:outline-none"
+                  aria-label="Enter your email"
+                  className="flex-1 px-5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 bg-transparent focus:outline-none"
                 />
-                <Button
+                <button
                   type="submit"
-                  className="h-11 px-6 rounded-xl text-xs font-bold shrink-0 cursor-pointer shadow-xs gap-1.5"
+                  className="h-10 px-6 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shrink-0 cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-xs"
                 >
-                  Start For Free
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
+                  Get free demo
+                </button>
               </form>
 
-              {/* Trust Badges under CTA */}
-              <div className="pt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs text-zinc-500 font-medium">
-                <span className="flex items-center gap-1.5">
-                  <Check className="h-3.5 w-3.5 text-emerald-600" />
-                  Free forever for free events
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Check className="h-3.5 w-3.5 text-emerald-600" />
-                  No credit card required
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Check className="h-3.5 w-3.5 text-emerald-600" />
-                  Ready in 2 minutes
-                </span>
+              <div className="pt-3 flex items-center justify-center gap-6 text-xs text-zinc-400 font-medium">
+                <span>Free for community events</span>
+                <span>•</span>
+                <span>No credit card needed</span>
+                <span>•</span>
+                <span>2-minute setup</span>
               </div>
             </div>
           </div>
 
           {/* ----------------------------------------------------------------- */}
-          {/* FLOATING PRODUCT PREVIEWS (ChronoTask & Finpay inspired)         */}
+          {/* ASYMMETRIC FLOATING ARTIFACTS (Direct ChronoTask & Finpay feel)    */}
           {/* ----------------------------------------------------------------- */}
-          <div className="mt-14 sm:mt-16 relative max-w-5xl mx-auto">
-            {/* Background subtle pedestal card */}
-            <div className="p-6 sm:p-10 rounded-3xl bg-white border border-zinc-200/90 shadow-xl space-y-8 relative overflow-hidden">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-zinc-100 pb-5">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-zinc-900 text-white flex items-center justify-center font-bold text-sm">
-                    ⚡
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-bold text-zinc-900">
-                      Live Event Control Center
-                    </h3>
-                    <p className="text-xs text-zinc-500">
-                      Everything updates in real time as guests arrive
-                    </p>
-                  </div>
-                </div>
+          <div className="mt-16 sm:mt-24 relative max-w-4xl mx-auto min-h-[340px] hidden sm:block pointer-events-none select-none">
+            {/* Artifact 1 (Top-Left): Yellow Sticky Note with Pushpin */}
+            <div className="absolute left-2 -top-6 w-60 p-5 rounded-2xl bg-[#fff9c4] text-zinc-800 shadow-[0_12px_32px_rgba(0,0,0,0.08)] rotate-[-4deg] animate-float-slow">
+              <div className="w-3 h-3 rounded-full bg-rose-500 mx-auto -mt-2 mb-3 shadow-xs" />
+              <p className="text-xs font-medium leading-relaxed font-sans">
+                Guests never create an account or remember passwords. Tickets arrive straight in their inbox.
+              </p>
+              <div className="mt-3 pt-2 border-t border-amber-300/60 text-[10px] font-mono text-zinc-500 flex items-center justify-between">
+                <span>Zero friction</span>
+                <span>✓ 100% delivered</span>
+              </div>
+            </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                    Gate Live • 94% Checked In
-                  </span>
-                </div>
+            {/* Artifact 2 (Top-Right): Clean Door Verification Card */}
+            <div className="absolute right-4 -top-8 w-64 p-4 rounded-2xl bg-white shadow-[0_16px_40px_rgba(0,0,0,0.08)] rotate-[3deg] animate-float-delayed">
+              <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
+                <span className="text-[11px] font-medium text-zinc-400">Door Gate 1</span>
+                <span className="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live Scan
+                </span>
               </div>
 
-              {/* Hero Feature 3-Column Preview Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {/* 1. Attendee Pass Preview Widget */}
-                <div className="p-5 rounded-2xl bg-[#fafaf8] border border-zinc-200/80 space-y-4 hover:border-zinc-300 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                      Digital Guest Pass
-                    </span>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                      Active
-                    </span>
-                  </div>
-
-                  {/* Mini Ticket Card */}
-                  <div className="p-3 bg-white rounded-xl border border-zinc-200 text-center space-y-2 shadow-2xs">
-                    <div className="mx-auto w-24 h-24 p-1.5 bg-zinc-50 rounded-lg border border-zinc-200 flex items-center justify-center">
-                      <QrCode className="h-16 w-16 text-zinc-900" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-zinc-900">Alex Rivera</p>
-                      <p className="text-[11px] font-mono text-zinc-500">Pass #TKT-88210</p>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-zinc-500 leading-relaxed">
-                    Opens in 1 click from guest email. Zero passwords or app installations required.
-                  </p>
+              <div className="pt-3 flex items-center gap-3">
+                <div className="h-9 w-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="h-5 w-5" />
                 </div>
-
-                {/* 2. Fast Phone Scanner Widget */}
-                <div className="p-5 rounded-2xl bg-zinc-950 text-white space-y-4 shadow-lg flex flex-col justify-between">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                      Door Scanner
-                    </span>
-                    <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-                      Ready
-                    </span>
-                  </div>
-
-                  {/* Simulated scanner viewfinder */}
-                  <div className="relative aspect-video rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                    <div className="p-3 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center gap-2 border border-emerald-500/40">
-                      <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                      <div className="text-left">
-                        <p className="text-xs font-bold text-white">Valid Pass</p>
-                        <p className="text-[10px] text-emerald-200">Admitted in 0.4s</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-zinc-400 leading-relaxed">
-                    Turn any iPhone or Android camera into a lightning-fast gate scanner.
-                  </p>
+                <div>
+                  <p className="text-xs font-bold text-zinc-900">Alex Rivera</p>
+                  <p className="text-[11px] text-zinc-400 font-mono">Pass #TKT-88210 • 0.3s</p>
                 </div>
+              </div>
+            </div>
 
-                {/* 3. Live Stats & Headcount */}
-                <div className="p-5 rounded-2xl bg-[#fafaf8] border border-zinc-200/80 space-y-4 hover:border-zinc-300 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                      Attendance Pulse
-                    </span>
-                    <span className="text-[11px] font-semibold text-zinc-600">
-                      Real-time
-                    </span>
-                  </div>
+            {/* Artifact 3 (Bottom-Left): Live Today's Event Progress Card */}
+            <div className="absolute left-10 bottom-2 w-72 p-4 rounded-2xl bg-white shadow-[0_16px_40px_rgba(0,0,0,0.08)] rotate-[1.5deg] animate-float-delayed">
+              <div className="flex items-center justify-between text-xs pb-2 border-b border-zinc-100">
+                <span className="font-semibold text-zinc-800">Tech Summit 2026</span>
+                <span className="text-zinc-400 text-[11px]">88% Capacity</span>
+              </div>
+              <div className="pt-2.5 space-y-1.5">
+                <div className="flex justify-between text-[11px] text-zinc-500">
+                  <span>Admitted at gate</span>
+                  <span className="font-bold text-zinc-900">248 / 280</span>
+                </div>
+                <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-600 rounded-full w-[88%]" />
+                </div>
+              </div>
+            </div>
 
-                  <div className="p-3 bg-white rounded-xl border border-zinc-200 space-y-2.5 shadow-2xs">
-                    <div className="flex justify-between items-baseline">
-                      <span className="text-xs text-zinc-500">Admitted Today</span>
-                      <span className="text-lg font-bold text-zinc-900">376 / 400</span>
-                    </div>
-
-                    <div className="w-full h-2 rounded-full bg-zinc-100 overflow-hidden">
-                      <div className="h-full bg-emerald-500 rounded-full w-[94%]" />
-                    </div>
-
-                    <div className="pt-1 flex items-center justify-between text-[11px] text-zinc-500">
-                      <span>Recent scans</span>
-                      <span className="text-emerald-700 font-semibold">+18 in last 5m</span>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-zinc-500 leading-relaxed">
-                    Always know who is in the venue. Export attendee logs anytime in CSV.
-                  </p>
+            {/* Artifact 4 (Bottom-Right): Digital QR Pass Tile */}
+            <div className="absolute right-12 bottom-0 w-64 p-4 rounded-2xl bg-white shadow-[0_16px_40px_rgba(0,0,0,0.08)] rotate-[-2deg] animate-float-slow">
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 p-1.5 bg-zinc-50 rounded-xl flex items-center justify-center shrink-0">
+                  <QrCode className="h-10 w-10 text-zinc-900" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-zinc-900">Verified Admission</p>
+                  <p className="text-[11px] text-zinc-500">Works in bright sun or dim evening light</p>
                 </div>
               </div>
             </div>
@@ -329,260 +271,272 @@ export default function HomePage() {
       </section>
 
       {/* --------------------------------------------------------------------- */}
-      {/* 3. TRUSTED SOCIAL PROOF LOGO STRIP                                    */}
+      {/* 3. SUBTLE SOCIAL PROOF STRIP (Minimalist typography)                  */}
       {/* --------------------------------------------------------------------- */}
-      <section className="py-10 border-y border-zinc-200/80 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center space-y-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-            Trusted by modern event creators, universities, tech conferences, and meetups
+      <section className="py-12 border-y border-zinc-200/50 bg-white/60">
+        <div className="max-w-6xl mx-auto px-6 text-center space-y-4">
+          <p className="text-xs text-zinc-400 font-medium tracking-wide">
+            Trusted by independent organizers, universities, and gatherings worldwide
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 pt-2 text-zinc-400 text-sm font-bold tracking-tight">
-            <span className="hover:text-zinc-800 transition-colors flex items-center gap-1.5">
-              <Building className="h-4 w-4" /> Global Tech Summit
-            </span>
-            <span className="hover:text-zinc-800 transition-colors flex items-center gap-1.5">
-              <Sparkles className="h-4 w-4" /> DesignFest 2026
-            </span>
-            <span className="hover:text-zinc-800 transition-colors flex items-center gap-1.5">
-              <Users className="h-4 w-4" /> Campus Community
-            </span>
-            <span className="hover:text-zinc-800 transition-colors flex items-center gap-1.5">
-              <Ticket className="h-4 w-4" /> Indie Creators
-            </span>
-            <span className="hover:text-zinc-800 transition-colors flex items-center gap-1.5">
-              <Calendar className="h-4 w-4" /> City Dev Meetup
-            </span>
+          <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-16 text-zinc-400 text-sm font-semibold tracking-tight">
+            <span className="hover:text-zinc-700 transition-colors">Global Tech Summit</span>
+            <span className="hover:text-zinc-700 transition-colors">DesignFest 2026</span>
+            <span className="hover:text-zinc-700 transition-colors">Campus Community</span>
+            <span className="hover:text-zinc-700 transition-colors">City Dev Meetup</span>
+            <span className="hover:text-zinc-700 transition-colors">Maker Gathering</span>
           </div>
         </div>
       </section>
 
       {/* --------------------------------------------------------------------- */}
-      {/* 4. KEY BENEFITS / FEATURES (Simple Words)                             */}
+      {/* 4. THREE CORE EXPERIENCES (Edgelabs & Finpay Inspiration)             */}
       {/* --------------------------------------------------------------------- */}
-      <section id="features" className="py-20 sm:py-28 max-w-6xl mx-auto px-4 sm:px-6 space-y-16">
-        <div className="max-w-2xl mx-auto text-center space-y-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-            Why Organizers Switch
+      <section id="features" className="py-24 sm:py-32 max-w-6xl mx-auto px-6 space-y-20">
+        <div className="max-w-xl mx-auto text-center space-y-3">
+          <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">
+            Simple by design
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-900">
-            Ticketing without the headache.
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900">
+            Everything your event needs, nothing it doesn&apos;t
           </h2>
-          <p className="text-sm sm:text-base text-zinc-600">
-            Everything you need to host a flawless event, without confusing menus or expensive hardware.
+          <p className="text-sm text-zinc-500 leading-relaxed">
+            Built for people who want to organize great gatherings, not wrestle with bloated software.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Card 1 */}
-          <div className="p-6 rounded-2xl bg-white border border-zinc-200 shadow-2xs space-y-3 hover:shadow-sm transition-shadow">
-            <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-900 font-bold">
-              <Users className="h-5 w-5 text-zinc-800" />
-            </div>
-            <h3 className="text-base font-bold text-zinc-900">Zero-Friction Signups</h3>
-            <p className="text-xs text-zinc-600 leading-relaxed">
-              Guests never sign up for an account or remember passwords. They simply enter their details and get their ticket pass immediately.
+        {/* Feature 1: Seamless Guest Experience */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-4">
+            <span className="text-xs uppercase tracking-widest text-blue-600 font-semibold">
+              01 • Guest Experience
+            </span>
+            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
+              Your attendees never create an account
+            </h3>
+            <p className="text-sm text-zinc-500 leading-relaxed">
+              Forced logins and password creation are the number one reason people drop out of registration forms. With TicketPlatform, your guests enter their name and email, and their ticket pass arrives in their inbox in seconds.
             </p>
+            <ul className="space-y-2.5 pt-2 text-xs text-zinc-600">
+              <li className="flex items-center gap-2.5">
+                <Check className="h-4 w-4 text-zinc-900" />
+                <span>Instant ticket delivery straight to email</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <Check className="h-4 w-4 text-zinc-900" />
+                <span>Add directly to Apple Calendar or Google Calendar (.ics)</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <Check className="h-4 w-4 text-zinc-900" />
+                <span>Works on any mobile device without downloading an app</span>
+              </li>
+            </ul>
           </div>
 
-          {/* Card 2 */}
-          <div className="p-6 rounded-2xl bg-white border border-zinc-200 shadow-2xs space-y-3 hover:shadow-sm transition-shadow">
-            <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-900 font-bold">
-              <Camera className="h-5 w-5 text-zinc-800" />
+          <div className="p-8 rounded-3xl bg-white shadow-[0_20px_50px_rgba(0,0,0,0.05)] text-center space-y-4">
+            <div className="max-w-xs mx-auto p-5 rounded-2xl bg-[#fcfcfb] border border-zinc-100 space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-zinc-900">Global Tech Summit</span>
+                <span className="text-emerald-700 font-medium">Valid Pass</span>
+              </div>
+              <div className="p-3 bg-white rounded-xl flex items-center justify-center">
+                <QrCode className="h-32 w-32 text-zinc-900" />
+              </div>
+              <p className="font-mono text-xs text-zinc-500">#TKT-99812 • Sarah Jenkins</p>
             </div>
-            <h3 className="text-base font-bold text-zinc-900">Instant Phone Scanning</h3>
-            <p className="text-xs text-zinc-600 leading-relaxed">
-              Scan tickets in under 1 second with any smartphone camera. Plays a pleasant chime on success and vibrates on duplicate passes.
+            <p className="text-xs text-zinc-400">
+              Ready to present at the gate with zero friction.
             </p>
           </div>
+        </div>
 
-          {/* Card 3 */}
-          <div className="p-6 rounded-2xl bg-white border border-zinc-200 shadow-2xs space-y-3 hover:shadow-sm transition-shadow">
-            <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-900 font-bold">
-              <Share2 className="h-5 w-5 text-zinc-800" />
+        {/* Feature 2: Phone Camera Gate Scanning */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="order-2 md:order-1 p-8 rounded-3xl bg-zinc-900 text-white shadow-xl space-y-5">
+            <div className="flex items-center justify-between text-xs text-zinc-400 pb-3 border-b border-zinc-800">
+              <span className="flex items-center gap-1.5 font-medium text-white">
+                <Camera className="h-4 w-4 text-emerald-400" />
+                Live Door Scanner
+              </span>
+              <span className="font-mono text-zinc-400">0.3s Scan Speed</span>
             </div>
-            <h3 className="text-base font-bold text-zinc-900">1-Click Volunteer Links</h3>
-            <p className="text-xs text-zinc-600 leading-relaxed">
-              Need helpers at the door? Send volunteers a secure scan link. They can check guests in without seeing your finances or guest records.
-            </p>
+
+            <div className="relative aspect-video rounded-2xl bg-zinc-950 flex flex-col items-center justify-center text-center p-6 overflow-hidden">
+              <div className="h-12 w-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2">
+                <CheckCircle2 className="h-7 w-7" />
+              </div>
+              <p className="text-sm font-bold text-white">Welcome, David Clark</p>
+              <p className="text-xs text-emerald-300 font-mono">Pass Verified • Admitted</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs text-zinc-400">
+              <div className="p-2.5 rounded-xl bg-zinc-800/60">
+                <span className="text-white font-medium block">Sound Chimes</span>
+                Pleasant sound confirmation
+              </div>
+              <div className="p-2.5 rounded-xl bg-zinc-800/60">
+                <span className="text-white font-medium block">Flashlight Mode</span>
+                Built-in for evening venues
+              </div>
+            </div>
           </div>
 
-          {/* Card 4 */}
-          <div className="p-6 rounded-2xl bg-white border border-zinc-200 shadow-2xs space-y-3 hover:shadow-sm transition-shadow">
-            <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-900 font-bold">
-              <ShieldCheck className="h-5 w-5 text-zinc-800" />
-            </div>
-            <h3 className="text-base font-bold text-zinc-900">Double-Scan Protection</h3>
-            <p className="text-xs text-zinc-600 leading-relaxed">
-              Once a ticket is scanned at any door, it is instantly locked. Duplicate screenshots or forwarded passes are caught right at the gate.
+          <div className="order-1 md:order-2 space-y-4">
+            <span className="text-xs uppercase tracking-widest text-blue-600 font-semibold">
+              02 • Door Admission
+            </span>
+            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
+              Scan tickets with any phone camera
+            </h3>
+            <p className="text-sm text-zinc-500 leading-relaxed">
+              No rented barcode guns or proprietary hardware. Any smartphone camera becomes a high-speed gate turnstile. Audio chimes confirm entry instantly, so staff never have to keep looking down.
             </p>
+            <ul className="space-y-2.5 pt-2 text-xs text-zinc-600">
+              <li className="flex items-center gap-2.5">
+                <Check className="h-4 w-4 text-zinc-900" />
+                <span>Double-scan proof: Identical passes are instantly rejected</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <Check className="h-4 w-4 text-zinc-900" />
+                <span>Works outdoors in direct sunlight and in dim night venues</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <Check className="h-4 w-4 text-zinc-900" />
+                <span>Support for USB/Bluetooth laser barcode scanners</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Feature 3: Team Collaboration */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-4">
+            <span className="text-xs uppercase tracking-widest text-blue-600 font-semibold">
+              03 • Staff Delegation
+            </span>
+            <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
+              Invite volunteers with a single link
+            </h3>
+            <p className="text-sm text-zinc-500 leading-relaxed">
+              Running an event requires team help. Send a staff link to volunteers, greeters, or venue security. They can open their phone camera and start admitting guests immediately—without seeing your bank info, financial earnings, or private organizer settings.
+            </p>
+            <ul className="space-y-2.5 pt-2 text-xs text-zinc-600">
+              <li className="flex items-center gap-2.5">
+                <Check className="h-4 w-4 text-zinc-900" />
+                <span>No volunteer account setup required</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <Check className="h-4 w-4 text-zinc-900" />
+                <span>Staff can only scan passes, keeping financial records private</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <Check className="h-4 w-4 text-zinc-900" />
+                <span>Revoke staff access at any time with one click</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="p-8 rounded-3xl bg-white shadow-[0_20px_50px_rgba(0,0,0,0.05)] space-y-4">
+            <div className="p-4 rounded-2xl bg-[#fcfcfb] border border-zinc-100 flex items-center justify-between text-xs">
+              <div>
+                <p className="font-semibold text-zinc-900">Staff Scan Link</p>
+                <p className="text-zinc-400 font-mono text-[11px]">tickets.platform/verify/staff-token</p>
+              </div>
+              <button
+                type="button"
+                className="px-3 py-1.5 rounded-full bg-zinc-900 text-white text-[11px] font-medium"
+              >
+                Copy Link
+              </button>
+            </div>
+            <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100 text-xs text-emerald-800 flex items-center gap-2.5">
+              <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span>Gatekeeper mode active: Financial reports and attendee data protected.</span>
+            </div>
           </div>
         </div>
       </section>
 
       {/* --------------------------------------------------------------------- */}
-      {/* 5. INTERACTIVE DOOR SCANNER SPOTLIGHT (Dark Section, Finpay inspired) */}
+      {/* 5. INTERACTIVE LIVE SCANNER SIMULATION (Sound + Haptic)                */}
       {/* --------------------------------------------------------------------- */}
-      <section id="scanner" className="py-16 sm:py-24 bg-zinc-900 text-white relative">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-12">
-          <div className="max-w-2xl mx-auto text-center space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-              Turnstile Gate Experience
+      <section id="scanner" className="py-24 sm:py-32 bg-zinc-950 text-white relative">
+        <div className="max-w-4xl mx-auto px-6 space-y-12 text-center">
+          <div className="space-y-3">
+            <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">
+              Live Interactive Preview
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              The easiest door check-in your team has ever used.
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+              Try the door scanner right now
             </h2>
-            <p className="text-sm sm:text-base text-zinc-400">
-              No training manuals required. Hand any volunteer a phone and watch guests breeze through the entrance in seconds.
+            <p className="text-sm text-zinc-400 max-w-lg mx-auto">
+              Click below to test the sound cues and duplicate-ticket rejection system in real time.
             </p>
           </div>
 
-          {/* Interactive Demo Viewport Container */}
-          <div className="p-6 sm:p-10 rounded-3xl bg-zinc-950 border border-zinc-800 max-w-4xl mx-auto shadow-2xl space-y-8">
-            {/* Interactive Demo State Selector */}
-            <div className="flex flex-wrap items-center justify-center gap-2 pb-2">
-              <button
-                type="button"
-                onClick={() => setScannerDemoState("valid")}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  scannerDemoState === "valid"
-                    ? "bg-emerald-500 text-zinc-950 shadow-md"
-                    : "bg-zinc-900 text-zinc-400 hover:text-white"
-                }`}
-              >
-                ✓ Valid Pass Scan
-              </button>
-              <button
-                type="button"
-                onClick={() => setScannerDemoState("duplicate")}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  scannerDemoState === "duplicate"
-                    ? "bg-amber-400 text-zinc-950 shadow-md"
-                    : "bg-zinc-900 text-zinc-400 hover:text-white"
-                }`}
-              >
-                ⚠️ Duplicate Scan Alert
-              </button>
-              <button
-                type="button"
-                onClick={() => setScannerDemoState("sunlight")}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  scannerDemoState === "sunlight"
-                    ? "bg-white text-zinc-950 shadow-md"
-                    : "bg-zinc-900 text-zinc-400 hover:text-white"
-                }`}
-              >
-                ☀️ Outdoor Sunlight Mode
-              </button>
-            </div>
+          {/* Interactive Simulation Controls */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => handleSimulateScan("valid")}
+              className={`px-5 py-2.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                activeScanDemo === "valid"
+                  ? "bg-white text-zinc-950 shadow-md scale-105"
+                  : "bg-zinc-900 text-zinc-400 hover:text-white"
+              }`}
+            >
+              Simulate Valid Scan (Sound Chime)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSimulateScan("duplicate")}
+              className={`px-5 py-2.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                activeScanDemo === "duplicate"
+                  ? "bg-amber-400 text-zinc-950 shadow-md scale-105"
+                  : "bg-zinc-900 text-zinc-400 hover:text-white"
+              }`}
+            >
+              Simulate Duplicate Scan (Warning Tone)
+            </button>
+          </div>
 
-            {/* Interactive Showcase Mockup */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              {/* Left Side: Mock Scanner View */}
-              <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 text-center space-y-5">
-                <div className="flex items-center justify-between text-xs text-zinc-400 pb-2 border-b border-zinc-800">
-                  <span className="flex items-center gap-1.5">
-                    <Camera className="h-3.5 w-3.5 text-emerald-400" />
-                    Phone Viewfinder
-                  </span>
-                  <span className="text-[11px] font-mono">Camera: Rear 1080p</span>
+          {/* Simulated Scanner Viewport */}
+          <div className="max-w-md mx-auto p-6 rounded-3xl bg-zinc-900 text-center space-y-4 shadow-2xl">
+            {activeScanDemo === "valid" ? (
+              <div className="p-6 rounded-2xl bg-emerald-600 text-white space-y-3 animate-in zoom-in-95 duration-150">
+                <CheckCircle2 className="h-12 w-12 mx-auto text-white" />
+                <div>
+                  <p className="text-[11px] uppercase tracking-wider font-semibold text-emerald-200">
+                    Access Granted
+                  </p>
+                  <h4 className="text-2xl font-bold">David Clark</h4>
+                  <p className="text-xs text-emerald-100 font-mono">Pass #TKT-99812</p>
                 </div>
-
-                {scannerDemoState === "valid" && (
-                  <div className="p-6 rounded-2xl bg-emerald-600 text-white space-y-3 animate-in zoom-in-95 duration-150">
-                    <CheckCircle2 className="h-12 w-12 mx-auto text-white" />
-                    <div>
-                      <p className="text-[11px] uppercase tracking-wider font-semibold text-emerald-200">
-                        Access Granted
-                      </p>
-                      <h4 className="text-2xl font-bold">David Clark</h4>
-                      <p className="text-xs text-emerald-100 font-mono">Pass #TKT-99812</p>
-                    </div>
-                    <div className="text-[11px] p-2 rounded-lg bg-black/20 font-medium">
-                      Admitted at Gate 1 • Pleasant Two-Tone Chime
-                    </div>
-                  </div>
-                )}
-
-                {scannerDemoState === "duplicate" && (
-                  <div className="p-6 rounded-2xl bg-amber-500 text-zinc-950 space-y-3 animate-in zoom-in-95 duration-150">
-                    <AlertTriangle className="h-12 w-12 mx-auto text-zinc-950" />
-                    <div>
-                      <p className="text-[11px] uppercase tracking-wider font-extrabold text-amber-950">
-                        Duplicate Entrance Scan!
-                      </p>
-                      <h4 className="text-2xl font-bold">Already Checked In!</h4>
-                      <p className="text-xs text-amber-950 font-medium">
-                        Attendee: David Clark (#TKT-99812)
-                      </p>
-                    </div>
-                    <div className="text-[11px] p-2 rounded-lg bg-black/10 font-bold">
-                      Prior scan recorded 3 mins ago • Warning Buzz Alert
-                    </div>
-                  </div>
-                )}
-
-                {scannerDemoState === "sunlight" && (
-                  <div className="p-6 rounded-2xl bg-white text-zinc-950 space-y-3 animate-in zoom-in-95 duration-150 border-4 border-black">
-                    <Sun className="h-12 w-12 mx-auto text-amber-500" />
-                    <div>
-                      <p className="text-[11px] uppercase tracking-wider font-bold text-zinc-500">
-                        Outdoor Max-Contrast Active
-                      </p>
-                      <h4 className="text-xl font-bold">Direct Sunlight Scan</h4>
-                      <p className="text-xs text-zinc-600">
-                        Deep jet-black QR contrast for outdoor gates under the sun.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <p className="text-[11px] text-zinc-400">
-                  Works on Safari, Chrome, and any modern mobile browser.
+                <p className="text-xs text-emerald-100 font-medium">
+                  Admitted at Gate 1 • Double Chime Played
                 </p>
               </div>
-
-              {/* Right Side: Feature bullets */}
-              <div className="space-y-5 text-sm">
-                <div className="space-y-1">
-                  <h4 className="text-base font-bold text-white flex items-center gap-2">
-                    <Volume2 className="h-4 w-4 text-emerald-400" />
-                    Instant Audio & Vibration Feedback
-                  </h4>
-                  <p className="text-xs text-zinc-400 leading-relaxed">
-                    Gatekeepers don't even have to stare at the screen. A pleasant chime confirms access, and a distinct tone alerts on errors.
+            ) : (
+              <div className="p-6 rounded-2xl bg-amber-500 text-zinc-950 space-y-3 animate-in zoom-in-95 duration-150">
+                <AlertTriangle className="h-12 w-12 mx-auto text-zinc-950" />
+                <div>
+                  <p className="text-[11px] uppercase tracking-wider font-extrabold text-amber-950">
+                    Duplicate Scan Blocked!
+                  </p>
+                  <h4 className="text-2xl font-bold">Already Admitted</h4>
+                  <p className="text-xs text-amber-950 font-medium">
+                    This ticket was already checked in at 2:15 PM
                   </p>
                 </div>
-
-                <div className="space-y-1">
-                  <h4 className="text-base font-bold text-white flex items-center gap-2">
-                    <Flashlight className="h-4 w-4 text-amber-400" />
-                    Built-in Flashlight Toggle
-                  </h4>
-                  <p className="text-xs text-zinc-400 leading-relaxed">
-                    Hosting an evening concert, gala, or club night? Staff can turn on their phone torch right from the scanning screen.
-                  </p>
-                </div>
-
-                <div className="space-y-1">
-                  <h4 className="text-base font-bold text-white flex items-center gap-2">
-                    <Smartphone className="h-4 w-4 text-emerald-400" />
-                    Handheld Laser Barcode Gun Support
-                  </h4>
-                  <p className="text-xs text-zinc-400 leading-relaxed">
-                    Plug any USB or Bluetooth laser scanner into a laptop for rapid turnstile admissions over 60 guests per minute.
-                  </p>
-                </div>
-
-                <div className="pt-2">
-                  <Link href="/signup">
-                    <Button className="w-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs h-11 rounded-xl shadow-lg cursor-pointer">
-                      Try The Scanner On Your Event →
-                    </Button>
-                  </Link>
-                </div>
+                <p className="text-xs text-amber-950 font-bold">
+                  Warning alert played • Entrance refused
+                </p>
               </div>
-            </div>
+            )}
+
+            <p className="text-xs text-zinc-500">
+              Zero double-scans guaranteed. Works on any mobile browser.
+            </p>
           </div>
         </div>
       </section>
@@ -590,63 +544,42 @@ export default function HomePage() {
       {/* --------------------------------------------------------------------- */}
       {/* 6. HOW IT WORKS (3 Simple Steps)                                      */}
       {/* --------------------------------------------------------------------- */}
-      <section id="how-it-works" className="py-20 sm:py-28 max-w-6xl mx-auto px-4 sm:px-6 space-y-16">
-        <div className="max-w-2xl mx-auto text-center space-y-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-            Simple 3-Step Flow
+      <section id="how-it-works" className="py-24 sm:py-32 max-w-6xl mx-auto px-6 space-y-16">
+        <div className="max-w-xl mx-auto text-center space-y-3">
+          <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">
+            Getting Started
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-900">
-            How it works
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900">
+            How it works in 3 simple steps
           </h2>
-          <p className="text-sm sm:text-base text-zinc-600">
-            You're ready to welcome attendees in less time than it takes to brew coffee.
+          <p className="text-sm text-zinc-500">
+            You can launch your registration page in less time than it takes to brew coffee.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-          {/* Step 1 */}
-          <div className="p-8 rounded-3xl bg-white border border-zinc-200/90 shadow-2xs space-y-4 relative">
-            <div className="h-12 w-12 rounded-2xl bg-zinc-900 text-white font-extrabold text-base flex items-center justify-center">
-              1
-            </div>
-            <h3 className="text-lg font-bold text-zinc-900">Create your event page</h3>
-            <p className="text-xs text-zinc-600 leading-relaxed">
-              Pick your event title, date, venue, and questions. Choose free admission or enter your payment details for paid tickets.
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="p-8 rounded-3xl bg-white shadow-[0_12px_32px_rgba(0,0,0,0.04)] space-y-3">
+            <span className="text-3xl font-extrabold text-zinc-200">01</span>
+            <h3 className="text-lg font-bold text-zinc-900">Create your event</h3>
+            <p className="text-xs text-zinc-500 leading-relaxed">
+              Set your event title, date, location, and questions. Choose free admission or enter your payment instructions.
             </p>
-            <div className="pt-2 text-[11px] font-semibold text-zinc-500 flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-zinc-400" />
-              Takes ~2 minutes
-            </div>
           </div>
 
-          {/* Step 2 */}
-          <div className="p-8 rounded-3xl bg-white border border-zinc-200/90 shadow-2xs space-y-4 relative">
-            <div className="h-12 w-12 rounded-2xl bg-zinc-900 text-white font-extrabold text-base flex items-center justify-center">
-              2
-            </div>
-            <h3 className="text-lg font-bold text-zinc-900">Share your invite link</h3>
-            <p className="text-xs text-zinc-600 leading-relaxed">
-              Post your link on social media, in newsletters, or message groups. Guests sign up effortlessly and receive their QR pass right away.
+          <div className="p-8 rounded-3xl bg-white shadow-[0_12px_32px_rgba(0,0,0,0.04)] space-y-3">
+            <span className="text-3xl font-extrabold text-zinc-200">02</span>
+            <h3 className="text-lg font-bold text-zinc-900">Share your link</h3>
+            <p className="text-xs text-zinc-500 leading-relaxed">
+              Guests sign up in 30 seconds. Their digital pass with a verified QR code lands straight in their email.
             </p>
-            <div className="pt-2 text-[11px] font-semibold text-zinc-500 flex items-center gap-1.5">
-              <Check className="h-3.5 w-3.5 text-emerald-600" />
-              No guest app needed
-            </div>
           </div>
 
-          {/* Step 3 */}
-          <div className="p-8 rounded-3xl bg-white border border-zinc-200/90 shadow-2xs space-y-4 relative">
-            <div className="h-12 w-12 rounded-2xl bg-zinc-900 text-white font-extrabold text-base flex items-center justify-center">
-              3
-            </div>
-            <h3 className="text-lg font-bold text-zinc-900">Scan passes at the door</h3>
-            <p className="text-xs text-zinc-600 leading-relaxed">
-              Open your camera at the entrance. Scan guests in 1 second, prevent duplicate entries, and see live attendance update in real time.
+          <div className="p-8 rounded-3xl bg-white shadow-[0_12px_32px_rgba(0,0,0,0.04)] space-y-3">
+            <span className="text-3xl font-extrabold text-zinc-200">03</span>
+            <h3 className="text-lg font-bold text-zinc-900">Scan at the door</h3>
+            <p className="text-xs text-zinc-500 leading-relaxed">
+              Open the scanner on any phone camera. Verify attendees in under 1 second with instant audio feedback.
             </p>
-            <div className="pt-2 text-[11px] font-semibold text-zinc-500 flex items-center gap-1.5">
-              <Smartphone className="h-3.5 w-3.5 text-zinc-400" />
-              Works on any smartphone
-            </div>
           </div>
         </div>
       </section>
@@ -654,100 +587,100 @@ export default function HomePage() {
       {/* --------------------------------------------------------------------- */}
       {/* 7. TRANSPARENT PRICING                                                */}
       {/* --------------------------------------------------------------------- */}
-      <section id="pricing" className="py-16 sm:py-24 bg-white border-y border-zinc-200/80">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-12">
-          <div className="max-w-2xl mx-auto text-center space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-              Simple & Honest Pricing
+      <section id="pricing" className="py-20 sm:py-28 bg-white border-y border-zinc-200/50">
+        <div className="max-w-4xl mx-auto px-6 space-y-12">
+          <div className="text-center space-y-3">
+            <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">
+              Pricing
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-900">
-              Transparent, straightforward pricing.
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900">
+              Simple, honest pricing
             </h2>
-            <p className="text-sm sm:text-base text-zinc-600">
-              No hidden checkout surcharges. No surprises for your attendees.
+            <p className="text-sm text-zinc-500">
+              No hidden checkout surcharges. No surprises.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {/* Free Plan */}
-            <div className="p-8 rounded-3xl bg-[#fafaf8] border border-zinc-200 space-y-6 flex flex-col justify-between">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+            {/* Free Tier */}
+            <div className="p-8 rounded-3xl bg-[#fcfcfb] space-y-6 flex flex-col justify-between">
               <div className="space-y-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-                  Free Events & Gatherings
+                <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                  Community & Free Events
                 </span>
-                <div className="space-y-1">
-                  <div className="text-4xl font-extrabold text-zinc-900">$0</div>
-                  <p className="text-xs text-zinc-500">Free forever for community events</p>
+                <div>
+                  <div className="text-4xl font-bold text-zinc-900">$0</div>
+                  <p className="text-xs text-zinc-500 mt-1">Free forever</p>
                 </div>
 
-                <ul className="space-y-2.5 pt-2 text-xs text-zinc-700">
+                <ul className="space-y-2.5 pt-2 text-xs text-zinc-600">
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <Check className="h-4 w-4 text-zinc-900 shrink-0" />
                     <span>Unlimited free attendees</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>QR ticket pass generation</span>
+                    <Check className="h-4 w-4 text-zinc-900 shrink-0" />
+                    <span>QR ticket generation & delivery</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>Unlimited phone scanner staff</span>
+                    <Check className="h-4 w-4 text-zinc-900 shrink-0" />
+                    <span>Unlimited phone scanners</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <Check className="h-4 w-4 text-zinc-900 shrink-0" />
                     <span>Custom registration questions</span>
                   </li>
                 </ul>
               </div>
 
               <Link href="/signup">
-                <Button variant="outline" className="w-full h-11 text-xs font-bold rounded-xl cursor-pointer">
+                <button
+                  type="button"
+                  className="w-full h-11 rounded-full bg-zinc-900 text-white text-xs font-semibold hover:bg-zinc-800 transition-colors cursor-pointer"
+                >
                   Start Free
-                </Button>
+                </button>
               </Link>
             </div>
 
-            {/* Paid & Pro Plan */}
-            <div className="p-8 rounded-3xl bg-zinc-900 text-white space-y-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
-              <div className="space-y-4 relative">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                    Paid & Large Events
-                  </span>
-                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-zinc-950">
-                    Popular
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="text-4xl font-extrabold text-white">Direct Pay</div>
-                  <p className="text-xs text-zinc-400">Keep 100% of your earnings</p>
+            {/* Paid Tier */}
+            <div className="p-8 rounded-3xl bg-zinc-900 text-white space-y-6 flex flex-col justify-between shadow-xl">
+              <div className="space-y-4">
+                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                  Paid Events
+                </span>
+                <div>
+                  <div className="text-4xl font-bold text-white">Direct Pay</div>
+                  <p className="text-xs text-zinc-400 mt-1">Zero platform deductions</p>
                 </div>
 
                 <ul className="space-y-2.5 pt-2 text-xs text-zinc-300">
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" />
-                    <span>Direct bank transfer / payment verification</span>
+                    <span>Direct bank transfer collection</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" />
-                    <span>Zero platform fee deductions</span>
+                    <span>1-click payment verification</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" />
-                    <span>Direct admin manual pass issuance</span>
+                    <span>Direct admin ticket issuance</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-emerald-400 shrink-0" />
-                    <span>Complete audit logging & data exports</span>
+                    <span>Full attendance audit logs</span>
                   </li>
                 </ul>
               </div>
 
               <Link href="/signup">
-                <Button className="w-full bg-white hover:bg-zinc-100 text-zinc-950 h-11 text-xs font-bold rounded-xl cursor-pointer shadow-md">
-                  Create Your Event
-                </Button>
+                <button
+                  type="button"
+                  className="w-full h-11 rounded-full bg-white text-zinc-950 text-xs font-semibold hover:bg-zinc-100 transition-colors cursor-pointer"
+                >
+                  Create Event
+                </button>
               </Link>
             </div>
           </div>
@@ -755,19 +688,16 @@ export default function HomePage() {
       </section>
 
       {/* --------------------------------------------------------------------- */}
-      {/* 8. FREQUENTLY ASKED QUESTIONS (FAQ)                                   */}
+      {/* 8. FAQ ACCORDION                                                      */}
       {/* --------------------------------------------------------------------- */}
-      <section id="faq" className="py-20 sm:py-28 max-w-4xl mx-auto px-4 sm:px-6 space-y-12">
+      <section id="faq" className="py-24 sm:py-32 max-w-3xl mx-auto px-6 space-y-12">
         <div className="text-center space-y-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-            Got Questions?
+          <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">
+            Common questions
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-900">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900">
             Frequently asked questions
           </h2>
-          <p className="text-sm text-zinc-600">
-            Everything you need to know about using TicketPlatform.
-          </p>
         </div>
 
         <div className="space-y-3">
@@ -776,12 +706,12 @@ export default function HomePage() {
             return (
               <div
                 key={idx}
-                className="rounded-2xl border border-zinc-200/90 bg-white overflow-hidden transition-all"
+                className="rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden transition-all"
               >
                 <button
                   type="button"
                   onClick={() => setOpenFaq(isOpen ? null : idx)}
-                  className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-sm text-zinc-900 cursor-pointer"
+                  className="w-full p-5 text-left flex items-center justify-between gap-4 font-semibold text-sm text-zinc-900 cursor-pointer"
                 >
                   <span>{faq.q}</span>
                   {isOpen ? (
@@ -791,7 +721,7 @@ export default function HomePage() {
                   )}
                 </button>
                 {isOpen && (
-                  <div className="px-5 pb-5 text-xs text-zinc-600 leading-relaxed border-t border-zinc-100 pt-3">
+                  <div className="px-5 pb-5 text-xs text-zinc-500 leading-relaxed border-t border-zinc-100/80 pt-3">
                     {faq.a}
                   </div>
                 )}
@@ -802,29 +732,23 @@ export default function HomePage() {
       </section>
 
       {/* --------------------------------------------------------------------- */}
-      {/* 9. BOTTOM HIGH-CONVERTING LEAD GENERATION CTA                         */}
+      {/* 9. BOTTOM LEAD CAPTURE CALL TO ACTION                                 */}
       {/* --------------------------------------------------------------------- */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6">
-        <div className="max-w-4xl mx-auto p-8 sm:p-14 rounded-3xl bg-zinc-900 text-white text-center space-y-6 shadow-2xl relative overflow-hidden">
-          {/* Subtle decorative glow */}
-          <div className="absolute top-0 right-1/4 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative space-y-3 max-w-2xl mx-auto">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-              Host Your Best Event Yet
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+      <section className="py-20 sm:py-28 px-6">
+        <div className="max-w-4xl mx-auto p-10 sm:p-16 rounded-3xl bg-zinc-900 text-white text-center space-y-6 shadow-2xl relative overflow-hidden">
+          <div className="space-y-3 max-w-xl mx-auto">
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight">
               Ready to host your next event?
             </h2>
-            <p className="text-sm sm:text-base text-zinc-400 leading-relaxed">
-              Create your event page today. Set up in less than 2 minutes and start welcoming your guests with zero stress.
+            <p className="text-sm text-zinc-400 leading-relaxed">
+              Create your event page today. Set up in less than 2 minutes and welcome your guests with zero stress.
             </p>
           </div>
 
-          <div className="pt-2 max-w-md mx-auto relative">
+          <div className="pt-2 max-w-md mx-auto">
             <form
               onSubmit={handleStartWithEmail}
-              className="flex flex-col sm:flex-row gap-2.5 p-1.5 bg-zinc-800 border border-zinc-700 rounded-2xl shadow-sm focus-within:border-zinc-500 transition-all"
+              className="flex items-center p-1.5 bg-zinc-800 rounded-full transition-all focus-within:ring-2 focus-within:ring-white/20"
             >
               <input
                 type="email"
@@ -832,41 +756,34 @@ export default function HomePage() {
                 onChange={(e) => setEmailInput(e.target.value)}
                 placeholder="Enter your email..."
                 aria-label="Enter your email to create an event"
-                className="flex-1 px-4 py-3 text-sm text-white placeholder:text-zinc-500 bg-transparent focus:outline-none"
+                className="flex-1 px-5 py-2.5 text-sm text-white placeholder:text-zinc-500 bg-transparent focus:outline-none"
               />
-              <Button
+              <button
                 type="submit"
-                className="h-11 px-6 rounded-xl bg-white text-zinc-950 hover:bg-zinc-100 text-xs font-bold shrink-0 cursor-pointer shadow-md gap-1.5"
+                className="h-10 px-6 rounded-full bg-white text-zinc-950 text-xs font-semibold shrink-0 cursor-pointer hover:bg-zinc-100 transition-colors"
               >
                 Create Event Now
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
+              </button>
             </form>
-
-            <p className="text-[11px] text-zinc-500 pt-3 font-medium">
-              Free to start • No credit card required • Cancel anytime
-            </p>
           </div>
         </div>
       </section>
 
       {/* --------------------------------------------------------------------- */}
-      {/* 10. CLEAN MODERN FOOTER                                               */}
+      {/* 10. MINIMAL FOOTER                                                    */}
       {/* --------------------------------------------------------------------- */}
-      <footer className="border-t border-zinc-200 bg-white py-12 px-4 sm:px-6 text-xs text-zinc-500">
+      <footer className="border-t border-zinc-200/50 bg-[#fcfcfb] py-12 px-6 text-xs text-zinc-500">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="h-7 w-7 rounded-lg bg-zinc-900 text-white flex items-center justify-center font-bold text-xs">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 rounded-lg bg-zinc-900 text-white flex items-center justify-center">
               <Ticket className="h-3.5 w-3.5" />
             </div>
-            <span className="font-bold text-zinc-900 text-sm">TicketPlatform</span>
-            <span className="text-zinc-300">|</span>
-            <span>Simple, fast event ticketing</span>
+            <span className="font-semibold text-zinc-900">TicketPlatform</span>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-6 font-medium text-xs">
+          <div className="flex flex-wrap items-center gap-6 text-xs text-zinc-500 font-medium">
             <Link href="/login" className="hover:text-zinc-900 transition-colors">
-              Organizer Login
+              Sign In
             </Link>
             <Link href="/signup" className="hover:text-zinc-900 transition-colors">
               Create Account
@@ -880,9 +797,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-zinc-100 text-center sm:text-left text-[11px] text-zinc-400 flex flex-col sm:flex-row justify-between gap-2">
+        <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-zinc-200/40 text-center sm:text-left text-[11px] text-zinc-400 flex flex-col sm:flex-row justify-between gap-2">
           <p>© 2026 TicketPlatform. All rights reserved.</p>
-          <p>Designed for fast guest entry, clean passes, and zero duplicate check-ins.</p>
+          <p>Simple, reliable event ticketing for independent hosts and organizations.</p>
         </div>
       </footer>
     </div>
