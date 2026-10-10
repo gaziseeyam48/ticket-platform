@@ -8,6 +8,12 @@ import { validateSubmissionData, FormField } from "@/lib/validations/form";
 import { issueTicket } from "@/lib/services/ticket.service";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import {
+  canSubmitTransaction,
+  assertValidPaymentTransition,
+  isValidPaymentTransition,
+} from "@/lib/utils/payment-state";
+import { logAuditEvent } from "@/lib/services/audit.service";
 
 export interface PublicEventData {
   event: {
@@ -255,6 +261,21 @@ export async function submitRegistration(
     }
   }
 
+  await logAuditEvent({
+    organizationId: event.organization_id || event.organizations?.id,
+    eventId: event.id,
+    actorId: null,
+    actorType: "SYSTEM",
+    action: "REGISTRATION_CREATED",
+    targetType: "REGISTRATION",
+    targetId: newRegistration.id,
+    metadata: {
+      participant_name: participantName,
+      email: normalizedEmail,
+      event_type: event.event_type,
+    },
+  });
+
   revalidatePath(`/events/${slug}`);
   revalidatePath(`/events/${slug}/register`);
 
@@ -294,6 +315,15 @@ export async function submitPaymentTransaction(
     throw new AppError(ERROR_CODES.NOT_FOUND, "Registration not found.");
   }
 
+  if (!canSubmitTransaction(reg.payment_status)) {
+    throw new AppError(
+      ERROR_CODES.VALIDATION_ERROR,
+      "Payment is already approved. Cannot submit or modify transaction identifier."
+    );
+  }
+
+  assertValidPaymentTransition(reg.payment_status, "SUBMITTED");
+
   // Update payment status to SUBMITTED
   const { data: updatedReg, error: updateError } = await ((adminDb as any)
     .from("registrations")
@@ -311,9 +341,148 @@ export async function submitPaymentTransaction(
     throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to submit transaction details.");
   }
 
+  await logAuditEvent({
+    eventId: reg.event_id,
+    actorType: "USER",
+    action: "PAYMENT_SUBMITTED",
+    targetType: "REGISTRATION",
+    targetId: registrationId,
+    metadata: {
+      transaction_id: transactionId.trim(),
+    },
+  });
+
   return {
     success: true,
     registrationId: updatedReg.id,
     paymentStatus: updatedReg.payment_status,
   };
+}
+
+/**
+ * Organizer action: review (approve or reject) a participant's payment submission.
+ * Approving immediately generates and issues a digital entrance pass.
+ */
+export async function reviewRegistrationPayment(
+  registrationId: string,
+  action: "APPROVE" | "REJECT"
+) {
+  const { createServerDbClient } = await import("@/lib/db/server");
+  const supabase = await createServerDbClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new AppError(ERROR_CODES.UNAUTHORIZED, "Unauthorized");
+  }
+
+  const adminDb = getAdminClient();
+  const { data: reg, error: regError } = await (adminDb
+    .from("registrations")
+    .select("id, participant_name, email, payment_status, event_id, events(id, organization_id, name)")
+    .eq("id", registrationId)
+    .single() as any);
+
+  if (regError || !reg) {
+    throw new AppError(ERROR_CODES.NOT_FOUND, "Registration not found.");
+  }
+
+  const { data: membership } = await (adminDb
+    .from("organization_users")
+    .select("role")
+    .eq("organization_id", reg.events.organization_id)
+    .eq("user_id", user.id)
+    .maybeSingle() as any);
+
+  if (!membership) {
+    throw new AppError(ERROR_CODES.FORBIDDEN, "Forbidden");
+  }
+
+  const targetStatus = action === "APPROVE" ? "APPROVED" : "REJECTED";
+
+  if (!isValidPaymentTransition(reg.payment_status, targetStatus)) {
+    throw new AppError(
+      ERROR_CODES.VALIDATION_ERROR,
+      `Cannot transition payment status from ${reg.payment_status || "PENDING"} to ${targetStatus}.`
+    );
+  }
+
+  const now = new Date().toISOString();
+  const previousStatus = reg.payment_status;
+
+  if (action === "APPROVE") {
+    // 1. Mark status as APPROVED
+    const { error: approvalError } = await ((adminDb as any)
+      .from("registrations")
+      .update({
+        payment_status: "APPROVED",
+        payment_reviewed_by: user.id,
+        payment_reviewed_at: now,
+      })
+      .eq("id", registrationId));
+
+    if (approvalError) {
+      throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to update payment approval status.");
+    }
+
+    // 2. Automatically generate and issue entrance pass with rollback safety
+    try {
+      await issueTicket({
+        eventId: reg.event_id,
+        participantName: reg.participant_name,
+        participantEmail: reg.email,
+        registrationId: reg.id,
+        issuedBy: user.id,
+      });
+    } catch (ticketError) {
+      console.error("Failed to issue entrance pass on approval, reverting status:", ticketError);
+      // Safe rollback so system does not hold an approved state without a valid pass
+      await ((adminDb as any)
+        .from("registrations")
+        .update({
+          payment_status: previousStatus || "SUBMITTED",
+          payment_reviewed_by: null,
+          payment_reviewed_at: null,
+        })
+        .eq("id", registrationId));
+
+      throw new AppError(
+        ERROR_CODES.INTERNAL_ERROR,
+        "Failed to generate entrance pass. Payment review reverted to allow re-trying."
+      );
+    }
+  } else {
+    const { error: rejectError } = await ((adminDb as any)
+      .from("registrations")
+      .update({
+        payment_status: "REJECTED",
+        payment_reviewed_by: user.id,
+        payment_reviewed_at: now,
+      })
+      .eq("id", registrationId));
+
+    if (rejectError) {
+      throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to reject payment.");
+    }
+  }
+
+  await logAuditEvent({
+    organizationId: reg.events.organization_id,
+    eventId: reg.event_id,
+    actorId: user.id,
+    actorType: "USER",
+    action: action === "APPROVE" ? "PAYMENT_APPROVED" : "PAYMENT_REJECTED",
+    targetType: "REGISTRATION",
+    targetId: registrationId,
+    metadata: {
+      participant_name: reg.participant_name,
+      email: reg.email,
+      transaction_id: reg.transaction_id,
+      action,
+    },
+  });
+
+  revalidatePath(`/org/events/${reg.event_id}`);
+  return { success: true };
 }

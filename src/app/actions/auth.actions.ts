@@ -6,6 +6,9 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
+import { rateLimiter } from "@/lib/utils/rate-limiter";
+import { headers } from "next/headers";
+
 const signUpSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -14,6 +17,18 @@ const signUpSchema = z.object({
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function signUpAction(prevState: any, formData: FormData) {
+  // Rate limiting check
+  try {
+    const headerList = await headers();
+    const ip = headerList.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    const check = rateLimiter.check(`auth:signup:${ip}`, 5, 60 * 60_000);
+    if (!check.allowed) {
+      return { error: "Too many signup attempts from your network. Please try again later." };
+    }
+  } catch {
+    // Ignore in non-header test environments
+  }
+
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const organizationName = formData.get("organizationName") as string;
@@ -80,6 +95,18 @@ export async function signUpAction(prevState: any, formData: FormData) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function loginAction(prevState: any, formData: FormData) {
+  // Rate limiting check
+  try {
+    const headerList = await headers();
+    const ip = headerList.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    const check = rateLimiter.check(`auth:login:${ip}`, 5, 15 * 60_000);
+    if (!check.allowed) {
+      return { error: "Too many login attempts. Please wait 15 minutes before retrying." };
+    }
+  } catch {
+    // Ignore in non-header test environments
+  }
+
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 

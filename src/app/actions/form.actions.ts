@@ -9,6 +9,7 @@ import {
   FormField,
   registrationFormSchema,
 } from "@/lib/validations/form";
+import { logAuditEvent } from "@/lib/services/audit.service";
 import { revalidatePath } from "next/cache";
 
 async function verifyEventOrgMembership(adminDb: any, eventId: string, userId: string) {
@@ -164,6 +165,19 @@ export async function saveRegistrationForm(eventId: string, fields: FormField[])
     console.error("Error saving registration form:", updateError.message || updateError);
     throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to save registration form.");
   }
+
+  await logAuditEvent({
+    organizationId: event.organization_id,
+    eventId: event.id,
+    actorId: user.id,
+    actorType: "USER",
+    action: "FORM_UPDATED",
+    targetType: "FORM",
+    targetId: updatedForm.id,
+    metadata: {
+      fields_count: normalizedFields.length,
+    },
+  });
 
   revalidatePath(`/org/events/${eventId}`);
   revalidatePath(`/org/events/${eventId}/form`);

@@ -13,6 +13,7 @@ import {
   ChevronRight,
   X,
   ExternalLink,
+  ScrollText,
 } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth.actions";
 import { cn } from "@/lib/utils/cn";
@@ -67,6 +68,12 @@ export function OrgSidebar({
     {
       group: "Administration",
       items: [
+        {
+          label: "Audit Logs",
+          href: "/org/audit-logs",
+          icon: ScrollText,
+          exact: false,
+        },
         {
           label: "Org Settings",
           href: "/org/settings",

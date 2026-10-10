@@ -1,8 +1,10 @@
 import { connection } from "next/server";
 import { createServerDbClient } from "@/lib/db/server";
+import { getAdminClient } from "@/lib/db/admin";
 import { redirect } from "next/navigation";
 import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
 import { getEvents } from "@/app/actions/event.actions";
+import { getVerifierSession } from "@/lib/services/verifier-session.service";
 import { VerificationScanner } from "@/components/verification/verification-scanner";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +20,8 @@ import {
   QrCode,
   ArrowRight,
   ShieldAlert,
+  KeyRound,
+  RotateCcw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -28,13 +32,196 @@ export const metadata = {
 
 export const instant = false;
 
-export default async function VerifyPage(props: {
-  searchParams: Promise<{ event_id?: string }>;
-}) {
+interface VerifyPageProps {
+  searchParams: Promise<{ event_id?: string; error?: string }>;
+}
+
+export default async function VerifyPage(props: VerifyPageProps) {
   await connection();
   const searchParams = await props.searchParams;
   const targetEventId = searchParams?.event_id;
+  const errorParam = searchParams?.error;
 
+  // 1. Check for invitation / authentication errors
+  if (errorParam) {
+    const errorMessages: Record<string, { title: string; desc: string; icon: any }> = {
+      expired: {
+        title: "Verifier Session Expired",
+        desc: "Your gate staff access session has expired. Please contact the event organizer to request a refreshed invitation magic link.",
+        icon: Clock,
+      },
+      revoked: {
+        title: "Gate Access Revoked",
+        desc: "Your gate verification access has been revoked by the event organizer.",
+        icon: ShieldAlert,
+      },
+      invalid_token: {
+        title: "Invalid Invitation Link",
+        desc: "This invitation link is invalid or has already been used. Please verify the URL or contact your organizer.",
+        icon: KeyRound,
+      },
+      missing_credentials: {
+        title: "Missing Credentials",
+        desc: "The entrance verification link is missing required authorization parameters.",
+        icon: AlertTriangle,
+      },
+      event_ended: {
+        title: "Event Concluded",
+        desc: "This event has ended or been cancelled. Gate verification stations are closed.",
+        icon: XCircle,
+      },
+    };
+
+    const err = errorMessages[errorParam] || {
+      title: "Authentication Failed",
+      desc: "Unable to authorize verifier session. Please request a new link.",
+      icon: AlertTriangle,
+    };
+    const IconComponent = err.icon;
+
+    return (
+      <div className="min-h-screen bg-zinc-950 text-white flex flex-col font-sans p-4 sm:p-6">
+        <header className="h-14 border-b border-zinc-800 flex items-center justify-between max-w-md w-full mx-auto">
+          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+            Entrance Station
+          </span>
+          <span className="text-xs text-rose-400 font-medium">Access Error</span>
+        </header>
+
+        <main className="flex-1 flex flex-col items-center justify-center max-w-md w-full mx-auto text-center space-y-6">
+          <div className="w-16 h-16 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+            <IconComponent className="h-8 w-8" />
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-rose-400">
+              Access Denied
+            </span>
+            <h1 className="text-2xl font-bold tracking-tight text-white">{err.title}</h1>
+            <p className="text-sm text-zinc-400 leading-relaxed max-w-sm mx-auto">{err.desc}</p>
+          </div>
+
+          <div className="w-full pt-4 space-y-2">
+            <Link href="/login" className="block w-full">
+              <Button
+                variant="outline"
+                className="w-full border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-900 text-xs h-11 rounded-xl"
+              >
+                Sign In as Event Organizer
+              </Button>
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // 2. Check for Delegated Verifier Session (Magic link cookie)
+  const verifierSession = await getVerifierSession();
+
+  if (verifierSession) {
+    const adminDb = getAdminClient();
+    const { data: verifier } = await (adminDb
+      .from("event_verifiers")
+      .select(
+        "id, name, email, event_id, status, expires_at, events(id, name, slug, status, date_start, date_end, location, organization_id, organizations(name))"
+      )
+      .eq("id", verifierSession.verifier_id)
+      .maybeSingle() as any);
+
+    if (!verifier || verifier.status === "REVOKED") {
+      redirect("/verify?error=revoked");
+    }
+
+    if (new Date(verifier.expires_at) <= new Date() || verifier.status === "EXPIRED") {
+      redirect("/verify?error=expired");
+    }
+
+    const event = verifier.events;
+    if (!event || event.status === "ENDED" || event.status === "CANCELLED") {
+      redirect("/verify?error=event_ended");
+    }
+
+    // Scoped strictly to verifier's assigned event
+    if (event.status === "LIVE") {
+      return (
+        <VerificationScanner
+          organizationName={event.organizations?.name || "Event Organizer"}
+          selectedEvent={event}
+          verifierName={verifier.name}
+          isVerifierMode={true}
+        />
+      );
+    }
+
+    // Event is PUBLISHED or DRAFT — Verifier is standby
+    return (
+      <div className="min-h-screen bg-zinc-950 text-white flex flex-col font-sans p-4 sm:p-6">
+        <header className="h-14 border-b border-zinc-800 flex items-center justify-between max-w-md w-full mx-auto">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-amber-400" />
+            <span className="text-xs font-semibold text-zinc-300">
+              Staff: {verifier.name}
+            </span>
+          </div>
+          <StatusBadge status={event.status} />
+        </header>
+
+        <main className="flex-1 flex flex-col items-center justify-center max-w-md w-full mx-auto text-center space-y-6">
+          <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+            <Clock className="h-8 w-8" />
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">
+              Gate Standby
+            </span>
+            <h1 className="text-2xl font-bold tracking-tight text-white">{event.name}</h1>
+            <p className="text-sm text-zinc-400 leading-relaxed max-w-sm mx-auto">
+              Entrance verification is currently on standby. The event organizer will transition this
+              event to <span className="text-emerald-400 font-medium">LIVE</span> when doors open.
+              Keep this screen open or refresh once doors open.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 text-left w-full space-y-2 text-xs text-zinc-400">
+            <div className="flex justify-between">
+              <span>Gate Staff:</span>
+              <span className="text-white font-medium">{verifier.name} ({verifier.email})</span>
+            </div>
+            {event.date_start && (
+              <div className="flex justify-between">
+                <span>Scheduled start:</span>
+                <span className="text-white font-medium">
+                  {format(new Date(event.date_start), "MMM d, yyyy h:mm a")}
+                </span>
+              </div>
+            )}
+            {event.location && (
+              <div className="flex justify-between">
+                <span>Location:</span>
+                <span className="text-white font-medium">{event.location}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="w-full pt-2">
+            <Link href={`/verify?event_id=${event.id}`} className="block w-full">
+              <Button
+                variant="outline"
+                className="w-full border-zinc-700 text-white hover:bg-zinc-800 text-xs h-11 rounded-xl"
+              >
+                <RotateCcw className="h-3.5 w-3.5 mr-2" />
+                Refresh Gate Status
+              </Button>
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // 3. Organizer Session (Authenticated via Supabase Auth)
   const supabase = await createServerDbClient();
   const {
     data: { user },
@@ -71,6 +258,7 @@ export default async function VerifyPage(props: {
           organizationName={orgInfo.organization.name}
           selectedEvent={selectedEvent}
           availableEvents={liveEvents}
+          isVerifierMode={false}
         />
       );
     }
@@ -104,7 +292,9 @@ export default async function VerifyPage(props: {
               </h1>
               <p className="text-sm text-zinc-400 leading-relaxed max-w-sm mx-auto">
                 Entrance verification is not yet open. This event is currently in{" "}
-                <span className="text-white font-medium">{selectedEvent.status}</span> status. To accept attendee check-ins, the event must be transitioned to <span className="text-emerald-400 font-medium">LIVE</span>.
+                <span className="text-white font-medium">{selectedEvent.status}</span> status. To
+                accept attendee check-ins, the event must be transitioned to{" "}
+                <span className="text-emerald-400 font-medium">LIVE</span>.
               </p>
             </div>
 
@@ -169,7 +359,8 @@ export default async function VerifyPage(props: {
               {selectedEvent.name}
             </h1>
             <p className="text-sm text-zinc-400 leading-relaxed max-w-sm mx-auto">
-              This event has {selectedEvent.status.toLowerCase()}. Entrance verification has concluded and passes are no longer being admitted.
+              This event has {selectedEvent.status.toLowerCase()}. Entrance verification has
+              concluded and passes are no longer being admitted.
             </p>
           </div>
 
@@ -197,6 +388,7 @@ export default async function VerifyPage(props: {
         organizationName={orgInfo.organization.name}
         selectedEvent={liveEvents[0]}
         availableEvents={liveEvents}
+        isVerifierMode={false}
       />
     );
   }
@@ -300,7 +492,8 @@ export default async function VerifyPage(props: {
             No Events Currently Live
           </h1>
           <p className="text-sm text-zinc-400 leading-relaxed max-w-sm mx-auto">
-            Entrance verification operates only when an event is transitioned to <span className="text-emerald-400 font-medium">LIVE</span> status.
+            Entrance verification operates only when an event is transitioned to{" "}
+            <span className="text-emerald-400 font-medium">LIVE</span> status.
           </p>
         </div>
 
@@ -320,7 +513,11 @@ export default async function VerifyPage(props: {
                     <p className="text-[11px] text-zinc-500 font-mono">/{ev.slug}</p>
                   </div>
                   <Link href={`/org/events/${ev.id}`}>
-                    <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs text-zinc-300 border-zinc-700 hover:bg-zinc-800 shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2.5 text-xs text-zinc-300 border-zinc-700 hover:bg-zinc-800 shrink-0"
+                    >
                       Go Live ↗
                     </Button>
                   </Link>

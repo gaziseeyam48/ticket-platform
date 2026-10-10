@@ -75,7 +75,7 @@ class InMemoryRateLimiter {
   }
 
   private cleanup(windowMs: number): void {
-    const cutoff = Date.now() - windowMs;
+    const cutoff = Date.now() - Math.max(windowMs, 600_000);
     for (const [key, record] of this.store.entries()) {
       const active = record.timestamps.filter((ts) => ts > cutoff);
       if (active.length === 0) {

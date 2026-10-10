@@ -90,116 +90,117 @@
 - [x] Resend ticket action
 
 ## Phase 7 — Paid Event & Manual Payment Verification
-- [ ] Paid event configuration
-- [ ] Payment instructions display
-- [ ] Transaction ID submission
-- [ ] Payment status tracking
-- [ ] Admin payment review dashboard
-- [ ] Approve & Issue Ticket action
-- [ ] Reject Payment action
-- [ ] Transaction safety
-- [ ] Payment state machine
+- [x] Paid event configuration
+- [x] Payment instructions display
+- [x] Transaction ID submission
+- [x] Payment status tracking
+- [x] Admin payment review dashboard
+- [x] Approve & Issue Ticket action
+- [x] Reject Payment action
+- [x] Transaction safety
+- [x] Payment state machine
 
 ## Phase 8 — Admin Direct Ticket Issuance
-- [ ] Admin ticket issuance form
-- [ ] Participant data entry
-- [ ] Uses same issueTicket() pipeline
-- [ ] Duplicate handling
-- [ ] Email sending
+- [x] Admin ticket issuance form
+- [x] Participant data entry
+- [x] Uses same issueTicket() pipeline
+- [x] Duplicate handling
+- [x] Email sending
 
 ## Phase 9 — Ticket View & QR Experience
-- [ ] Ticket page (/t/{token})
-- [ ] Ticket display (event, participant, QR, date)
-- [ ] QR code rendering
-- [ ] Anti-enumeration protection
-- [ ] Invalid token handling
-- [ ] Revoked ticket handling
-- [ ] No sensitive data exposure
+- [x] Ticket page (/t/{token})
+- [x] Ticket display (event, participant, QR, date)
+- [x] QR code rendering
+- [x] Anti-enumeration protection
+- [x] Invalid token handling
+- [x] Revoked ticket handling
+- [x] No sensitive data exposure
 
 ## Phase 10 — Event Verifier Access
-- [ ] Verifier management UI
-- [ ] Verifier invitation (name + email)
-- [ ] Magic link generation
-- [ ] Magic link email
-- [ ] Verifier authentication
-- [ ] Scoped verifier session
-- [ ] Event-scoped access enforcement
-- [ ] Auto-expiry
-- [ ] Event state enforcement
+- [x] Verifier management UI
+- [x] Verifier invitation (name + email)
+- [x] Magic link generation
+- [x] Magic link email
+- [x] Verifier authentication
+- [x] Scoped verifier session
+- [x] Event-scoped access enforcement
+- [x] Auto-expiry
+- [x] Event state enforcement
 
 ## Phase 11 — Ticket Verification & Check-in
-- [ ] Mobile-first verification UI
-- [ ] QR scanner (camera)
-- [ ] Verification API endpoint
-- [ ] Atomic check-in (transaction + UNIQUE)
-- [ ] Result states (VALID, ALREADY_CHECKED_IN, INVALID, REVOKED, WRONG_EVENT, EVENT_NOT_LIVE)
-- [ ] Check-in audit record
-- [ ] Concurrency testing
+- [x] Mobile-first verification UI
+- [x] QR scanner (camera)
+- [x] Verification API endpoint
+- [x] Atomic check-in (transaction + UNIQUE)
+- [x] Result states (VALID, ALREADY_CHECKED_IN, INVALID, REVOKED, WRONG_EVENT, EVENT_NOT_LIVE)
+- [x] Check-in audit record
+- [x] Concurrency testing
 
 ## Phase 12 — Event Start / End Control
-- [ ] Start Event action
-- [ ] End Event action
-- [ ] Backend enforcement (only LIVE accepts verification)
-- [ ] Verification disabled after end
-- [ ] UI event status display
-- [ ] Historical data preservation
+- [x] Start Event action
+- [x] End Event action
+- [x] Backend enforcement (only LIVE accepts verification)
+- [x] Verification disabled after end
+- [x] UI event status display
+- [x] Historical data preservation
 
 ## Phase 13 — Participant & Ticket Management
-- [ ] Participant list view
-- [ ] Registration status display
-- [ ] Payment status display
-- [ ] Ticket status display
-- [ ] Check-in status display
-- [ ] View/issue/revoke/resend actions
-- [ ] Confirmation for dangerous actions
+- [x] Participant list view
+- [x] Registration status display
+- [x] Payment status display
+- [x] Ticket status display
+- [x] Check-in status display
+- [x] View/issue/revoke/resend actions
+- [x] Confirmation for dangerous actions
 
 ## Phase 14 — Audit Logging
-- [ ] Audit log service
-- [ ] Event lifecycle logging
-- [ ] Registration logging
-- [ ] Payment logging
-- [ ] Ticket logging
-- [ ] Verifier logging
-- [ ] Check-in logging
-- [ ] Audit log viewer
+- [x] Audit log service
+- [x] Event lifecycle logging
+- [x] Registration logging
+- [x] Payment logging
+- [x] Ticket logging
+- [x] Verifier logging
+- [x] Check-in logging
+- [x] Audit log viewer
 
 ## Phase 15 — Security Hardening
-- [ ] Authentication review
-- [ ] Authorization review
-- [ ] Public endpoint review
-- [ ] Ticket security review
-- [ ] Verification security review
-- [ ] Database constraint review
-- [ ] Application security review
-- [ ] Fix identified issues
+- [x] Authentication review
+- [x] Authorization review
+- [x] Public endpoint review
+- [x] Ticket security review
+- [x] Verification security review
+- [x] Database constraint review
+- [x] Application security review
+- [x] Fix identified issues
 
 ## Phase 16 — Testing
-- [ ] Authentication tests
-- [ ] Event tests
-- [ ] Registration tests
-- [ ] Ticket tests
-- [ ] Payment tests
-- [ ] Verification tests
-- [ ] Concurrency tests (mandatory)
+- [x] Authentication tests
+- [x] Event tests
+- [x] Registration tests
+- [x] Ticket tests
+- [x] Payment tests
+- [x] Verification tests
+- [x] Concurrency tests (mandatory)
+- [x] End-to-end lifecycle integration pipeline tests
 
 ## Phase 17 — UX & Mobile Optimization
-- [ ] Organization flow review
-- [ ] Participant flow review
-- [ ] Verifier flow optimization
-- [ ] Mobile scanning optimization
-- [ ] Accessibility review
+- [x] Organization flow review
+- [x] Participant flow review
+- [x] Verifier flow optimization
+- [x] Mobile scanning optimization
+- [x] Accessibility review
 
 ## Phase 18 — Performance & Scalability Review
-- [ ] Database index review
-- [ ] Query optimization
-- [ ] API latency review
-- [ ] Verification endpoint optimization
-- [ ] Rate limiting review
+- [x] Database index review
+- [x] Query optimization
+- [x] API latency review
+- [x] Verification endpoint optimization
+- [x] Rate limiting review
 
 ## Phase 19 — Production Readiness
-- [ ] Documentation update
-- [ ] Environment variable documentation
-- [ ] Deployment documentation
-- [ ] Clean build test
-- [ ] Secret exposure check
-- [ ] .env.example update
+- [x] Documentation update
+- [x] Environment variable documentation
+- [x] Deployment documentation
+- [x] Clean build test
+- [x] Secret exposure check
+- [x] .env.example update

@@ -315,6 +315,16 @@ CREATE INDEX idx_checkins_event_id ON checkins(event_id);
 CREATE INDEX idx_audit_logs_org_id ON audit_logs(organization_id);
 CREATE INDEX idx_audit_logs_event_id ON audit_logs(event_id);
 CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
+
+-- Performance & Scalability Indexes (Phase 18)
+CREATE INDEX idx_events_slug ON events(slug);
+CREATE INDEX idx_registrations_event_payment_status ON registrations(event_id, payment_status);
+CREATE INDEX idx_tickets_event_ticket_number ON tickets(event_id, ticket_number);
+CREATE INDEX idx_tickets_participant_email ON tickets(participant_email);
+CREATE INDEX idx_audit_logs_org_created ON audit_logs(organization_id, created_at DESC);
+CREATE INDEX idx_audit_logs_event_created ON audit_logs(event_id, created_at DESC);
+CREATE INDEX idx_checkins_event_created ON checkins(event_id, checked_in_at DESC);
+CREATE INDEX idx_event_verifiers_event_status ON event_verifiers(event_id, status);
 ```
 
 ## 4. Row-Level Security (RLS) Considerations

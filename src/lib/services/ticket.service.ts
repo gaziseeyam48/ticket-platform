@@ -4,6 +4,7 @@ import { ERROR_CODES } from "@/lib/errors/error-codes";
 import { generateSecureToken, hashToken, generateTicketNumber } from "@/lib/utils/crypto";
 import { generateQrCodeDataUrl, buildTicketUrl } from "@/lib/services/qr.service";
 import { sendTicketEmail } from "@/lib/services/email.service";
+import { logAuditEvent } from "@/lib/services/audit.service";
 import { format } from "date-fns";
 
 export interface IssueTicketParams {
@@ -66,6 +67,22 @@ export async function issueTicket(params: IssueTicketParams): Promise<IssuedTick
         qrCodeDataUrl,
         emailSent: true,
       };
+    }
+  } else {
+    // Check if an active ticket already exists for this email in this event
+    const { data: existingTicketByEmail } = await (adminDb
+      .from("tickets")
+      .select("*")
+      .eq("event_id", eventId)
+      .eq("participant_email", normalizedEmail)
+      .neq("status", "REVOKED")
+      .maybeSingle() as any);
+
+    if (existingTicketByEmail) {
+      throw new AppError(
+        ERROR_CODES.TICKET_ALREADY_ISSUED,
+        `An active entrance pass (#${existingTicketByEmail.ticket_number}) has already been issued to ${normalizedEmail}.`
+      );
     }
   }
 
@@ -143,6 +160,22 @@ export async function issueTicket(params: IssueTicketParams): Promise<IssuedTick
   } catch (emailErr) {
     console.warn("Could not send ticket email immediately:", emailErr);
   }
+
+  await logAuditEvent({
+    organizationId: event.organization_id,
+    eventId: event.id,
+    actorId: issuedBy || null,
+    actorType: issuedBy ? "USER" : "SYSTEM",
+    action: "TICKET_ISSUED",
+    targetType: "TICKET",
+    targetId: ticket.id,
+    metadata: {
+      ticket_number: ticketNumber,
+      participant_name: participantName.trim(),
+      participant_email: normalizedEmail,
+      email_sent: emailSent,
+    },
+  });
 
   return {
     ticket,

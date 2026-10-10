@@ -146,3 +146,115 @@ export async function sendTicketEmail(payload: TicketEmailPayload): Promise<{ su
     };
   }
 }
+
+export interface VerifierInviteEmailPayload {
+  to: string;
+  verifierName: string;
+  eventName: string;
+  organizationName: string;
+  magicLinkUrl: string;
+  expiresInText: string;
+}
+
+/**
+ * Builds HTML template for event gate verifier invitation with magic link.
+ */
+export function buildVerifierInviteEmailHtml(payload: VerifierInviteEmailPayload): string {
+  const { verifierName, eventName, organizationName, magicLinkUrl, expiresInText } = payload;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gate Verifier Invitation for ${eventName}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #09090b; color: #f4f4f5; margin: 0; padding: 24px; }
+    .container { max-width: 580px; margin: 0 auto; background-color: #18181b; border: 1px solid #27272a; border-radius: 16px; overflow: hidden; }
+    .header { background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 32px 24px; text-align: center; }
+    .header h1 { margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: -0.025em; }
+    .content { padding: 32px 24px; }
+    .greeting { font-size: 15px; color: #d4d4d8; margin-bottom: 20px; line-height: 1.6; }
+    .info-card { background-color: #09090b; border: 1px solid #3f3f46; border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+    .badge { display: inline-block; background-color: #064e3b; color: #6ee7b7; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 9999px; margin-bottom: 10px; }
+    .cta-button { display: block; text-align: center; background-color: #059669; color: #ffffff !important; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 28px; border-radius: 10px; margin: 24px 0 16px 0; }
+    .note { font-size: 12px; color: #a1a1aa; line-height: 1.5; margin-top: 16px; }
+    .footer { text-align: center; padding: 20px 24px; font-size: 12px; color: #71717a; border-top: 1px solid #27272a; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Turnstile Verifier Access</h1>
+    </div>
+    <div class="content">
+      <p class="greeting">Hello <strong>${verifierName}</strong>,</p>
+      <p class="greeting">
+        You have been appointed as an entrance gate verifier for <strong>${eventName}</strong> by <strong>${organizationName}</strong>.
+      </p>
+      <div class="info-card">
+        <span class="badge">Gate Staff Delegation</span>
+        <p style="margin: 0 0 8px 0; font-size: 14px; color: #ffffff; font-weight: 600;">Event: ${eventName}</p>
+        <p style="margin: 0; font-size: 13px; color: #a1a1aa;">Access Window: <strong>${expiresInText}</strong></p>
+      </div>
+      <a href="${magicLinkUrl}" class="cta-button">Open Turnstile Scanner</a>
+      <p class="note">
+        This link uses single-click authentication to open the mobile scanner without requiring a password. Do not forward this email to unauthorized personnel.
+      </p>
+    </div>
+    <div class="footer">
+      TicketPlatform • Ephemeral Verifier Protocol
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+/**
+ * Dispatches an invitation email with a magic link to a designated event verifier.
+ */
+export async function sendVerifierInviteEmail(payload: VerifierInviteEmailPayload) {
+  const resend = getResendClient();
+  const env = getServerEnv();
+  const fromEmail = env.EMAIL_FROM || "Ticket Platform <tickets@example.com>";
+  const html = buildVerifierInviteEmailHtml(payload);
+  const subject = `Gate Verifier Invitation: ${payload.eventName}`;
+
+  if (!resend) {
+    console.info(`[Email Service Simulation] Sent verifier invitation email to ${payload.to} for event "${payload.eventName}" (Link: ${payload.magicLinkUrl})`);
+    return {
+      success: true,
+      simulated: true,
+    };
+  }
+
+  try {
+    const response = await resend.emails.send({
+      from: fromEmail,
+      to: payload.to,
+      subject,
+      html,
+    });
+
+    if (response.error) {
+      console.error("[Email Service Error] Failed to send verifier invite email:", response.error);
+      return {
+        success: false,
+        error: response.error.message,
+      };
+    }
+
+    return {
+      success: true,
+      messageId: response.data?.id,
+    };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Unknown email dispatch error";
+    console.error("[Email Service Exception]:", errorMsg);
+    return {
+      success: false,
+      error: errorMsg,
+    };
+  }
+}
+
