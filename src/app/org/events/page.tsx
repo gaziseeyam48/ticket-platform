@@ -15,7 +15,6 @@ export const metadata = {
 
 export const instant = false;
 
-
 export default async function EventsListPage() {
   await connection();
   const supabase = await createServerDbClient();
@@ -28,82 +27,94 @@ export default async function EventsListPage() {
 
   const events = await getEvents(orgInfo.organizationId);
 
-  const statusColors = {
-    DRAFT: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
-    PUBLISHED: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-    LIVE: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    ENDED: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
-    CANCELLED: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+  const statusBadges = {
+    DRAFT: "bg-zinc-100 text-zinc-600 border-zinc-200",
+    PUBLISHED: "bg-sky-50 text-sky-700 border-sky-200",
+    LIVE: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    ENDED: "bg-zinc-100 text-zinc-500 border-zinc-200",
+    CANCELLED: "bg-rose-50 text-rose-700 border-rose-200",
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-100">Events</h1>
-          <p className="text-zinc-400 mt-1">Manage and create events for your organization.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Events</h1>
+          <p className="text-sm text-zinc-500 mt-1">Manage, publish, and monitor your organization&apos;s events.</p>
         </div>
         <Link href="/org/events/new">
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
+          <Button size="sm" className="font-semibold gap-1.5 shadow-xs">
+            <PlusCircle className="h-4 w-4" />
             Create Event
           </Button>
         </Link>
       </div>
 
       {events.length === 0 ? (
-        <Card className="bg-zinc-900/20 border-zinc-800 border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <Calendar className="h-12 w-12 text-zinc-600 mb-4" />
-            <h3 className="text-lg font-medium text-zinc-200">No events found</h3>
-            <p className="text-zinc-500 max-w-sm mt-2 mb-6">
-              You haven&apos;t created any events yet. Create your first event to get started.
+        <div className="rounded-xl border border-dashed border-zinc-300 bg-white p-16 text-center space-y-4">
+          <div className="mx-auto w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500">
+            <Calendar className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-zinc-900">No events found</h3>
+            <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+              Get started by creating your first event to configure passes and open registrations.
             </p>
-            <Link href="/org/events/new">
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Create Event
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+          </div>
+          <Link href="/org/events/new">
+            <Button size="sm" className="font-semibold">
+              <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
+              Create Event
+            </Button>
+          </Link>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {events.map((event: any) => (
-            <Card key={event.id} className="bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 transition-colors flex flex-col justify-between">
-              <CardHeader>
+            <div key={event.id} className="border border-zinc-200 rounded-xl bg-white p-5 flex flex-col justify-between shadow-2xs hover:border-zinc-300 transition-colors space-y-4">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${statusColors[event.status as keyof typeof statusColors] || "text-zinc-400 border-zinc-700"}`}>
+                  <span className={`text-[11px] font-mono px-2 py-0.5 rounded-sm border font-medium ${statusBadges[event.status as keyof typeof statusBadges] || "bg-zinc-100 text-zinc-600 border-zinc-200"}`}>
                     {event.status}
                   </span>
-                  <span className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">
+                  <span className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
                     {event.event_type}
                   </span>
                 </div>
-                <CardTitle className="text-lg font-semibold text-zinc-100 mt-3 line-clamp-1">
-                  {event.name}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-zinc-400 line-clamp-2">
+
+                <div>
+                  <h3 className="text-base font-semibold text-zinc-900 line-clamp-1">
+                    {event.name}
+                  </h3>
+                  <p className="text-xs font-mono text-zinc-400 mt-0.5">/{event.slug}</p>
+                </div>
+
+                <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed">
                   {event.description || "No description provided."}
                 </p>
+
                 {event.date_start && (
-                  <div className="text-xs text-zinc-500 flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5" />
+                  <div className="text-xs text-zinc-500 flex items-center gap-1.5 pt-1">
+                    <Calendar className="h-3.5 w-3.5 text-zinc-400" />
                     <span>{format(new Date(event.date_start), "MMM d, yyyy h:mm a")}</span>
                   </div>
                 )}
-                <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between">
-                  <Link href={`/org/events/${event.id}`}>
-                    <Button variant="outline" size="sm" className="text-zinc-300">
-                      Manage Event
-                      <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                    </Button>
+              </div>
+
+              <div className="pt-3 border-t border-zinc-100 flex items-center justify-between">
+                <Link href={`/org/events/${event.id}`}>
+                  <Button variant="outline" size="sm" className="text-xs font-semibold">
+                    Manage Event
+                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                  </Button>
+                </Link>
+                {event.status === "PUBLISHED" && (
+                  <Link href={`/events/${event.slug}`} target="_blank" className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors">
+                    View Live Page ↗
                   </Link>
-                </div>
-              </CardContent>
-            </Card>
+                )}
+              </div>
+            </div>
           ))}
         </div>
       )}

@@ -18,12 +18,12 @@ export async function generateMetadata(props: {
   try {
     const data = await getPublicEventRegistrationData(params.slug);
     return {
-      title: `Register for ${data.event.name} - Ticket Platform`,
+      title: `Register for ${data.event.name} — Ticket Platform`,
       description: data.event.description || `Register for ${data.event.name}`,
     };
   } catch {
     return {
-      title: "Registration - Ticket Platform",
+      title: "Registration — Ticket Platform",
     };
   }
 }
@@ -45,34 +45,34 @@ export default async function EventRegistrationPage(props: {
   const { event, form, isOpen, statusMessage } = registrationData;
 
   return (
-    <div className="min-h-screen bg-zinc-950 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#fbfbf9] text-zinc-900 py-10 px-4 sm:px-6 font-sans">
+      <div className="max-w-xl mx-auto space-y-6">
         {/* Navigation Back */}
         <Link
           href={`/events/${event.slug}`}
-          className="inline-flex items-center text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
+          className="inline-flex items-center text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
           Back to Event Overview
         </Link>
 
         {/* Closed or unavailable state banner */}
         {!isOpen ? (
-          <Card className="bg-zinc-900/90 border-zinc-800 shadow-xl p-8 text-center space-y-6">
-            <div className="mx-auto h-16 w-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-              <AlertCircle className="h-8 w-8" />
+          <Card className="border-zinc-200 bg-white shadow-xs p-8 text-center space-y-5">
+            <div className="mx-auto h-12 w-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+              <AlertCircle className="h-6 w-6" />
             </div>
 
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-zinc-100">Registration Unavailable</h2>
-              <p className="text-zinc-400 text-sm max-w-md mx-auto">
+            <div className="space-y-1">
+              <h2 className="text-xl font-bold text-zinc-900">Registration Unavailable</h2>
+              <p className="text-zinc-500 text-xs max-w-sm mx-auto">
                 {statusMessage}
               </p>
             </div>
 
             <div className="pt-2">
               <Link href={`/events/${event.slug}`}>
-                <Button variant="outline">View Event Details</Button>
+                <Button variant="outline" size="sm">View Event Details</Button>
               </Link>
             </div>
           </Card>
@@ -80,26 +80,26 @@ export default async function EventRegistrationPage(props: {
           /* Active Registration Flow */
           <div className="space-y-6">
             {/* Quick Event Summary Header Card */}
-            <div className="p-5 rounded-2xl bg-zinc-900/50 border border-zinc-800 backdrop-blur space-y-3">
-              <div>
-                <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                  {event.event_type} EVENT
+            <div className="p-5 rounded-xl bg-white border border-zinc-200 shadow-xs space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-sm bg-zinc-100 text-zinc-700 border border-zinc-200">
+                  {event.event_type}
                 </span>
-                <h1 className="text-2xl font-bold text-zinc-100 mt-2">{event.name}</h1>
-                <p className="text-xs text-zinc-400">Hosted by {event.organizations.name}</p>
+                <span className="text-xs font-mono text-zinc-400">Hosted by {event.organizations.name}</span>
               </div>
+              <h1 className="text-xl font-bold text-zinc-900">{event.name}</h1>
 
               {(event.date_start || event.location) && (
-                <div className="pt-2 border-t border-zinc-800/80 flex flex-wrap gap-4 text-xs text-zinc-400">
+                <div className="pt-2 border-t border-zinc-100 flex flex-wrap gap-4 text-xs text-zinc-500">
                   {event.date_start && (
                     <div className="flex items-center gap-1.5">
-                      <Calendar className="h-3.5 w-3.5 text-indigo-400" />
+                      <Calendar className="h-3.5 w-3.5 text-zinc-400" />
                       <span>{format(new Date(event.date_start), "PPp")}</span>
                     </div>
                   )}
                   {event.location && (
                     <div className="flex items-center gap-1.5">
-                      <MapPin className="h-3.5 w-3.5 text-indigo-400" />
+                      <MapPin className="h-3.5 w-3.5 text-zinc-400" />
                       <span>{event.location}</span>
                     </div>
                   )}

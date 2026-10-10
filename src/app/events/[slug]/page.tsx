@@ -3,7 +3,7 @@ import { getEventBySlug } from "@/app/actions/event.actions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, Building2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -15,10 +15,10 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
   try {
     const event = await getEventBySlug(params.slug);
     return {
-      title: `${event.name} - Ticket Platform`,
+      title: `${event.name} — Ticket Platform`,
       description: event.description || `Register for ${event.name}`,
     };
-  } catch (error) {
+  } catch {
     return {
       title: "Event Not Found",
     };
@@ -32,93 +32,100 @@ export default async function PublicEventPage(props: { params: Promise<{ slug: s
   let event;
   try {
     event = await getEventBySlug(params.slug);
-  } catch (error) {
+  } catch {
     notFound();
   }
 
   const isRegistrationOpen = event.status === "PUBLISHED" || event.status === "LIVE";
 
   return (
-    <div className="min-h-screen bg-zinc-950 py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Card className="bg-zinc-900/50 border-zinc-800 overflow-hidden">
-          <div className="h-32 md:h-48 bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border-b border-zinc-800" />
-          
-          <CardContent className="p-8 sm:p-12 -mt-12 sm:-mt-16 bg-zinc-950/40 backdrop-blur-sm rounded-b-xl">
-            <div className="flex flex-col md:flex-row gap-8 justify-between">
-              <div className="flex-1 space-y-6">
-                <div>
-                  <span className="inline-flex items-center rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs font-semibold text-indigo-400 border border-indigo-500/20 mb-4">
-                    {event.event_type} EVENT
-                  </span>
-                  <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-2">
-                    {event.name}
-                  </h1>
-                  <p className="text-lg text-zinc-400 font-medium">
-                    Presented by {event.organizations.name}
-                  </p>
-                </div>
+    <div className="min-h-screen bg-[#fbfbf9] text-zinc-900 py-10 sm:py-16 px-4 sm:px-6 font-sans">
+      <div className="max-w-3xl mx-auto space-y-8">
+        {/* Editorial Masthead Bar */}
+        <div className="border-b border-zinc-200 pb-4 flex items-center justify-between text-xs font-mono uppercase tracking-wider text-zinc-400">
+          <span>Official Event Invitation</span>
+          <span>{event.organizations.name}</span>
+        </div>
 
-                <div className="flex flex-col gap-4 py-6 border-y border-zinc-800/60">
-                  {(event.date_start || event.date_end) && (
-                    <div className="flex items-start gap-3">
-                      <Calendar className="w-5 h-5 text-indigo-400 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-zinc-200">Date & Time</p>
-                        <p className="text-zinc-400 mt-1">
-                          {event.date_start && format(new Date(event.date_start), "EEEE, MMMM d, yyyy 'at' h:mm a")}
-                          {event.date_end && ` - ${format(new Date(event.date_end), "h:mm a")}`}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {event.location && (
-                    <div className="flex items-start gap-3">
-                      <MapPin className="w-5 h-5 text-indigo-400 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-zinc-200">Location</p>
-                        <p className="text-zinc-400 mt-1">{event.location}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {event.description && (
-                  <div className="prose prose-invert prose-zinc max-w-none">
-                    <h3 className="text-xl font-semibold text-zinc-200 mb-4">About this event</h3>
-                    <p className="text-zinc-300 whitespace-pre-wrap">{event.description}</p>
-                  </div>
-                )}
+        {/* Main Event Article Card */}
+        <div className="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden">
+          <div className="p-8 sm:p-12 space-y-8">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-sm bg-zinc-100 text-zinc-700 border border-zinc-200">
+                  {event.event_type} PASS
+                </span>
+                <span className="text-[11px] font-mono text-zinc-400">
+                  Presented by {event.organizations.name}
+                </span>
               </div>
-
-              <div className="w-full md:w-80">
-                <Card className="bg-zinc-900 border-zinc-800 sticky top-8">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-bold text-white mb-2">Registration</h3>
-                    
-                    {!isRegistrationOpen ? (
-                      <div className="mt-4 p-4 bg-zinc-800/50 rounded-lg text-center border border-zinc-700/50">
-                        <p className="text-zinc-300 font-medium">Registration is currently closed.</p>
-                      </div>
-                    ) : (
-                      <div className="mt-6 space-y-4">
-                        <Link href={`/events/${event.slug}/register`} className="block w-full">
-                          <Button className="w-full text-lg h-12 bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20" size="lg">
-                            Register Now
-                          </Button>
-                        </Link>
-                        <p className="text-xs text-center text-zinc-500">
-                          {event.event_type === "FREE" ? "Free registration" : "Paid event"}
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+              <h1 className="font-editorial text-3xl sm:text-5xl font-bold tracking-tight text-zinc-900 leading-tight">
+                {event.name}
+              </h1>
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Date and Location Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-zinc-50 border border-zinc-200 text-xs">
+              {(event.date_start || event.date_end) && (
+                <div className="flex items-start gap-2.5">
+                  <Calendar className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-zinc-900">Schedule</span>
+                    <p className="text-zinc-600 mt-0.5">
+                      {event.date_start && format(new Date(event.date_start), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+                      {event.date_end && ` - ${format(new Date(event.date_end), "h:mm a")}`}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {event.location && (
+                <div className="flex items-start gap-2.5">
+                  <MapPin className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-zinc-900">Venue</span>
+                    <p className="text-zinc-600 mt-0.5">{event.location}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
+            {event.description && (
+              <div className="space-y-2 pt-2 border-t border-zinc-100">
+                <h3 className="text-xs font-mono uppercase tracking-wider text-zinc-400">About Gathering</h3>
+                <p className="text-sm text-zinc-600 whitespace-pre-wrap leading-relaxed font-sans">{event.description}</p>
+              </div>
+            )}
+
+            {/* Registration Action */}
+            <div className="pt-6 border-t border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-mono uppercase text-zinc-400">Status</span>
+                <p className="text-sm font-semibold text-zinc-900">
+                  {isRegistrationOpen ? "Registration Open" : "Registration Closed"}
+                </p>
+              </div>
+
+              {isRegistrationOpen ? (
+                <Link href={`/events/${event.slug}/register`}>
+                  <Button size="lg" className="w-full sm:w-auto font-semibold px-6 gap-2">
+                    Claim Attendee Pass
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <Button disabled variant="outline" size="lg" className="w-full sm:w-auto">
+                  Registration Closed
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <p className="text-center text-xs font-mono text-zinc-400">
+          Powered by TicketPlatform • Accountless Attendee Verification
+        </p>
       </div>
     </div>
   );

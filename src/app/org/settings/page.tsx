@@ -11,7 +11,6 @@ export const metadata = {
 
 export const instant = false;
 
-
 export default async function SettingsPage() {
   await connection();
   const supabase = await createServerDbClient();
@@ -23,49 +22,49 @@ export default async function SettingsPage() {
   if (!orgInfo) return null;
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-100">Organization Settings</h1>
-        <p className="text-zinc-400 mt-1">View and manage your organization profile.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Organization Settings</h1>
+        <p className="text-sm text-zinc-500 mt-1">Profile and workspace configuration.</p>
       </div>
 
-      <Card className="bg-zinc-900/50 border-zinc-800">
+      <Card className="border-zinc-200 bg-white shadow-xs">
         <CardHeader>
-          <CardTitle className="text-lg">Organization Profile</CardTitle>
-          <CardDescription>Details about your organization workspace.</CardDescription>
+          <CardTitle className="text-base font-semibold">Workspace Profile</CardTitle>
+          <CardDescription>Details regarding your organization account.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-lg bg-zinc-900/80 border border-zinc-800/80 space-y-1">
-              <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
-                <Building2 className="h-4 w-4 text-zinc-500" />
+            <div className="p-4 rounded-lg bg-zinc-50 border border-zinc-200 space-y-1">
+              <div className="flex items-center gap-1.5 text-xs font-mono uppercase text-zinc-500">
+                <Building2 className="h-3.5 w-3.5 text-zinc-400" />
                 Organization Name
               </div>
-              <div className="text-base font-semibold text-zinc-100">{orgInfo.organization.name}</div>
+              <div className="text-sm font-semibold text-zinc-900">{orgInfo.organization.name}</div>
             </div>
 
-            <div className="p-4 rounded-lg bg-zinc-900/80 border border-zinc-800/80 space-y-1">
-              <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
+            <div className="p-4 rounded-lg bg-zinc-50 border border-zinc-200 space-y-1">
+              <div className="flex items-center gap-1.5 text-xs font-mono uppercase text-zinc-500">
                 <span className="text-xs font-mono">#</span>
                 Organization Slug
               </div>
-              <div className="text-base font-mono text-zinc-300">{orgInfo.organization.slug}</div>
+              <div className="text-sm font-mono text-zinc-800">{orgInfo.organization.slug}</div>
             </div>
 
-            <div className="p-4 rounded-lg bg-zinc-900/80 border border-zinc-800/80 space-y-1">
-              <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
-                <UserCheck className="h-4 w-4 text-zinc-500" />
+            <div className="p-4 rounded-lg bg-zinc-50 border border-zinc-200 space-y-1">
+              <div className="flex items-center gap-1.5 text-xs font-mono uppercase text-zinc-500">
+                <UserCheck className="h-3.5 w-3.5 text-zinc-400" />
                 Your Role
               </div>
-              <div className="text-base font-semibold text-indigo-400">{orgInfo.role}</div>
+              <div className="text-sm font-semibold text-zinc-900">{orgInfo.role}</div>
             </div>
 
-            <div className="p-4 rounded-lg bg-zinc-900/80 border border-zinc-800/80 space-y-1">
-              <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
-                <Mail className="h-4 w-4 text-zinc-500" />
-                User Email
+            <div className="p-4 rounded-lg bg-zinc-50 border border-zinc-200 space-y-1">
+              <div className="flex items-center gap-1.5 text-xs font-mono uppercase text-zinc-500">
+                <Mail className="h-3.5 w-3.5 text-zinc-400" />
+                Admin Email
               </div>
-              <div className="text-base text-zinc-300 truncate">{user.email}</div>
+              <div className="text-sm text-zinc-800 truncate font-mono">{user.email}</div>
             </div>
           </div>
         </CardContent>

@@ -14,7 +14,6 @@ export const metadata = {
 
 export const instant = false;
 
-
 export default async function NewEventPage() {
   await connection();
   const supabase = await createServerDbClient();
@@ -32,21 +31,21 @@ export default async function NewEventPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <Link href="/org" className="inline-flex items-center text-sm text-zinc-400 hover:text-zinc-100 transition-colors mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
+        <Link href="/org" className="inline-flex items-center text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors mb-3">
+          <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
           Back to Dashboard
         </Link>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-100">Create New Event</h1>
-        <p className="text-zinc-400 mt-2">Set up the basic details for your event. You can configure registration and tickets later.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Create New Event</h1>
+        <p className="text-sm text-zinc-500 mt-1">Configure event metadata and public landing parameters.</p>
       </div>
 
-      <Card className="bg-zinc-900/50 border-zinc-800">
+      <Card className="border-zinc-200 bg-white shadow-xs">
         <CardHeader>
-          <CardTitle>Event Details</CardTitle>
+          <CardTitle className="text-base font-semibold">Event Parameters</CardTitle>
           <CardDescription>
-            These details will be shown on the public event page.
+            These details appear on the attendee pass and public registration page.
           </CardDescription>
         </CardHeader>
         <CardContent>

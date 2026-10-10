@@ -14,7 +14,6 @@ import {
   DollarSign,
   ArrowRight,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 
 interface RegistrationFormProps {
@@ -60,11 +59,9 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
   const [transactionId, setTransactionId] = useState("");
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
   const [paymentSubmittedSuccess, setPaymentSubmittedSuccess] = useState(false);
-  const [paymentError, setPaymentError] = useState("");
 
   const handleFieldChange = (fieldId: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [fieldId]: value }));
-    // Clear specific error on change
     if (fieldErrors[fieldId]) {
       setFieldErrors((prev) => {
         const next = { ...prev };
@@ -81,24 +78,19 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
     setFieldErrors({});
 
     try {
-      const result = await submitRegistration(event.slug, formData, honeypot);
+      const response = await submitRegistration(event.slug, formData, honeypot);
+
       setRegistrationResult({
-        registrationId: result.registrationId,
-        eventType: result.eventType,
-        participantName: result.participantName,
-        email: result.email,
-        paymentConfig: result.paymentConfig,
-        ticket: result.ticket,
+        registrationId: response.registrationId!,
+        eventType: response.eventType!,
+        participantName: response.participantName!,
+        email: response.email!,
+        paymentConfig: response.paymentConfig,
+        ticket: response.ticket,
       });
     } catch (err: unknown) {
-      if (err && typeof err === "object" && "details" in err) {
-        const details = (err as { details?: Record<string, string> }).details;
-        if (details && typeof details === "object") {
-          setFieldErrors(details);
-        }
-      }
-      const message = err instanceof Error ? err.message : "Registration failed. Please try again.";
-      setGeneralError(message);
+      const msg = err instanceof Error ? err.message : "Unexpected registration error.";
+      setGeneralError(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -106,92 +98,91 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
 
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!registrationResult?.registrationId || !transactionId.trim()) return;
+    if (!registrationResult || !transactionId.trim()) return;
 
     setIsSubmittingPayment(true);
-    setPaymentError("");
-
     try {
-      await submitPaymentTransaction(registrationResult.registrationId, transactionId);
-      setPaymentSubmittedSuccess(true);
+      const response = await submitPaymentTransaction(
+        registrationResult.registrationId,
+        transactionId.trim()
+      );
+
+      if (response.success) {
+        setPaymentSubmittedSuccess(true);
+      }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to submit transaction details.";
-      setPaymentError(message);
+      const msg = err instanceof Error ? err.message : "Failed to submit transaction details.";
+      setGeneralError(msg);
     } finally {
       setIsSubmittingPayment(false);
     }
   };
 
-  // SUCCESS VIEW: Free Event (with issued ticket & QR code)
+  // SUCCESS VIEW: Free Event (Instant Ticket Issuance)
   if (registrationResult && registrationResult.eventType === "FREE") {
     const ticket = registrationResult.ticket;
 
     return (
-      <Card className="bg-zinc-900/90 border-zinc-800 shadow-2xl backdrop-blur overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-        <div className="h-2 bg-gradient-to-r from-emerald-500 to-indigo-500" />
-        <CardContent className="p-8 text-center space-y-6">
-          <div className="mx-auto h-16 w-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-            <CheckCircle2 className="h-8 w-8" />
-          </div>
+      <Card className="border-zinc-200 bg-white shadow-xs text-center p-8 space-y-6">
+        <div className="mx-auto h-12 w-12 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+          <CheckCircle2 className="h-6 w-6" />
+        </div>
 
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-zinc-100">Ticket Issued Successfully!</h2>
-            <p className="text-zinc-400 max-w-md mx-auto text-sm">
-              Thank you, <span className="text-zinc-200 font-semibold">{registrationResult.participantName}</span>.
-              Your official ticket for <span className="text-zinc-200 font-medium">{event.name}</span> is active and ready.
-            </p>
-          </div>
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold text-zinc-900">Registration Confirmed!</h2>
+          <p className="text-xs text-zinc-500">
+            Your pass for <span className="font-semibold text-zinc-800">{event.name}</span> has been issued.
+          </p>
+        </div>
 
-          {ticket && (
-            <div className="p-6 rounded-2xl bg-zinc-950/80 border border-zinc-800/80 space-y-4 max-w-sm mx-auto shadow-inner">
-              <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-                <span className="text-xs text-zinc-400">Digital Pass</span>
-                <span className="font-mono text-xs font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
-                  {ticket.ticketNumber}
-                </span>
-              </div>
+        {ticket && (
+          <div className="p-6 rounded-xl bg-zinc-50 border border-zinc-200 text-center space-y-4 max-w-sm mx-auto">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
+              Pass #{ticket.ticketNumber}
+            </span>
 
-              {/* QR Code Presentation */}
-              <div className="p-3 bg-white rounded-xl inline-block shadow-md">
+            {ticket.qrCodeDataUrl && (
+              <div className="p-3 bg-white border border-zinc-200 rounded-xl inline-block shadow-2xs">
                 <img
                   src={ticket.qrCodeDataUrl}
-                  alt={`QR code for ticket ${ticket.ticketNumber}`}
-                  className="w-44 h-44 object-contain mx-auto"
+                  alt="Ticket QR"
+                  className="w-40 h-40 object-contain mx-auto"
                 />
               </div>
+            )}
 
-              <p className="text-[11px] text-zinc-400">
-                Present this QR code at the event entrance for verification.
-              </p>
+            <p className="text-[11px] text-zinc-500">
+              A copy of your pass and secure access link has been dispatched to{" "}
+              <span className="font-semibold text-zinc-800">{registrationResult.email}</span>.
+            </p>
 
-              <a
-                href={ticket.ticketUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="block w-full pt-1"
-              >
-                <Button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs h-10 shadow-lg shadow-indigo-600/20">
-                  Open Digital Ticket View
-                </Button>
-              </a>
-            </div>
-          )}
-
-          <div className="p-4 rounded-xl bg-zinc-950/40 border border-zinc-800/60 text-left space-y-2 max-w-sm mx-auto text-xs text-zinc-400">
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Attendee:</span>
-              <span className="text-zinc-200 font-medium">{registrationResult.participantName}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Delivered to:</span>
-              <span className="text-zinc-200 font-medium">{registrationResult.email}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Status:</span>
-              <span className="text-emerald-400 font-semibold uppercase">ACTIVE (ISSUED)</span>
-            </div>
+            <a
+              href={ticket.ticketUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="block w-full pt-1"
+            >
+              <Button size="sm" className="w-full font-semibold">
+                Open Digital Pass
+              </Button>
+            </a>
           </div>
-        </CardContent>
+        )}
+
+        <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 text-left space-y-2 max-w-sm mx-auto text-xs text-zinc-600">
+          <div className="flex justify-between">
+            <span className="text-zinc-400 font-mono">Attendee:</span>
+            <span className="text-zinc-900 font-medium">{registrationResult.participantName}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-zinc-400 font-mono">Delivered to:</span>
+            <span className="text-zinc-900 font-medium">{registrationResult.email}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-zinc-400 font-mono">Status:</span>
+            <span className="text-emerald-700 font-semibold uppercase">Active (Issued)</span>
+          </div>
+        </div>
       </Card>
     );
   }
@@ -201,130 +192,118 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
     const config = registrationResult.paymentConfig || event.payment_config || {};
 
     return (
-      <Card className="bg-zinc-900/90 border-zinc-800 shadow-2xl backdrop-blur overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-        <div className="h-2 bg-gradient-to-r from-amber-500 to-indigo-500" />
-        <CardHeader className="text-center pb-4">
-          <div className="mx-auto h-12 w-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-3">
+      <Card className="border-zinc-200 bg-white shadow-xs p-8 space-y-6">
+        <div className="text-center space-y-2">
+          <div className="mx-auto h-12 w-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mb-2">
             <CreditCard className="h-6 w-6" />
           </div>
-          <CardTitle className="text-2xl text-zinc-100">Complete Your Payment</CardTitle>
-          <CardDescription className="text-xs text-zinc-400">
-            Your registration is reserved! Follow the instructions below to finalize your ticket.
-          </CardDescription>
-        </CardHeader>
+          <h2 className="text-xl font-bold text-zinc-900">Complete Payment</h2>
+          <p className="text-xs text-zinc-500">
+            Registration reserved! Follow payment instructions below to finalize your pass.
+          </p>
+        </div>
 
-        <CardContent className="space-y-6">
-          {/* Payment Instructions Details Box */}
-          <div className="p-5 rounded-2xl bg-zinc-950/70 border border-zinc-800 space-y-3.5">
-            <h4 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
-              <Building className="h-4 w-4 text-indigo-400" />
-              Organizer Payment Information
-            </h4>
+        {/* Payment Details Box */}
+        <div className="p-5 rounded-xl bg-zinc-50 border border-zinc-200 space-y-3">
+          <h4 className="text-xs font-semibold text-zinc-700 uppercase tracking-wider flex items-center gap-1.5">
+            <Building className="h-3.5 w-3.5 text-zinc-500" />
+            Organizer Payment Information
+          </h4>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <p className="text-zinc-500">Payment Method</p>
-                <p className="text-zinc-200 font-medium mt-0.5">{config.payment_method || "Manual Transfer"}</p>
-              </div>
-              <div>
-                <p className="text-zinc-500">Amount Due</p>
-                <p className="text-emerald-400 font-bold mt-0.5 flex items-center">
-                  <DollarSign className="h-3 w-3 inline" />
-                  {config.amount || "0.00"} {config.currency || "USD"}
-                </p>
-              </div>
-              {config.account_name && (
-                <div>
-                  <p className="text-zinc-500">Account Name</p>
-                  <p className="text-zinc-200 font-medium mt-0.5">{config.account_name}</p>
-                </div>
-              )}
-              {config.account_number && (
-                <div>
-                  <p className="text-zinc-500">Account / Number</p>
-                  <p className="text-zinc-200 font-mono font-medium mt-0.5">{config.account_number}</p>
-                </div>
-              )}
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <p className="text-zinc-400 font-mono uppercase text-[10px]">Method</p>
+              <p className="text-zinc-800 font-medium mt-0.5">{config.payment_method || "Direct Transfer"}</p>
             </div>
-
-            {config.instructions && (
-              <div className="pt-2 border-t border-zinc-900 text-xs text-zinc-400">
-                <span className="font-semibold text-zinc-300">Instructions: </span>
-                {config.instructions}
+            <div>
+              <p className="text-zinc-400 font-mono uppercase text-[10px]">Amount Due</p>
+              <p className="text-zinc-900 font-bold mt-0.5">
+                {config.amount || "0.00"} {config.currency || "USD"}
+              </p>
+            </div>
+            {config.account_name && (
+              <div>
+                <p className="text-zinc-400 font-mono uppercase text-[10px]">Account Name</p>
+                <p className="text-zinc-800 font-medium mt-0.5">{config.account_name}</p>
+              </div>
+            )}
+            {config.account_number && (
+              <div>
+                <p className="text-zinc-400 font-mono uppercase text-[10px]">Account / Identifier</p>
+                <p className="text-zinc-800 font-mono font-medium mt-0.5">{config.account_number}</p>
               </div>
             )}
           </div>
 
-          {/* Transaction ID Submission Form */}
-          {paymentSubmittedSuccess ? (
-            <div className="p-5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2">
-              <CheckCircle2 className="h-6 w-6 text-emerald-400 mx-auto" />
-              <h4 className="text-sm font-semibold text-emerald-300">Payment Submitted for Review</h4>
-              <p className="text-xs text-zinc-400">
-                Your transaction ID has been recorded. Once the event organizer verifies the payment, your ticket will be activated and sent to your email.
+          {config.instructions && (
+            <div className="pt-2 border-t border-zinc-200 text-xs text-zinc-600">
+              <span className="font-semibold text-zinc-800">Instructions: </span>
+              {config.instructions}
+            </div>
+          )}
+        </div>
+
+        {/* Transaction ID Submission Form */}
+        {paymentSubmittedSuccess ? (
+          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-1">
+            <p className="text-xs font-semibold text-emerald-800">Payment Identifier Received!</p>
+            <p className="text-xs text-emerald-700">
+              The organizer will verify your payment and dispatch your digital pass to{" "}
+              <span className="font-medium">{registrationResult.email}</span>.
+            </p>
+          </div>
+        ) : (
+          <form onSubmit={handlePaymentSubmit} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <label htmlFor="txId" className="block text-xs font-medium text-zinc-700">
+                Payment Reference / Transaction ID <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="text"
+                required
+                value={transactionId}
+                onChange={(e) => setTransactionId(e.target.value)}
+                placeholder="e.g. TXN-89234190 or Bank Ref No."
+              />
+              <p className="text-[11px] text-zinc-400">
+                Enter the reference or transaction ID from your receipt.
               </p>
             </div>
-          ) : (
-            <form onSubmit={handlePaymentSubmit} className="space-y-4">
-              {paymentError && (
-                <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                  {paymentError}
-                </div>
-              )}
 
-              <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
-                  Enter Transaction ID / Reference <span className="text-rose-400">*</span>
-                </label>
-                <Input
-                  type="text"
-                  required
-                  value={transactionId}
-                  onChange={(e) => setTransactionId(e.target.value)}
-                  placeholder="e.g. TXN-984375928 or Bank Ref No."
-                  className="bg-zinc-950 border-zinc-800 text-zinc-100"
-                />
-                <p className="text-[11px] text-zinc-500 mt-1">
-                  Please provide the exact reference or transaction ID from your payment slip.
-                </p>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isSubmittingPayment || !transactionId.trim()}
-                className="w-full bg-amber-600 hover:bg-amber-500 text-white font-medium"
-              >
-                {isSubmittingPayment ? "Submitting Details..." : "Confirm & Submit Payment ID"}
-              </Button>
-            </form>
-          )}
-        </CardContent>
+            <Button
+              type="submit"
+              disabled={isSubmittingPayment || !transactionId.trim()}
+              className="w-full font-semibold"
+            >
+              {isSubmittingPayment ? "Submitting..." : "Confirm & Submit Reference"}
+            </Button>
+          </form>
+        )}
       </Card>
     );
   }
 
   // DEFAULT VIEW: Dynamic Registration Form
   return (
-    <Card className="bg-zinc-900/80 border-zinc-800 backdrop-blur shadow-2xl overflow-hidden">
-      <CardHeader className="border-b border-zinc-800/80 pb-5">
+    <Card className="border-zinc-200 bg-white shadow-xs overflow-hidden">
+      <CardHeader className="border-b border-zinc-100 pb-4">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-semibold tracking-wider uppercase px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-            {event.event_type} EVENT
+          <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-sm bg-zinc-100 text-zinc-700 border border-zinc-200">
+            {event.event_type} PASS
           </span>
-          <span className="text-xs text-zinc-400 flex items-center gap-1">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-            Secure Registration
+          <span className="text-xs text-zinc-400 flex items-center gap-1 font-mono">
+            <ShieldCheck className="h-3.5 w-3.5 text-zinc-500" />
+            Verified Pass
           </span>
         </div>
-        <CardTitle className="text-2xl text-zinc-100 mt-2">{event.name}</CardTitle>
-        <CardDescription className="text-xs text-zinc-400">
-          Complete the form below to reserve your ticket.
+        <CardTitle className="text-lg font-bold text-zinc-900 mt-2">{event.name}</CardTitle>
+        <CardDescription className="text-xs text-zinc-500">
+          Complete the details below to receive your entrance pass.
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="pt-6">
-        <form onSubmit={handleSubmit} className="space-y-5">
+      <CardContent className="pt-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Honeypot field (hidden from real users, catches bots) */}
           <div className="hidden" aria-hidden="true">
             <label htmlFor="website">Leave this field blank</label>
@@ -340,10 +319,10 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
           </div>
 
           {generalError && (
-            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-3">
-              <AlertCircle className="h-4 w-4 text-rose-400 flex-shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
+              <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-rose-200">Registration Notice</p>
+                <p className="font-semibold">Notice</p>
                 <p className="mt-0.5">{generalError}</p>
               </div>
             </div>
@@ -355,9 +334,9 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
 
             return (
               <div key={field.id} className="space-y-1.5">
-                <label className="block text-xs font-medium text-zinc-200">
+                <label className="block text-xs font-medium text-zinc-700">
                   {field.label}{" "}
-                  {field.required && <span className="text-rose-400">*</span>}
+                  {field.required && <span className="text-red-500">*</span>}
                 </label>
 
                 {/* Short text input */}
@@ -368,9 +347,7 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
                     placeholder={field.placeholder || "Enter text"}
                     value={value as string}
                     onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    className={`bg-zinc-950 border-zinc-800 text-zinc-100 ${
-                      error ? "border-rose-500 focus:border-rose-500" : "focus:border-indigo-500"
-                    }`}
+                    error={error}
                   />
                 )}
 
@@ -382,9 +359,7 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
                     placeholder={field.placeholder || "name@example.com"}
                     value={value as string}
                     onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    className={`bg-zinc-950 border-zinc-800 text-zinc-100 ${
-                      error ? "border-rose-500 focus:border-rose-500" : "focus:border-indigo-500"
-                    }`}
+                    error={error}
                   />
                 )}
 
@@ -396,9 +371,7 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
                     placeholder={field.placeholder || "+1 (555) 000-0000"}
                     value={value as string}
                     onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    className={`bg-zinc-950 border-zinc-800 text-zinc-100 ${
-                      error ? "border-rose-500 focus:border-rose-500" : "focus:border-indigo-500"
-                    }`}
+                    error={error}
                   />
                 )}
 
@@ -410,9 +383,7 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
                     placeholder={field.placeholder || "0"}
                     value={value as string}
                     onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    className={`bg-zinc-950 border-zinc-800 text-zinc-100 ${
-                      error ? "border-rose-500 focus:border-rose-500" : "focus:border-indigo-500"
-                    }`}
+                    error={error}
                   />
                 )}
 
@@ -424,11 +395,7 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
                     placeholder={field.placeholder || "Type here..."}
                     value={value as string}
                     onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    className={`w-full rounded-md border bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-1 ${
-                      error
-                        ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500"
-                        : "border-zinc-800 focus:border-indigo-500 focus:ring-indigo-500"
-                    }`}
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent shadow-2xs"
                   />
                 )}
 
@@ -438,11 +405,7 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
                     required={field.required}
                     value={value as string}
                     onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    className={`w-full rounded-md border bg-zinc-950 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-1 ${
-                      error
-                        ? "border-rose-500 focus:border-rose-500 focus:ring-rose-500"
-                        : "border-zinc-800 focus:border-indigo-500 focus:ring-indigo-500"
-                    }`}
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent shadow-2xs"
                   >
                     <option value="">{field.placeholder || "Select an option..."}</option>
                     {(field.options || []).map((opt, i) => (
@@ -455,11 +418,11 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
 
                 {/* Radio Options */}
                 {field.type === "radio" && (
-                  <div className="space-y-2 pt-1">
+                  <div className="space-y-1.5 pt-0.5">
                     {(field.options || []).map((opt, i) => (
                       <label
                         key={i}
-                        className="flex items-center gap-3 p-2.5 rounded-lg border border-zinc-800/80 bg-zinc-950/40 hover:bg-zinc-800/40 cursor-pointer transition-colors"
+                        className="flex items-center gap-2.5 p-2 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer transition-colors"
                       >
                         <input
                           type="radio"
@@ -467,9 +430,9 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
                           value={opt}
                           checked={value === opt}
                           onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                          className="text-indigo-600 focus:ring-indigo-500 bg-zinc-900 border-zinc-700"
+                          className="text-zinc-900 focus:ring-zinc-900"
                         />
-                        <span className="text-sm text-zinc-200">{opt}</span>
+                        <span className="text-xs text-zinc-800">{opt}</span>
                       </label>
                     ))}
                   </div>
@@ -477,46 +440,46 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
 
                 {/* Single Checkbox */}
                 {field.type === "checkbox" && (
-                  <div className="pt-1">
-                    <label className="flex items-start gap-3 p-3 rounded-lg border border-zinc-800/80 bg-zinc-950/40 hover:bg-zinc-800/40 cursor-pointer transition-colors">
+                  <div className="pt-0.5">
+                    <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer transition-colors">
                       <input
                         type="checkbox"
                         checked={Boolean(value)}
                         onChange={(e) => handleFieldChange(field.id, e.target.checked)}
-                        className="rounded text-indigo-600 focus:ring-indigo-500 bg-zinc-900 border-zinc-700 mt-0.5"
+                        className="rounded text-zinc-900 focus:ring-zinc-900 mt-0.5"
                       />
-                      <span className="text-xs text-zinc-300">
+                      <span className="text-xs text-zinc-700">
                         {field.placeholder || "I agree to the terms and event guidelines."}
                       </span>
                     </label>
                   </div>
                 )}
 
-                {/* Field-level validation error */}
-                {error && <p className="text-[11px] text-rose-400 font-medium">{error}</p>}
+                {/* Field-level error */}
+                {error && <p className="text-[11px] text-red-600 font-medium">{error}</p>}
               </div>
             );
           })}
 
-          <div className="pt-4 border-t border-zinc-800/80">
+          <div className="pt-4 border-t border-zinc-100">
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 text-base shadow-lg shadow-indigo-600/20"
+              className="w-full font-semibold h-11"
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Processing Registration...
+                  Generating Pass...
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  Complete Registration <ArrowRight className="h-4 w-4" />
+                  Reserve Entrance Pass <ArrowRight className="h-4 w-4" />
                 </span>
               )}
             </Button>
-            <p className="text-center text-[11px] text-zinc-500 mt-2.5">
-              By registering, you agree to receive event updates and ticket details.
+            <p className="text-center text-[11px] text-zinc-400 mt-2 font-mono">
+              Zero passwords • Instant digital pass delivery
             </p>
           </div>
         </form>

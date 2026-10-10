@@ -16,7 +16,6 @@ export const metadata = {
 
 export const instant = false;
 
-
 export default async function EventFormBuilderPage(props: {
   params: Promise<{ id: string }>;
 }) {
@@ -55,23 +54,23 @@ export default async function EventFormBuilderPage(props: {
         <div>
           <Link
             href={`/org/events/${event.id}`}
-            className="inline-flex items-center text-sm text-zinc-400 hover:text-zinc-100 transition-colors mb-2"
+            className="inline-flex items-center text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors mb-2"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
             Back to {event.name}
           </Link>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-100">
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
             Customize Registration Form
           </h1>
-          <p className="text-zinc-400 mt-1">
-            Build and preview custom questions for your attendees.
+          <p className="text-sm text-zinc-500 mt-0.5">
+            Design questions for attendees of <span className="font-medium text-zinc-800">{event.name}</span>.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Link href={`/events/${event.slug}`} target="_blank">
-            <Button variant="outline">
-              <ExternalLink className="mr-2 h-4 w-4" />
+            <Button variant="outline" size="sm" className="text-xs font-medium">
+              <ExternalLink className="mr-1.5 h-3.5 w-3.5 text-zinc-400" />
               Public Event Page
             </Button>
           </Link>

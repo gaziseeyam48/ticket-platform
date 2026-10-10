@@ -3,7 +3,7 @@ import { getTicketByPublicToken } from "@/app/actions/ticket.actions";
 import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, CheckCircle2, XCircle, AlertTriangle, Building, ShieldCheck } from "lucide-react";
+import { Calendar, MapPin, CheckCircle2, XCircle, Building } from "lucide-react";
 import { format } from "date-fns";
 
 export const instant = false;
@@ -16,12 +16,12 @@ export async function generateMetadata(props: {
   try {
     const ticket = await getTicketByPublicToken(params.token);
     return {
-      title: `Ticket: ${ticket.ticketNumber} - ${ticket.eventName}`,
-      description: `Official event ticket for ${ticket.participantName}`,
+      title: `Pass: ${ticket.ticketNumber} — ${ticket.eventName}`,
+      description: `Official event pass for ${ticket.participantName}`,
     };
   } catch {
     return {
-      title: "Digital Ticket - Ticket Platform",
+      title: "Digital Pass — Ticket Platform",
     };
   }
 }
@@ -45,107 +45,110 @@ export default async function PublicTicketPage(props: {
   const isIssued = ticket.status === "ISSUED";
 
   return (
-    <div className="min-h-screen bg-zinc-950 py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
-      <div className="w-full max-w-md space-y-6">
-        {/* Main Digital Ticket Pass Card */}
-        <Card className="bg-zinc-900/90 border-zinc-800 shadow-2xl backdrop-blur overflow-hidden rounded-3xl">
-          {/* Header Gradient Banner */}
-          <div className="h-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-
-          <CardContent className="p-7 space-y-6">
-            {/* Top Pass Brand & Status */}
-            <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-indigo-400" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  Digital Event Pass
-                </span>
-              </div>
+    <div className="min-h-screen bg-[#fbfbf9] text-zinc-900 py-10 px-4 sm:px-6 flex flex-col items-center justify-center font-sans">
+      <div className="w-full max-w-sm space-y-6">
+        {/* Main Digital Pass Card (Boarding Pass aesthetic) */}
+        <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
+          {/* Top Pass Stub Header */}
+          <div className="p-6 pb-5 border-b border-zinc-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
+                Official Digital Pass
+              </span>
 
               {isIssued && (
-                <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-semibold text-[11px]">
-                  <CheckCircle2 className="mr-1 h-3 w-3" /> VALID
-                </Badge>
+                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-sm bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> Valid
+                </span>
               )}
               {isCheckedIn && (
-                <Badge className="bg-zinc-800 text-zinc-400 border-zinc-700 font-semibold text-[11px]">
-                  ALREADY CHECKED IN
-                </Badge>
+                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-sm bg-zinc-100 text-zinc-600 border border-zinc-200 font-semibold">
+                  Checked In
+                </span>
               )}
               {isRevoked && (
-                <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/20 font-semibold text-[11px]">
-                  <XCircle className="mr-1 h-3 w-3" /> REVOKED
-                </Badge>
+                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-sm bg-rose-50 text-rose-700 border border-rose-200 font-semibold flex items-center gap-1">
+                  <XCircle className="h-3 w-3" /> Revoked
+                </span>
               )}
             </div>
 
-            {/* Event & Organization Info */}
-            <div className="space-y-1 text-center">
-              <h1 className="text-2xl font-extrabold tracking-tight text-white">{ticket.eventName}</h1>
-              <p className="text-xs text-zinc-400 flex items-center justify-center gap-1.5 mt-1">
-                <Building className="h-3.5 w-3.5 text-indigo-400" />
+            <div className="space-y-0.5">
+              <h1 className="font-editorial text-2xl font-bold tracking-tight text-zinc-900 leading-tight">
+                {ticket.eventName}
+              </h1>
+              <p className="text-xs text-zinc-500 flex items-center gap-1">
+                <Building className="h-3 w-3 text-zinc-400" />
                 {ticket.organizationName}
               </p>
             </div>
+          </div>
 
-            {/* QR Code Presentation */}
-            <div className="p-5 rounded-2xl bg-zinc-950 border border-zinc-800/80 text-center space-y-3">
-              <div className="p-3 bg-white rounded-xl inline-block shadow-md">
-                <img
-                  src={ticket.qrCodeDataUrl}
-                  alt={`QR code for ticket ${ticket.ticketNumber}`}
-                  className="w-48 h-48 object-contain mx-auto"
-                />
-              </div>
+          {/* Perforated Divider */}
+          <div className="relative py-2 bg-zinc-50 border-y border-dashed border-zinc-200">
+            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#fbfbf9] border-r border-zinc-200" />
+            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#fbfbf9] border-l border-zinc-200" />
+            <div className="text-center">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
+                Turnstile Entrance Scan
+              </span>
+            </div>
+          </div>
 
-              <div>
-                <p className="text-[10px] uppercase font-semibold tracking-widest text-zinc-500">
-                  Ticket Identifier
-                </p>
-                <p className="font-mono text-base font-bold text-indigo-400 mt-0.5 tracking-wider">
-                  {ticket.ticketNumber}
-                </p>
-              </div>
+          {/* QR Code Presentation */}
+          <div className="p-6 text-center space-y-4">
+            <div className="p-3 bg-white border border-zinc-200 rounded-xl inline-block shadow-2xs">
+              <img
+                src={ticket.qrCodeDataUrl}
+                alt={`QR code for ticket ${ticket.ticketNumber}`}
+                className="w-48 h-48 object-contain mx-auto"
+              />
             </div>
 
-            {/* Attendee Details */}
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between p-2.5 rounded-lg bg-zinc-950/60 border border-zinc-800/50">
-                <span className="text-zinc-500">Attendee</span>
-                <span className="text-zinc-200 font-medium">{ticket.participantName}</span>
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
+                Identifier Code
+              </p>
+              <p className="font-mono text-sm font-bold text-zinc-900 mt-0.5 tracking-wider">
+                {ticket.ticketNumber}
+              </p>
+            </div>
+
+            {/* Attendee Details Grid */}
+            <div className="pt-4 border-t border-zinc-100 text-left space-y-2 text-xs">
+              <div className="flex justify-between py-1 border-b border-zinc-50">
+                <span className="text-zinc-400 font-mono">Attendee</span>
+                <span className="text-zinc-900 font-semibold">{ticket.participantName}</span>
               </div>
 
               {ticket.eventDateStart && (
-                <div className="flex justify-between p-2.5 rounded-lg bg-zinc-950/60 border border-zinc-800/50">
-                  <span className="text-zinc-500 flex items-center gap-1">
-                    <Calendar className="h-3.5 w-3.5 text-zinc-400" /> Date
-                  </span>
-                  <span className="text-zinc-200 font-medium">
-                    {format(new Date(ticket.eventDateStart), "PPp")}
+                <div className="flex justify-between py-1 border-b border-zinc-50">
+                  <span className="text-zinc-400 font-mono">Date</span>
+                  <span className="text-zinc-800 font-medium">
+                    {format(new Date(ticket.eventDateStart), "MMM d, yyyy h:mm a")}
                   </span>
                 </div>
               )}
 
               {ticket.eventLocation && (
-                <div className="flex justify-between p-2.5 rounded-lg bg-zinc-950/60 border border-zinc-800/50">
-                  <span className="text-zinc-500 flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5 text-zinc-400" /> Location
-                  </span>
-                  <span className="text-zinc-200 font-medium text-right max-w-[200px] truncate">
+                <div className="flex justify-between py-1">
+                  <span className="text-zinc-400 font-mono">Venue</span>
+                  <span className="text-zinc-800 font-medium text-right max-w-[180px] truncate">
                     {ticket.eventLocation}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Verification Footer Notes */}
-            <div className="text-center pt-2 border-t border-zinc-800/80">
-              <p className="text-[11px] text-zinc-500">
-                Show this digital ticket on your phone screen upon arrival at the venue.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            <p className="text-[11px] text-zinc-400 font-mono pt-2">
+              Present this pass at physical turnstile check-in.
+            </p>
+          </div>
+        </div>
+
+        <p className="text-center text-[11px] font-mono text-zinc-400">
+          TicketPlatform • Atomic Concurrency Protocol
+        </p>
       </div>
     </div>
   );

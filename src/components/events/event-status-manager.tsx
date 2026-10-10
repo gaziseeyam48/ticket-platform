@@ -49,21 +49,24 @@ export function EventStatusManager({ eventId, currentStatus }: EventStatusManage
   return (
     <div className="space-y-4">
       {error && (
-        <div className="p-3 text-sm font-medium rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">
+        <div className="p-3 text-xs font-medium rounded-lg bg-red-50 text-red-600 border border-red-200">
           {error}
         </div>
       )}
       
-      <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
-        <p className="text-sm text-zinc-400">Current state: <span className="text-zinc-100 font-medium">{currentStatus}</span></p>
+      <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200">
+        <p className="text-xs text-zinc-500 font-mono uppercase tracking-wider">
+          Current State: <span className="text-zinc-900 font-bold ml-1">{currentStatus}</span>
+        </p>
         
         {transitions.length > 0 ? (
-          <div className="flex flex-col gap-2 mt-4">
+          <div className="flex flex-col gap-2 mt-3">
             {transitions.map((transition) => (
               <Button
                 key={transition.status}
                 variant={transition.variant}
-                className="w-full"
+                size="sm"
+                className="w-full text-xs font-semibold"
                 onClick={() => handleStatusChange(transition.status)}
                 isLoading={isLoading}
               >
@@ -72,7 +75,7 @@ export function EventStatusManager({ eventId, currentStatus }: EventStatusManage
             ))}
           </div>
         ) : (
-          <p className="text-xs text-zinc-500 mt-2">No further state transitions available.</p>
+          <p className="text-xs text-zinc-400 mt-2 font-mono">No further state transitions available.</p>
         )}
       </div>
     </div>

@@ -26,7 +26,6 @@ import {
   Check,
   AlertCircle,
   HelpCircle,
-  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -43,51 +42,51 @@ const FIELD_TYPE_METADATA: Record<
 > = {
   text: {
     label: "Short Text",
-    description: "Single-line text input for names, titles, or brief answers",
+    description: "Single-line text input for names or titles",
     icon: Type,
-    defaultPlaceholder: "e.g. Job Title, Company, or Student ID",
+    defaultPlaceholder: "e.g. Job Title, Company, or University",
   },
   email: {
     label: "Email",
-    description: "Email address with automatic format validation",
+    description: "Email address with automatic format check",
     icon: Mail,
-    defaultPlaceholder: "name@domain.com",
+    defaultPlaceholder: "attendee@example.com",
   },
   phone: {
     label: "Phone",
-    description: "Phone number with international number format check",
+    description: "Contact number with international format check",
     icon: Phone,
     defaultPlaceholder: "+1 (555) 000-0000",
   },
   number: {
     label: "Number",
-    description: "Numeric input for age, years of experience, or quantities",
+    description: "Numeric input for age or quantities",
     icon: Hash,
     defaultPlaceholder: "e.g. 25",
   },
   dropdown: {
     label: "Dropdown Select",
-    description: "Single selection from a dropdown list of options",
+    description: "Single-choice selection from a menu",
     icon: ListFilter,
-    defaultPlaceholder: "Select an option",
+    defaultPlaceholder: "Select option...",
   },
   radio: {
     label: "Radio Choices",
-    description: "Single selection where all options are visible at once",
+    description: "Single selection from visible options",
     icon: CheckCircle2,
     defaultPlaceholder: "",
   },
   checkbox: {
-    label: "Single Checkbox",
-    description: "Agreement check, dietary requirement, or consent toggle",
+    label: "Consent Checkbox",
+    description: "Single boolean toggle or agreement",
     icon: CheckSquare,
-    defaultPlaceholder: "",
+    defaultPlaceholder: "I agree to the attendee terms and conduct policy.",
   },
   textarea: {
     label: "Long Text",
-    description: "Multi-line text area for bios, comments, or dietary notes",
+    description: "Multi-line text area for notes or bios",
     icon: AlignLeft,
-    defaultPlaceholder: "Enter detailed response here...",
+    defaultPlaceholder: "Provide additional details...",
   },
 };
 
@@ -97,111 +96,66 @@ export function FormBuilder({
   eventName,
   eventSlug,
 }: FormBuilderProps) {
-  const [fields, setFields] = useState<FormField[]>(
-    initialFields.length > 0
-      ? initialFields
-      : [
-          {
-            id: "field_name",
-            type: "text",
-            label: "Full Name",
-            placeholder: "e.g. Alex Morgan",
-            required: true,
-            options: [],
-            order: 0,
-            isSystem: true,
-          },
-          {
-            id: "field_email",
-            type: "email",
-            label: "Email Address",
-            placeholder: "alex@example.com",
-            required: true,
-            options: [],
-            order: 1,
-            isSystem: true,
-          },
-        ]
-  );
-
+  const [fields, setFields] = useState<FormField[]>(initialFields);
   const [activeTab, setActiveTab] = useState<"builder" | "preview">("builder");
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Preview form test state
   const [previewValues, setPreviewValues] = useState<Record<string, unknown>>({});
   const [previewSubmitted, setPreviewSubmitted] = useState(false);
 
-  // Field manipulation functions
+  // Field manipulation helpers
   const addField = (type: FieldType) => {
     const meta = FIELD_TYPE_METADATA[type];
     const newId = `field_${Date.now().toString(36)}_${fields.length + 1}`;
     const newField: FormField = {
       id: newId,
       type,
-      label: `New ${meta.label}`,
+      label: meta.label,
       placeholder: meta.defaultPlaceholder,
       required: false,
-      options: type === "dropdown" || type === "radio" ? ["Option 1", "Option 2"] : [],
       order: fields.length,
+      options: type === "dropdown" || type === "radio" ? ["Option 1", "Option 2"] : [],
       isSystem: false,
     };
-
     setFields([...fields, newField]);
-    setSaveSuccess(false);
-  };
-
-  const removeField = (id: string) => {
-    const fieldToRemove = fields.find((f) => f.id === id);
-    if (fieldToRemove?.isSystem) return; // Prevent deleting system fields
-    setFields(fields.filter((f) => f.id !== id));
-    setSaveSuccess(false);
   };
 
   const updateField = (id: string, updates: Partial<FormField>) => {
-    setFields(
-      fields.map((f) => {
-        if (f.id === id) {
-          return { ...f, ...updates };
-        }
-        return f;
-      })
-    );
-    setSaveSuccess(false);
+    setFields(fields.map((f) => (f.id === id ? { ...f, ...updates } : f)));
+  };
+
+  const removeField = (id: string) => {
+    setFields(fields.filter((f) => f.id !== id));
   };
 
   const moveField = (index: number, direction: "up" | "down") => {
-    if (
-      (direction === "up" && index === 0) ||
-      (direction === "down" && index === fields.length - 1)
-    ) {
-      return;
-    }
-
     const targetIndex = direction === "up" ? index - 1 : index + 1;
-    const newFields = [...fields];
-    const [movedItem] = newFields.splice(index, 1);
-    newFields.splice(targetIndex, 0, movedItem);
+    if (targetIndex < 0 || targetIndex >= fields.length) return;
 
-    // Reassign orders
-    const ordered = newFields.map((f, idx) => ({ ...f, order: idx }));
-    setFields(ordered);
-    setSaveSuccess(false);
+    const newFields = [...fields];
+    const [moved] = newFields.splice(index, 1);
+    newFields.splice(targetIndex, 0, moved);
+
+    // Update order indices
+    setFields(newFields.map((f, idx) => ({ ...f, order: idx })));
   };
 
-  // Option manipulations for dropdown / radio
   const addOption = (fieldId: string) => {
     const field = fields.find((f) => f.id === fieldId);
     if (!field) return;
     const currentOptions = field.options || [];
-    const newOptionName = `Option ${currentOptions.length + 1}`;
-    updateField(fieldId, { options: [...currentOptions, newOptionName] });
+    const newOptions = [...currentOptions, `Option ${currentOptions.length + 1}`];
+    updateField(fieldId, { options: newOptions });
   };
 
-  const updateOption = (fieldId: string, optionIndex: number, newValue: string) => {
+  const updateOption = (fieldId: string, optionIndex: number, value: string) => {
     const field = fields.find((f) => f.id === fieldId);
     if (!field) return;
     const currentOptions = [...(field.options || [])];
-    currentOptions[optionIndex] = newValue;
+    currentOptions[optionIndex] = value;
     updateField(fieldId, { options: currentOptions });
   };
 
@@ -233,33 +187,32 @@ export function FormBuilder({
   return (
     <div className="space-y-6">
       {/* Top Header & Actions Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-zinc-900/60 border border-zinc-800 backdrop-blur">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-xl bg-white border border-zinc-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-              <Settings2 className="h-5 w-5 text-indigo-400" />
+            <h2 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
+              <Settings2 className="h-4 w-4 text-zinc-600" />
               Registration Form Builder
             </h2>
-            <Badge variant="outline" className="border-indigo-500/30 text-indigo-400 bg-indigo-500/10">
+            <Badge variant="outline" className="text-zinc-600">
               {fields.length} {fields.length === 1 ? "field" : "fields"}
             </Badge>
           </div>
-          <p className="text-sm text-zinc-400 mt-1">
-            Configure questions for attendees registering for{" "}
-            <span className="text-zinc-200 font-medium">{eventName}</span> ({`/${eventSlug}`}).
+          <p className="text-xs text-zinc-500 mt-1">
+            Questions for attendees registering at <span className="font-mono text-zinc-700">/{eventSlug}</span>.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Tab Switcher */}
-          <div className="inline-flex rounded-xl bg-zinc-950 p-1 border border-zinc-800">
+          <div className="inline-flex rounded-lg bg-zinc-100 p-0.5 border border-zinc-200">
             <button
               type="button"
               onClick={() => setActiveTab("builder")}
-              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
                 activeTab === "builder"
-                  ? "bg-zinc-800 text-zinc-100 shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-200"
+                  ? "bg-white text-zinc-900 shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-900"
               }`}
             >
               <Settings2 className="h-3.5 w-3.5" />
@@ -268,10 +221,10 @@ export function FormBuilder({
             <button
               type="button"
               onClick={() => setActiveTab("preview")}
-              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
                 activeTab === "preview"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-200"
+                  ? "bg-white text-zinc-900 shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-900"
               }`}
             >
               <Eye className="h-3.5 w-3.5" />
@@ -282,21 +235,22 @@ export function FormBuilder({
           <Button
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20"
+            size="sm"
+            className="font-semibold"
           >
             {isSaving ? (
               <span className="flex items-center gap-2">
-                <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Saving...
               </span>
             ) : saveSuccess ? (
-              <span className="flex items-center gap-2 text-emerald-300">
-                <Check className="h-4 w-4 text-emerald-400" />
-                Saved!
+              <span className="flex items-center gap-1.5 text-emerald-300">
+                <Check className="h-3.5 w-3.5 text-emerald-400" />
+                Saved
               </span>
             ) : (
-              <span className="flex items-center gap-2">
-                <Save className="h-4 w-4" />
+              <span className="flex items-center gap-1.5">
+                <Save className="h-3.5 w-3.5" />
                 Save Form
               </span>
             )}
@@ -306,19 +260,19 @@ export function FormBuilder({
 
       {/* Notifications */}
       {errorMessage && (
-        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-rose-400 flex-shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
+          <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-rose-200">Validation Notice</p>
+            <p className="font-semibold">Validation Notice</p>
             <p className="mt-0.5">{errorMessage}</p>
           </div>
         </div>
       )}
 
       {saveSuccess && (
-        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm flex items-center gap-3">
-          <Check className="h-5 w-5 text-emerald-400 flex-shrink-0" />
-          <p className="font-medium">Registration form configuration saved successfully!</p>
+        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs flex items-center gap-2">
+          <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+          <p className="font-medium">Registration form configuration saved successfully.</p>
         </div>
       )}
 
@@ -336,48 +290,48 @@ export function FormBuilder({
               return (
                 <div
                   key={field.id}
-                  className="group relative rounded-2xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 transition-all shadow-sm p-5 space-y-4"
+                  className="rounded-xl bg-white border border-zinc-200 hover:border-zinc-300 transition-all shadow-xs p-5 space-y-4"
                 >
                   {/* Field Header */}
-                  <div className="flex items-center justify-between gap-4 border-b border-zinc-800/80 pb-3">
+                  <div className="flex items-center justify-between gap-4 border-b border-zinc-100 pb-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                      <div className="h-8 w-8 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-700">
                         <Icon className="h-4 w-4" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
+                          <span className="text-xs font-semibold text-zinc-900">
                             {meta.label}
                           </span>
                           {field.isSystem && (
-                            <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700">
+                            <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded-xs bg-zinc-100 text-zinc-500 border border-zinc-200">
                               System Required
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-zinc-500 font-mono">ID: {field.id}</p>
+                        <p className="text-[11px] text-zinc-400 font-mono">ID: {field.id}</p>
                       </div>
                     </div>
 
                     {/* Actions: Reorder and Delete */}
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => moveField(index, "up")}
                         disabled={isFirst}
                         title="Move Up"
-                        className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                        className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
                       >
-                        <ArrowUp className="h-4 w-4" />
+                        <ArrowUp className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
                         onClick={() => moveField(index, "down")}
                         disabled={isLast}
                         title="Move Down"
-                        className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                        className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
                       >
-                        <ArrowDown className="h-4 w-4" />
+                        <ArrowDown className="h-3.5 w-3.5" />
                       </button>
 
                       {!field.isSystem ? (
@@ -385,9 +339,9 @@ export function FormBuilder({
                           type="button"
                           onClick={() => removeField(field.id)}
                           title="Remove Field"
-                          className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors ml-1"
+                          className="p-1.5 rounded-md text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors ml-1"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       ) : null}
                     </div>
@@ -397,40 +351,38 @@ export function FormBuilder({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Label Input */}
                     <div>
-                      <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                        Field Label <span className="text-rose-400">*</span>
+                      <label className="block text-xs font-medium text-zinc-700 mb-1">
+                        Field Label <span className="text-red-500">*</span>
                       </label>
                       <Input
                         value={field.label}
                         onChange={(e) => updateField(field.id, { label: e.target.value })}
                         placeholder="Label"
-                        className="bg-zinc-950 border-zinc-800 text-zinc-100 text-sm focus:border-indigo-500"
                       />
                     </div>
 
-                    {/* Placeholder Input (for text, email, phone, number, textarea) */}
+                    {/* Placeholder Input */}
                     {field.type !== "checkbox" && (
                       <div>
-                        <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+                        <label className="block text-xs font-medium text-zinc-700 mb-1">
                           Placeholder Text
                         </label>
                         <Input
                           value={field.placeholder || ""}
                           onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
                           placeholder={meta.defaultPlaceholder}
-                          className="bg-zinc-950 border-zinc-800 text-zinc-100 text-sm focus:border-indigo-500"
                         />
                       </div>
                     )}
 
                     {/* Required Checkbox Toggle */}
-                    <div className="sm:col-span-2 flex items-center justify-between p-3 rounded-xl bg-zinc-950/60 border border-zinc-800/80">
+                    <div className="sm:col-span-2 flex items-center justify-between p-3 rounded-lg bg-zinc-50 border border-zinc-200">
                       <div>
-                        <span className="text-xs font-medium text-zinc-200">Required Field</span>
+                        <span className="text-xs font-medium text-zinc-900">Required Field</span>
                         <p className="text-[11px] text-zinc-500">
                           {field.isSystem
                             ? "Core identification fields are required for ticket issuance."
-                            : "Participants must provide a value before submitting."}
+                            : "Attendees must complete this before registering."}
                         </p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -441,23 +393,23 @@ export function FormBuilder({
                           onChange={(e) => updateField(field.id, { required: e.target.checked })}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 disabled:opacity-50"></div>
+                        <div className="w-10 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-zinc-900 disabled:opacity-50"></div>
                       </label>
                     </div>
                   </div>
 
                   {/* Options Manager (for dropdown and radio) */}
                   {(field.type === "dropdown" || field.type === "radio") && (
-                    <div className="pt-2 border-t border-zinc-800/60 space-y-3">
+                    <div className="pt-2 border-t border-zinc-100 space-y-3">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
-                          <ListFilter className="h-3.5 w-3.5 text-indigo-400" />
-                          Options List <span className="text-rose-400">*</span>
+                        <label className="text-xs font-semibold text-zinc-700 flex items-center gap-1.5">
+                          <ListFilter className="h-3.5 w-3.5 text-zinc-500" />
+                          Options List <span className="text-red-500">*</span>
                         </label>
                         <button
                           type="button"
                           onClick={() => addOption(field.id)}
-                          className="text-xs font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                          className="text-xs font-medium text-zinc-700 hover:text-zinc-900 flex items-center gap-1"
                         >
                           <Plus className="h-3 w-3" /> Add Option
                         </button>
@@ -466,21 +418,21 @@ export function FormBuilder({
                       <div className="space-y-2">
                         {(field.options || []).map((opt, optIndex) => (
                           <div key={optIndex} className="flex items-center gap-2">
-                            <span className="text-xs text-zinc-500 w-5 text-right font-mono">
+                            <span className="text-xs text-zinc-400 w-5 text-right font-mono">
                               {optIndex + 1}.
                             </span>
                             <Input
                               value={opt}
                               onChange={(e) => updateOption(field.id, optIndex, e.target.value)}
                               placeholder={`Option ${optIndex + 1}`}
-                              className="bg-zinc-950 border-zinc-800 text-zinc-100 text-xs h-9"
+                              className="text-xs h-9"
                             />
                             {(field.options || []).length > 1 && (
                               <button
                                 type="button"
                                 onClick={() => removeOption(field.id, optIndex)}
                                 title="Remove Option"
-                                className="text-zinc-500 hover:text-rose-400 p-1.5 transition-colors"
+                                className="text-zinc-400 hover:text-red-600 p-1.5 transition-colors"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
@@ -495,19 +447,19 @@ export function FormBuilder({
             })}
           </div>
 
-          {/* Right Column: Palette / Add New Field */}
-          <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-6">
-            <Card className="bg-zinc-900/60 border-zinc-800 backdrop-blur shadow-sm">
+          {/* Right Column: Add New Field */}
+          <div className="lg:col-span-1 space-y-4 lg:sticky lg:top-20">
+            <Card className="border-zinc-200 bg-white shadow-xs">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base text-zinc-100 flex items-center gap-2">
-                  <Plus className="h-4 w-4 text-indigo-400" />
+                <CardTitle className="text-sm font-semibold flex items-center gap-1.5 text-zinc-900">
+                  <Plus className="h-4 w-4 text-zinc-500" />
                   Add Field
                 </CardTitle>
-                <CardDescription className="text-xs text-zinc-400">
-                  Select a field type to append to your registration form.
+                <CardDescription className="text-xs text-zinc-500">
+                  Append a field to your form.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-1.5">
                 {FIELD_TYPES.map((type) => {
                   const meta = FIELD_TYPE_METADATA[type];
                   const Icon = meta.icon;
@@ -517,17 +469,14 @@ export function FormBuilder({
                       key={type}
                       type="button"
                       onClick={() => addField(type)}
-                      className="w-full text-left p-2.5 rounded-xl border border-zinc-800/80 bg-zinc-950/60 hover:bg-zinc-800/60 hover:border-indigo-500/40 transition-all flex items-start gap-3 group"
+                      className="w-full text-left p-2 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 transition-colors flex items-center gap-2.5 group"
                     >
-                      <div className="h-7 w-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-transform flex-shrink-0 mt-0.5">
+                      <div className="h-6 w-6 rounded-md bg-zinc-100 flex items-center justify-center text-zinc-600 shrink-0">
                         <Icon className="h-3.5 w-3.5" />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-xs font-semibold text-zinc-200 group-hover:text-white transition-colors">
+                        <div className="text-xs font-medium text-zinc-800">
                           {meta.label}
-                        </div>
-                        <div className="text-[11px] text-zinc-500 truncate">
-                          {meta.description}
                         </div>
                       </div>
                     </button>
@@ -536,50 +485,42 @@ export function FormBuilder({
               </CardContent>
             </Card>
 
-            <div className="p-4 rounded-xl bg-zinc-900/40 border border-zinc-800/60 text-xs text-zinc-400 space-y-2">
-              <div className="flex items-center gap-2 text-zinc-300 font-medium">
-                <HelpCircle className="h-3.5 w-3.5 text-indigo-400" />
-                Tips for Organizers
+            <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-500 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-zinc-800 font-medium">
+                <HelpCircle className="h-3.5 w-3.5 text-zinc-500" />
+                Organizer Tip
               </div>
-              <p>
-                Keep registrations lean. Required fields increase drop-off rate, so only ask for details essential to ticketing and attendee verification.
+              <p className="leading-relaxed">
+                Keep questions minimal. Requiring too many fields increases abandonment at registration.
               </p>
             </div>
           </div>
         </div>
       ) : (
         /* Live Interactive Form Preview */
-        <div className="max-w-2xl mx-auto space-y-6">
-          <div className="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs flex items-center gap-3">
-            <Sparkles className="h-4 w-4 text-indigo-400 flex-shrink-0" />
-            <p>
-              This is a live preview rendering of your registration form. Test typing and selecting options to verify attendee experience!
-            </p>
-          </div>
-
-          <Card className="bg-zinc-900/80 border-zinc-800 backdrop-blur shadow-2xl">
-            <CardHeader className="border-b border-zinc-800 pb-5">
-              <div className="inline-block text-[11px] font-semibold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20 mb-2">
-                Event Registration
-              </div>
-              <CardTitle className="text-2xl text-zinc-100">{eventName}</CardTitle>
-              <CardDescription className="text-sm text-zinc-400">
-                Please complete all required fields below to reserve your ticket.
+        <div className="max-w-xl mx-auto space-y-6">
+          <Card className="border-zinc-200 bg-white shadow-xs">
+            <CardHeader className="border-b border-zinc-100 pb-4">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">
+                Live Registration Preview
+              </span>
+              <CardTitle className="text-xl font-bold text-zinc-900">{eventName}</CardTitle>
+              <CardDescription className="text-xs text-zinc-500">
+                Fill out the fields to preview the attendee experience.
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-6 space-y-5">
+            <CardContent className="pt-5 space-y-4">
               {fields.map((field) => {
                 const isFieldRequired = field.required;
                 const value = (previewValues[field.id] as string | undefined) ?? "";
 
                 return (
                   <div key={field.id} className="space-y-1.5">
-                    <label className="block text-xs font-medium text-zinc-200">
+                    <label className="block text-xs font-medium text-zinc-700">
                       {field.label}{" "}
-                      {isFieldRequired && <span className="text-rose-400">*</span>}
+                      {isFieldRequired && <span className="text-red-500">*</span>}
                     </label>
 
-                    {/* Rendering by Type */}
                     {field.type === "text" && (
                       <Input
                         type="text"
@@ -588,7 +529,6 @@ export function FormBuilder({
                         onChange={(e) =>
                           setPreviewValues({ ...previewValues, [field.id]: e.target.value })
                         }
-                        className="bg-zinc-950 border-zinc-800 text-zinc-100 focus:border-indigo-500"
                       />
                     )}
 
@@ -600,7 +540,6 @@ export function FormBuilder({
                         onChange={(e) =>
                           setPreviewValues({ ...previewValues, [field.id]: e.target.value })
                         }
-                        className="bg-zinc-950 border-zinc-800 text-zinc-100 focus:border-indigo-500"
                       />
                     )}
 
@@ -612,7 +551,6 @@ export function FormBuilder({
                         onChange={(e) =>
                           setPreviewValues({ ...previewValues, [field.id]: e.target.value })
                         }
-                        className="bg-zinc-950 border-zinc-800 text-zinc-100 focus:border-indigo-500"
                       />
                     )}
 
@@ -624,7 +562,6 @@ export function FormBuilder({
                         onChange={(e) =>
                           setPreviewValues({ ...previewValues, [field.id]: e.target.value })
                         }
-                        className="bg-zinc-950 border-zinc-800 text-zinc-100 focus:border-indigo-500"
                       />
                     )}
 
@@ -636,7 +573,7 @@ export function FormBuilder({
                         onChange={(e) =>
                           setPreviewValues({ ...previewValues, [field.id]: e.target.value })
                         }
-                        className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
                       />
                     )}
 
@@ -646,7 +583,7 @@ export function FormBuilder({
                         onChange={(e) =>
                           setPreviewValues({ ...previewValues, [field.id]: e.target.value })
                         }
-                        className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
                       >
                         <option value="">{field.placeholder || "Select an option..."}</option>
                         {(field.options || []).map((opt, i) => (
@@ -662,7 +599,7 @@ export function FormBuilder({
                         {(field.options || []).map((opt, i) => (
                           <label
                             key={i}
-                            className="flex items-center gap-3 p-2.5 rounded-lg border border-zinc-800/80 bg-zinc-950/40 hover:bg-zinc-800/40 cursor-pointer transition-colors"
+                            className="flex items-center gap-2.5 p-2 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer transition-colors"
                           >
                             <input
                               type="radio"
@@ -672,9 +609,9 @@ export function FormBuilder({
                               onChange={(e) =>
                                 setPreviewValues({ ...previewValues, [field.id]: e.target.value })
                               }
-                              className="text-indigo-600 focus:ring-indigo-500 bg-zinc-900 border-zinc-700"
+                              className="text-zinc-900 focus:ring-zinc-900"
                             />
-                            <span className="text-sm text-zinc-200">{opt}</span>
+                            <span className="text-xs text-zinc-800">{opt}</span>
                           </label>
                         ))}
                       </div>
@@ -682,16 +619,16 @@ export function FormBuilder({
 
                     {field.type === "checkbox" && (
                       <div className="pt-1">
-                        <label className="flex items-start gap-3 p-3 rounded-lg border border-zinc-800/80 bg-zinc-950/40 hover:bg-zinc-800/40 cursor-pointer transition-colors">
+                        <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer transition-colors">
                           <input
                             type="checkbox"
                             checked={Boolean(value)}
                             onChange={(e) =>
                               setPreviewValues({ ...previewValues, [field.id]: e.target.checked })
                             }
-                            className="rounded text-indigo-600 focus:ring-indigo-500 bg-zinc-900 border-zinc-700 mt-0.5"
+                            className="rounded text-zinc-900 focus:ring-zinc-900 mt-0.5"
                           />
-                          <span className="text-xs text-zinc-300">
+                          <span className="text-xs text-zinc-700">
                             {field.placeholder || "I agree to the terms and event guidelines."}
                           </span>
                         </label>
@@ -701,19 +638,19 @@ export function FormBuilder({
                 );
               })}
 
-              <div className="pt-4 border-t border-zinc-800">
+              <div className="pt-4 border-t border-zinc-100">
                 <Button
                   type="button"
                   onClick={() => {
                     setPreviewSubmitted(true);
                     setTimeout(() => setPreviewSubmitted(false), 3000);
                   }}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 shadow-lg shadow-indigo-600/20"
+                  className="w-full font-semibold"
                 >
                   {previewSubmitted ? "✓ Preview Validated Successfully" : "Register for Event"}
                 </Button>
-                <p className="text-center text-[11px] text-zinc-500 mt-2">
-                  Preview mode only. No tickets are generated from this test view.
+                <p className="text-center text-[11px] text-zinc-400 mt-2 font-mono">
+                  Interactive preview mode only.
                 </p>
               </div>
             </CardContent>

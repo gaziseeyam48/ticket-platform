@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { createEvent, updateEvent } from "@/app/actions/event.actions";
 import { z } from "zod";
 import { createEventSchema } from "@/lib/validations/event";
-import { format } from "date-fns";
 
 type EventFormData = z.infer<typeof createEventSchema>;
 
@@ -73,28 +72,27 @@ export function EventForm({ organizationId, eventId, initialData }: EventFormPro
   const formatDateForInput = (dateStr: string) => {
     if (!dateStr) return "";
     try {
-      // Return YYYY-MM-DDTHH:mm format for datetime-local input
       return new Date(dateStr).toISOString().slice(0, 16);
-    } catch (e) {
+    } catch {
       return "";
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {globalError && (
-        <div className="p-3 text-sm font-medium rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">
+        <div className="p-3 text-xs font-medium rounded-lg bg-red-50 text-red-600 border border-red-200">
           {globalError}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           id="name"
           name="name"
           label="Event Name"
           defaultValue={initialData?.name || ""}
-          placeholder="e.g. Annual Tech Conference"
+          placeholder="e.g. Annual Design Summit"
           error={errors.name}
           required
         />
@@ -103,42 +101,42 @@ export function EventForm({ organizationId, eventId, initialData }: EventFormPro
           name="slug"
           label="Event URL Slug"
           defaultValue={initialData?.slug || ""}
-          placeholder="e.g. tech-conf-2027"
+          placeholder="e.g. design-summit-2026"
           error={errors.slug}
           required
         />
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor="description" className="block text-xs font-medium text-zinc-300">
+        <label htmlFor="description" className="block text-xs font-medium text-zinc-700">
           Description
         </label>
         <textarea
           id="description"
           name="description"
-          rows={4}
+          rows={3}
           defaultValue={initialData?.description || ""}
-          className="flex w-full rounded-lg border border-zinc-800 bg-zinc-900/80 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:border-transparent transition-colors"
-          placeholder="Briefly describe your event..."
+          className="flex w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:border-transparent transition-colors shadow-2xs"
+          placeholder="Brief summary of the gathering..."
         />
-        {errors.description && <p className="text-xs text-rose-400 font-medium">{errors.description}</p>}
+        {errors.description && <p className="text-xs text-red-600 font-medium">{errors.description}</p>}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label htmlFor="event_type" className="block text-xs font-medium text-zinc-300">
+          <label htmlFor="event_type" className="block text-xs font-medium text-zinc-700">
             Event Type
           </label>
           <select
             id="event_type"
             name="event_type"
             defaultValue={initialData?.event_type || "FREE"}
-            className="flex h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900/80 px-3 py-2 text-sm text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:border-transparent transition-colors"
+            className="flex h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:border-transparent transition-colors shadow-2xs"
           >
-            <option value="FREE">Free Event</option>
-            <option value="PAID">Paid Event</option>
+            <option value="FREE">Free Pass</option>
+            <option value="PAID">Paid Ticket</option>
           </select>
-          {errors.event_type && <p className="text-xs text-rose-400 font-medium">{errors.event_type}</p>}
+          {errors.event_type && <p className="text-xs text-red-600 font-medium">{errors.event_type}</p>}
         </div>
         
         <Input
@@ -146,17 +144,17 @@ export function EventForm({ organizationId, eventId, initialData }: EventFormPro
           name="location"
           label="Location (Optional)"
           defaultValue={initialData?.location || ""}
-          placeholder="e.g. San Francisco or Online"
+          placeholder="e.g. Metropolitan Hall or Virtual"
           error={errors.location}
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           id="date_start"
           name="date_start"
           type="datetime-local"
-          label="Start Date (Optional)"
+          label="Start Time (Optional)"
           defaultValue={initialData?.date_start ? formatDateForInput(initialData.date_start) : ""}
           error={errors.date_start}
         />
@@ -164,22 +162,23 @@ export function EventForm({ organizationId, eventId, initialData }: EventFormPro
           id="date_end"
           name="date_end"
           type="datetime-local"
-          label="End Date (Optional)"
+          label="End Time (Optional)"
           defaultValue={initialData?.date_end ? formatDateForInput(initialData.date_end) : ""}
           error={errors.date_end}
         />
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800">
+      <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200">
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
+          size="sm"
           onClick={() => router.back()}
           disabled={isLoading}
         >
           Cancel
         </Button>
-        <Button type="submit" isLoading={isLoading}>
+        <Button type="submit" size="sm" isLoading={isLoading} className="font-semibold">
           {eventId ? "Save Changes" : "Create Event"}
         </Button>
       </div>

@@ -9,7 +9,6 @@ import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
 
 export const instant = false;
 
-
 export default async function OrgLayout({ children }: { children: ReactNode }) {
   await connection();
   const supabase = await createServerDbClient();
@@ -24,37 +23,37 @@ export default async function OrgLayout({ children }: { children: ReactNode }) {
   const organization = orgInfo?.organization || null;
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col">
-      <header className="border-b border-zinc-800 bg-zinc-900/50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+    <div className="min-h-screen bg-zinc-50/60 flex flex-col font-sans">
+      <header className="border-b border-zinc-200 bg-white sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-15 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/org" className="font-bold text-xl tracking-tight text-zinc-100">
-              Ticket<span className="text-zinc-500">Platform</span>
+            <Link href="/org" className="font-editorial text-xl font-bold tracking-tight text-zinc-900">
+              TicketPlatform
             </Link>
             {organization && (
-              <span className="text-sm font-medium text-zinc-400 bg-zinc-800/50 px-2.5 py-1 rounded-md">
+              <span className="text-xs font-mono font-medium text-zinc-600 bg-zinc-100 border border-zinc-200 px-2 py-0.5 rounded-sm">
                 {organization.name}
               </span>
             )}
           </div>
           
-          <div className="flex items-center gap-4">
-            <nav className="flex items-center gap-4 text-sm font-medium text-zinc-400">
-              <Link href="/org" className="hover:text-zinc-100 transition-colors">
+          <div className="flex items-center gap-5">
+            <nav className="flex items-center gap-5 text-xs font-medium text-zinc-600">
+              <Link href="/org" className="hover:text-zinc-900 transition-colors">
                 Dashboard
               </Link>
-              <Link href="/org/events" className="hover:text-zinc-100 transition-colors">
+              <Link href="/org/events" className="hover:text-zinc-900 transition-colors">
                 Events
               </Link>
-              <Link href="/org/settings" className="hover:text-zinc-100 transition-colors">
+              <Link href="/org/settings" className="hover:text-zinc-900 transition-colors">
                 Settings
               </Link>
             </nav>
             
-            <div className="h-6 w-px bg-zinc-800 mx-2" />
+            <div className="h-4 w-px bg-zinc-200" />
             
             <form action={logoutAction}>
-              <Button variant="outline" size="sm" type="submit" className="text-zinc-300">
+              <Button variant="outline" size="sm" type="submit" className="text-xs text-zinc-700">
                 Sign out
               </Button>
             </form>
@@ -62,7 +61,7 @@ export default async function OrgLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
       
-      <main className="flex-1 container mx-auto px-4 py-8">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8">
         {children}
       </main>
     </div>

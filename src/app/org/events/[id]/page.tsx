@@ -18,7 +18,6 @@ export const metadata = {
 
 export const instant = false;
 
-
 export default async function EventDetailsPage(props: { params: Promise<{ id: string }> }) {
   await connection();
   const params = await props.params;
@@ -47,76 +46,80 @@ export default async function EventDetailsPage(props: { params: Promise<{ id: st
 
   const form = await getRegistrationForm(event.id);
 
-  const statusColors = {
-    DRAFT: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
-    PUBLISHED: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-    LIVE: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    ENDED: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
-    CANCELLED: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+  const statusBadges = {
+    DRAFT: "bg-zinc-100 text-zinc-600 border-zinc-200",
+    PUBLISHED: "bg-sky-50 text-sky-700 border-sky-200",
+    LIVE: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    ENDED: "bg-zinc-100 text-zinc-500 border-zinc-200",
+    CANCELLED: "bg-rose-50 text-rose-700 border-rose-200",
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/org" className="inline-flex items-center text-sm text-zinc-400 hover:text-zinc-100 transition-colors mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
+        <Link href="/org" className="inline-flex items-center text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors mb-3">
+          <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
           Back to Dashboard
         </Link>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-100 flex items-center gap-3">
-              {event.name}
-              <span className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full border ${statusColors[event.status as keyof typeof statusColors]}`}>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+                {event.name}
+              </h1>
+              <span className={`text-[11px] font-mono px-2 py-0.5 rounded-sm border font-medium ${statusBadges[event.status as keyof typeof statusBadges] || "bg-zinc-100 text-zinc-600 border-zinc-200"}`}>
                 {event.status}
               </span>
-            </h1>
-            <p className="text-zinc-400 mt-2">Manage your event settings, registrations, and tickets.</p>
+            </div>
+            <p className="text-xs font-mono text-zinc-400 mt-1">/{event.slug}</p>
           </div>
           <div className="flex items-center gap-2">
             <Link href={`/events/${event.slug}`} target="_blank">
-              <Button variant="outline">
-                <ExternalLink className="mr-2 h-4 w-4" />
-                View Public Page
+              <Button variant="outline" size="sm" className="text-xs font-medium">
+                <ExternalLink className="mr-1.5 h-3.5 w-3.5 text-zinc-400" />
+                Public Page
               </Button>
             </Link>
             <Link href={`/org/events/${event.id}/form`}>
-              <Button variant="outline" className="border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10">
-                <FileText className="mr-2 h-4 w-4 text-indigo-400" />
+              <Button variant="outline" size="sm" className="text-xs font-medium">
+                <FileText className="mr-1.5 h-3.5 w-3.5 text-zinc-400" />
                 Form Builder
               </Button>
             </Link>
             <Link href={`/org/events/${event.id}/edit`}>
-              <Button>Edit Event</Button>
+              <Button size="sm" className="text-xs font-semibold">
+                Edit Event
+              </Button>
             </Link>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-zinc-900/50 border-zinc-800 md:col-span-2">
+        <Card className="border-zinc-200 bg-white shadow-xs md:col-span-2">
           <CardHeader>
-            <CardTitle>Event Information</CardTitle>
+            <CardTitle className="text-base font-semibold">Event Parameters</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-zinc-500">Event Type</p>
-                <p className="text-base text-zinc-100 flex items-center gap-2 mt-1">
-                  <Tag className="h-4 w-4 text-zinc-400" />
+                <p className="text-xs font-mono text-zinc-400 uppercase">Event Type</p>
+                <p className="text-sm font-medium text-zinc-900 flex items-center gap-2 mt-1">
+                  <Tag className="h-3.5 w-3.5 text-zinc-400" />
                   {event.event_type}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-500">Slug / URL</p>
-                <p className="text-base text-zinc-100 mt-1">/{event.slug}</p>
+                <p className="text-xs font-mono text-zinc-400 uppercase">Slug / Path</p>
+                <p className="text-sm font-mono text-zinc-700 mt-1">/{event.slug}</p>
               </div>
             </div>
 
             {(event.date_start || event.date_end) && (
               <div>
-                <p className="text-sm font-medium text-zinc-500">Date & Time</p>
-                <p className="text-base text-zinc-100 flex items-center gap-2 mt-1">
-                  <Calendar className="h-4 w-4 text-zinc-400" />
+                <p className="text-xs font-mono text-zinc-400 uppercase">Schedule</p>
+                <p className="text-sm text-zinc-800 flex items-center gap-2 mt-1">
+                  <Calendar className="h-3.5 w-3.5 text-zinc-400" />
                   {event.date_start && format(new Date(event.date_start), "PPp")}
                   {event.date_end && ` - ${format(new Date(event.date_end), "PPp")}`}
                 </p>
@@ -125,9 +128,9 @@ export default async function EventDetailsPage(props: { params: Promise<{ id: st
 
             {event.location && (
               <div>
-                <p className="text-sm font-medium text-zinc-500">Location</p>
-                <p className="text-base text-zinc-100 flex items-center gap-2 mt-1">
-                  <MapPin className="h-4 w-4 text-zinc-400" />
+                <p className="text-xs font-mono text-zinc-400 uppercase">Location</p>
+                <p className="text-sm text-zinc-800 flex items-center gap-2 mt-1">
+                  <MapPin className="h-3.5 w-3.5 text-zinc-400" />
                   {event.location}
                 </p>
               </div>
@@ -135,19 +138,19 @@ export default async function EventDetailsPage(props: { params: Promise<{ id: st
 
             {event.description && (
               <div>
-                <p className="text-sm font-medium text-zinc-500">Description</p>
-                <p className="text-sm text-zinc-300 mt-1 whitespace-pre-wrap">{event.description}</p>
+                <p className="text-xs font-mono text-zinc-400 uppercase">Description</p>
+                <p className="text-sm text-zinc-600 mt-1 whitespace-pre-wrap leading-relaxed">{event.description}</p>
               </div>
             )}
           </CardContent>
         </Card>
 
-          <div className="space-y-6">
-          <Card className="bg-zinc-900/50 border-zinc-800">
+        <div className="space-y-6">
+          <Card className="border-zinc-200 bg-white shadow-xs">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-indigo-400" />
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-zinc-500" />
                   Registration Form
                 </CardTitle>
                 <CardDescription className="text-xs">
@@ -155,7 +158,7 @@ export default async function EventDetailsPage(props: { params: Promise<{ id: st
                 </CardDescription>
               </div>
               <Link href={`/org/events/${event.id}/form`}>
-                <Button size="sm" variant="outline" className="text-xs border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10">
+                <Button size="sm" variant="outline" className="text-xs font-semibold">
                   Configure
                 </Button>
               </Link>
@@ -165,13 +168,13 @@ export default async function EventDetailsPage(props: { params: Promise<{ id: st
                 {(form?.fields || []).slice(0, 6).map((f: any) => (
                   <span
                     key={f.id}
-                    className="text-[11px] px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700/60"
+                    className="text-[11px] px-2 py-0.5 rounded-sm bg-zinc-100 text-zinc-700 border border-zinc-200"
                   >
                     {f.label} {f.required && "*"}
                   </span>
                 ))}
                 {(form?.fields?.length || 0) > 6 && (
-                  <span className="text-[11px] px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-500">
+                  <span className="text-[11px] px-2 py-0.5 rounded-sm bg-zinc-100 text-zinc-500">
                     +{(form?.fields?.length || 0) - 6} more
                   </span>
                 )}
@@ -179,10 +182,10 @@ export default async function EventDetailsPage(props: { params: Promise<{ id: st
             </CardContent>
           </Card>
 
-          <Card className="bg-zinc-900/50 border-zinc-800">
+          <Card className="border-zinc-200 bg-white shadow-xs">
             <CardHeader>
-              <CardTitle>Status Configuration</CardTitle>
-              <CardDescription>Update the lifecycle state of your event.</CardDescription>
+              <CardTitle className="text-sm font-semibold">Lifecycle Gate</CardTitle>
+              <CardDescription className="text-xs">Transition state to accept attendees or begin check-ins.</CardDescription>
             </CardHeader>
             <CardContent>
               <EventStatusManager eventId={event.id} currentStatus={event.status} />

@@ -8,231 +8,240 @@ import {
   Building2,
   Cpu,
   ArrowRight,
-  Sparkles,
-  Server,
   Zap,
+  Check,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const steps = [
+  const folios = [
     {
-      title: "Organization",
-      desc: "Isolated multi-tenant accounts with strict role boundaries.",
-      icon: Building2,
-      tag: "Phase 2",
+      num: "I",
+      title: "Zero Attendee Friction",
+      subtitle: "Accountless Admission Pipeline",
+      body: "Attendees never register accounts, establish passwords, or submit to surveillance tracking. Registrations issue cryptographically unguessable 256-bit entropy SHA-256 tokens directly via signed digital passes.",
+      badge: "Cryptographic Integrity",
     },
     {
-      title: "Event",
-      desc: "Explicit state transitions: DRAFT → PUBLISHED → LIVE → ENDED.",
-      icon: CalendarCheck2,
-      tag: "Phase 3",
+      num: "II",
+      title: "The Atomic Gate",
+      subtitle: "Concurrency-Safe Verification",
+      body: "High-volume turnstiles demand zero double-scans. Database-level row locking executes entrance verification atomically in single-digit milliseconds, eliminating race conditions across parallel physical gates.",
+      badge: "PostgreSQL Row Lock",
     },
     {
-      title: "Registration",
-      desc: "Configurable dynamic forms with accountless attendee registration.",
-      icon: Sparkles,
-      tag: "Phase 4-5",
-    },
-    {
-      title: "Ticket",
-      desc: "Unified issuance pipeline with 256-bit entropy SHA-256 tokens.",
-      icon: Ticket,
-      tag: "Phase 6-8",
-    },
-    {
-      title: "QR Verification",
-      desc: "Temporary event-scoped verifier access via magic links.",
-      icon: QrCode,
-      tag: "Phase 10",
-    },
-    {
-      title: "Atomic Check-in",
-      desc: "Concurrency-safe database transactions guaranteeing at most 1 check-in.",
-      icon: ShieldCheck,
-      tag: "Phase 11-12",
+      num: "III",
+      title: "Sovereign Multi-Tenancy",
+      subtitle: "Isolated Organization Workspaces",
+      body: "Organizations operate in completely secluded tenants. Custom dynamic registration forms, flexible capacity thresholds, and temporary scoped magic links grant gatekeepers check-in permissions without account overhead.",
+      badge: "Tenant Isolation",
     },
   ];
 
-  const pillars = [
-    {
-      icon: Lock,
-      title: "Backend Source of Truth",
-      description:
-        "Never trusts client timestamps, hidden form inputs, QR payloads, or client-side permissions. Every mutation is verified server-side.",
-    },
-    {
-      icon: Zap,
-      title: "Atomic Concurrency Safety",
-      description:
-        "Guarantees that multiple simultaneous scans of the same QR code will only succeed once via database-level transactions and constraints.",
-    },
-    {
-      icon: Server,
-      title: "Lean & Maintainable Architecture",
-      description:
-        "Monolithic Next.js App Router with Supabase PostgreSQL and Resend transactional email. No unnecessary microservices.",
-    },
-    {
-      icon: Cpu,
-      title: "Scoped Verifier Isolation",
-      description:
-        "Verifiers receive temporary, event-bounded credentials that cannot inspect attendee profiles or access other events.",
-    },
+  const specifications = [
+    { label: "Lifecycle State Machine", value: "DRAFT → PUBLISHED → LIVE → ENDED (Strict State Guards)" },
+    { label: "Token Cryptography", value: "32-byte CSPRNG hex string, SHA-256 hashed at rest" },
+    { label: "Verification Security", value: "Atomic transaction with FOR UPDATE row-level locking" },
+    { label: "Attendee Authentication", value: "Token-bound bearer URLs; Zero attendee passwords required" },
+    { label: "Verifier Delegation", value: "Event-scoped ephemeral credentials with magic links" },
+    { label: "Delivery Pipeline", value: "RFC-compliant transactional email via Resend API" },
   ];
 
   return (
-    <div className="relative flex-1 flex flex-col justify-between overflow-hidden">
-      {/* Background ambient glow */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-indigo-600/15 blur-[120px] rounded-full" />
-      <div className="pointer-events-none absolute top-1/2 -right-40 w-[500px] h-[400px] bg-purple-600/10 blur-[140px] rounded-full" />
+    <div className="min-h-screen bg-[#fbfbf9] text-zinc-900 flex flex-col font-sans selection:bg-zinc-900 selection:text-zinc-50">
+      {/* Top Editorial Masthead Rule */}
+      <div className="border-b border-zinc-900/10 bg-white/70 backdrop-blur-xs text-[11px] font-mono tracking-widest uppercase text-zinc-500 py-1.5 px-4 sm:px-8 flex items-center justify-between">
+        <span>The Ticket Platform Gazette</span>
+        <span className="hidden sm:inline">Autonomous Event Infrastructure • Vol. MMXXVI</span>
+        <span>Issue N° 01</span>
+      </div>
 
-      {/* Top Navigation */}
-      <header className="border-b border-zinc-800/80 bg-zinc-950/70 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-md shadow-indigo-500/20">
-              <Ticket className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <span className="font-bold text-base tracking-tight text-white">TicketPlatform</span>
-              <span className="ml-2 text-xs text-zinc-400 font-mono hidden sm:inline-block">
-                v0.1.0
-              </span>
-            </div>
+      {/* Main Header / Navigation */}
+      <header className="border-b-2 border-zinc-900 px-4 sm:px-8 py-5">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-baseline gap-3">
+            <Link href="/" className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 hover:opacity-80 transition-opacity">
+              TicketPlatform
+            </Link>
+            <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 hidden md:inline">
+              [System of Record]
+            </span>
           </div>
-          <div className="flex items-center gap-3">
-            <Badge variant="success" className="gap-1.5 py-1 px-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Phase 1 Foundation Active
-            </Badge>
-          </div>
+
+          <nav className="flex items-center gap-3 sm:gap-6">
+            <Link
+              href="/login"
+              className="text-xs sm:text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
+            >
+              Organizer Sign In
+            </Link>
+            <Link href="/org">
+              <Button size="sm" className="text-xs font-semibold px-4 tracking-wide">
+                Dashboard
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </nav>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="max-w-6xl mx-auto px-6 py-16 sm:py-24 space-y-20 relative z-10 flex-1">
-        <div className="text-center max-w-3xl mx-auto space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300">
-            <ShieldCheck className="h-3.5 w-3.5 text-indigo-400" />
-            Zero Attendee Accounts • Concurrency-Safe Check-in
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-8 py-10 sm:py-16 space-y-16">
+        {/* Editorial Front Page Header & Lede */}
+        <section className="space-y-6 pb-12 border-b border-zinc-900/15">
+          <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-zinc-500">
+            <span className="w-2 h-2 rounded-full bg-zinc-900 inline-block" />
+            <span>Foundational Protocol • Release 1.0</span>
           </div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
-            Secure, Lean Event Ticket Generation &{" "}
-            <span className="bg-gradient-to-r from-indigo-400 via-violet-300 to-indigo-200 bg-clip-text text-transparent">
-              Verification Platform
-            </span>
+
+          <h1 className="font-editorial text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-zinc-900 leading-[1.08] max-w-5xl">
+            The Architecture of Gathering.
           </h1>
-          <p className="text-base sm:text-lg text-zinc-400 leading-relaxed">
-            A production-quality platform for organizations to create events, configure registration
-            forms, issue cryptographically signed digital tickets, and verify entrance with
-            mobile-first atomic check-in.
-          </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-            <Link href="/docs/ARCHITECTURE.md" target="_blank">
-              <Button size="lg" className="gap-2">
-                View Architecture Docs
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/docs/DATABASE.md" target="_blank">
-              <Button variant="secondary" size="lg">
-                Inspect Database Schema
-              </Button>
-            </Link>
-          </div>
-        </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-4">
+            <p className="lg:col-span-8 font-editorial italic text-xl sm:text-2xl text-zinc-700 leading-relaxed">
+              &ldquo;Software for human assembly ought to be silent, uncompromising, and mathematically sound. No promotional spam, no attendee tracking, no gate delays.&rdquo;
+            </p>
 
-        {/* Mental Model Pipeline */}
-        <section className="space-y-6">
-          <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-            <div>
-              <h2 className="text-lg font-semibold text-white tracking-tight">
-                Core Architectural Pipeline
-              </h2>
-              <p className="text-xs text-zinc-400">
-                Strict unidirectional business flow from organization to check-in.
+            <div className="lg:col-span-4 flex flex-col justify-end space-y-3">
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                An unapologetically lean ticketing engine engineered for organizers who prioritize reliability over marketing clutter.
               </p>
+              <div className="flex flex-wrap gap-2.5 pt-1">
+                <Link href="/org">
+                  <Button className="h-10 px-5 text-xs uppercase tracking-wider font-semibold">
+                    Enter Workspace
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button variant="outline" className="h-10 px-5 text-xs uppercase tracking-wider font-semibold">
+                    Register Org
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <Badge variant="info">Monolithic Flow</Badge>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {steps.map((step, idx) => {
-              const Icon = step.icon;
-              return (
-                <Card
-                  key={step.title}
-                  className="hover:border-zinc-700 transition-all duration-200 group relative overflow-hidden"
-                >
-                  <CardHeader>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="h-8 w-8 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-indigo-600/20 group-hover:text-indigo-400 text-zinc-300 transition-colors">
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <Badge variant="outline" className="text-[10px]">
-                        Step 0{idx + 1} • {step.tag}
-                      </Badge>
-                    </div>
-                    <CardTitle className="text-base">{step.title}</CardTitle>
-                    <CardDescription className="text-xs leading-relaxed">
-                      {step.desc}
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              );
-            })}
           </div>
         </section>
 
-        {/* Security & Architectural Pillars */}
+        {/* 3-Column Broadsheet Folios */}
         <section className="space-y-6">
-          <div className="border-b border-zinc-800/80 pb-3">
-            <h2 className="text-lg font-semibold text-white tracking-tight">
-              Security & Operational Guarantees
+          <div className="flex items-baseline justify-between border-b border-zinc-900/15 pb-2">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-500">
+              Folios of Operation — Core Tenets
             </h2>
-            <p className="text-xs text-zinc-400">
-              Enforced by backend design, database constraints, and cryptographic hashing.
-            </p>
+            <span className="text-xs font-mono text-zinc-400">§ 01–03</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {pillars.map((pillar) => {
-              const Icon = pillar.icon;
-              return (
-                <div
-                  key={pillar.title}
-                  className="p-5 rounded-xl border border-zinc-800/80 bg-zinc-900/40 flex gap-4 items-start"
-                >
-                  <div className="p-2.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 mt-1 shrink-0">
-                    <Icon className="h-5 w-5" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-2">
+            {folios.map((folio) => (
+              <article
+                key={folio.num}
+                className="flex flex-col justify-between p-6 bg-white border border-zinc-200/90 rounded-none shadow-xs hover:border-zinc-400 transition-colors relative"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="font-editorial text-2xl font-bold text-zinc-300">
+                      {folio.num}
+                    </span>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-xs border border-zinc-200">
+                      {folio.badge}
+                    </span>
                   </div>
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-semibold text-white">{pillar.title}</h3>
-                    <p className="text-xs text-zinc-400 leading-relaxed">{pillar.description}</p>
+
+                  <div>
+                    <h3 className="font-editorial text-2xl font-bold text-zinc-900 leading-tight">
+                      {folio.title}
+                    </h3>
+                    <p className="text-xs font-mono text-zinc-500 mt-1 uppercase tracking-wider">
+                      {folio.subtitle}
+                    </p>
                   </div>
+
+                  <p className="text-sm text-zinc-600 leading-relaxed font-sans pt-1">
+                    {folio.body}
+                  </p>
                 </div>
-              );
-            })}
+
+                <div className="pt-6 mt-6 border-t border-zinc-100 text-xs font-medium text-zinc-900 flex items-center gap-1">
+                  <span>Audited System Flow</span>
+                  <Check className="h-3.5 w-3.5 text-zinc-500" />
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* Technical Ledger Specification Table */}
+        <section className="space-y-4 pt-4">
+          <div className="flex items-baseline justify-between border-b border-zinc-900/15 pb-2">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-500">
+              Technical Specification Ledger
+            </h2>
+            <span className="text-xs font-mono text-zinc-400">RFC Compliant</span>
+          </div>
+
+          <div className="border border-zinc-200 bg-white">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-zinc-200 bg-zinc-50/70 font-mono uppercase text-zinc-500 text-[11px]">
+                  <th className="p-3.5 font-medium sm:w-1/3">Component Parameter</th>
+                  <th className="p-3.5 font-medium">Guaranteed Architecture Standard</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200 font-sans">
+                {specifications.map((spec) => (
+                  <tr key={spec.label} className="hover:bg-zinc-50/50 transition-colors">
+                    <td className="p-3.5 font-medium text-zinc-900 font-mono">{spec.label}</td>
+                    <td className="p-3.5 text-zinc-600">{spec.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Minimal Bottom Editorial Banner */}
+        <section className="p-8 sm:p-12 border-2 border-zinc-900 bg-white space-y-6 text-center max-w-4xl mx-auto">
+          <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500">
+            For Gatherings of Any Magnitude
+          </span>
+          <h2 className="font-editorial text-3xl sm:text-5xl font-bold tracking-tight text-zinc-900">
+            Ready to issue your first verified pass?
+          </h2>
+          <p className="text-sm sm:text-base text-zinc-600 max-w-xl mx-auto leading-relaxed">
+            Create an organization workspace in seconds. Design your registration schema, publish an event, and receive attendees seamlessly.
+          </p>
+          <div className="flex justify-center gap-3 pt-2">
+            <Link href="/signup">
+              <Button size="lg" className="px-6 text-xs uppercase tracking-widest font-semibold">
+                Get Started Now
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button variant="outline" size="lg" className="px-6 text-xs uppercase tracking-widest font-semibold">
+                Sign In
+              </Button>
+            </Link>
           </div>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-zinc-900 bg-zinc-950/80 py-8 text-center text-xs text-zinc-500">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© 2026 TicketPlatform. Clean, Secure, and Production-Ready.</p>
-          <div className="flex items-center gap-4 text-zinc-400 font-mono text-[11px]">
-            <span>Next.js 16</span>
-            <span>•</span>
-            <span>TypeScript 5</span>
-            <span>•</span>
-            <span>Tailwind v4</span>
-            <span>•</span>
-            <span>PostgreSQL</span>
+      {/* Colophon Footer */}
+      <footer className="border-t border-zinc-900/10 bg-white mt-16 py-10 px-4 sm:px-8 text-xs text-zinc-500">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 font-mono text-[11px]">
+          <div>
+            <span className="font-semibold text-zinc-900">TicketPlatform</span> — Typeset in Newsreader & Plus Jakarta Sans.
+          </div>
+          <div className="flex items-center gap-6">
+            <Link href="/login" className="hover:text-zinc-900 transition-colors">
+              Organizer Login
+            </Link>
+            <Link href="/signup" className="hover:text-zinc-900 transition-colors">
+              Register Organization
+            </Link>
+            <Link href="/org" className="hover:text-zinc-900 transition-colors">
+              Workspace
+            </Link>
           </div>
         </div>
       </footer>

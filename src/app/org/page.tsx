@@ -2,7 +2,7 @@ import { connection } from "next/server";
 import { createServerDbClient } from "@/lib/db/server";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Calendar, Users, Activity, Settings, ExternalLink } from "lucide-react";
+import { PlusCircle, Calendar, Users, Activity, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getEvents } from "@/app/actions/event.actions";
 import { format } from "date-fns";
@@ -14,7 +14,6 @@ export const metadata = {
 };
 
 export const instant = false;
-
 
 export default async function DashboardPage() {
   await connection();
@@ -29,131 +28,134 @@ export default async function DashboardPage() {
   const events = await getEvents(orgInfo.organizationId);
 
   const activeEventsCount = events.filter((e: any) => e.status === "PUBLISHED" || e.status === "LIVE").length;
-  const totalRegistrations = 0; // Will be implemented in Phase 4/5
+  const totalRegistrations = 0; // Phase 4/5 integration
 
-  const statusColors = {
-    DRAFT: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
-    PUBLISHED: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-    LIVE: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    ENDED: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
-    CANCELLED: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+  const statusBadges = {
+    DRAFT: "bg-zinc-100 text-zinc-600 border-zinc-200",
+    PUBLISHED: "bg-sky-50 text-sky-700 border-sky-200",
+    LIVE: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    ENDED: "bg-zinc-100 text-zinc-500 border-zinc-200",
+    CANCELLED: "bg-rose-50 text-rose-700 border-rose-200",
   };
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-100">Dashboard</h1>
-        <p className="text-zinc-400 mt-2">Welcome back. Here&apos;s an overview of your events.</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-zinc-900/50 border-zinc-800">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Active Events</CardTitle>
-            <Calendar className="h-4 w-4 text-zinc-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-zinc-100">{activeEventsCount}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-zinc-900/50 border-zinc-800">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Total Registrations</CardTitle>
-            <Users className="h-4 w-4 text-zinc-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-zinc-100">{totalRegistrations}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-zinc-900/50 border-zinc-800">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-400">Total Events</CardTitle>
-            <Activity className="h-4 w-4 text-zinc-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-zinc-100">{events.length}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex justify-between items-center mt-12">
-        <h2 className="text-xl font-bold text-zinc-100">Your Events</h2>
+      {/* Title & Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Dashboard</h1>
+          <p className="text-sm text-zinc-500 mt-1">Overview of your events and registrations.</p>
+        </div>
         <Link href="/org/events/new">
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
+          <Button size="sm" className="font-semibold gap-1.5 shadow-xs">
+            <PlusCircle className="h-4 w-4" />
             Create Event
           </Button>
         </Link>
       </div>
 
-      {events.length === 0 ? (
-        <Card className="bg-zinc-900/20 border-zinc-800 border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <Calendar className="h-12 w-12 text-zinc-600 mb-4" />
-            <h3 className="text-lg font-medium text-zinc-200">No events found</h3>
-            <p className="text-zinc-500 max-w-sm mt-2 mb-6">
-              You don&apos;t have any events yet. Create your first event to start accepting registrations.
-            </p>
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="border-zinc-200 bg-white shadow-2xs">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-mono uppercase tracking-wider text-zinc-500">Active Events</CardTitle>
+            <Calendar className="h-4 w-4 text-zinc-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-zinc-900">{activeEventsCount}</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-zinc-200 bg-white shadow-2xs">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-mono uppercase tracking-wider text-zinc-500">Total Registrations</CardTitle>
+            <Users className="h-4 w-4 text-zinc-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-zinc-900">{totalRegistrations}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-zinc-200 bg-white shadow-2xs">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-mono uppercase tracking-wider text-zinc-500">Total Events</CardTitle>
+            <Activity className="h-4 w-4 text-zinc-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-zinc-900">{events.length}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Events Table / Card Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-zinc-900">Recent Events</h2>
+          {events.length > 0 && (
+            <Link href="/org/events" className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors">
+              View all ({events.length})
+            </Link>
+          )}
+        </div>
+
+        {events.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-zinc-300 bg-white p-12 text-center space-y-4">
+            <div className="mx-auto w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500">
+              <Calendar className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold text-zinc-900">No events yet</h3>
+              <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+                Create your first event to configure tickets, registration questions, and gates.
+              </p>
+            </div>
             <Link href="/org/events/new">
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
+              <Button size="sm" className="font-semibold">
+                <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
                 Create Event
               </Button>
             </Link>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {events.map((event: any) => (
-            <Card key={event.id} className="bg-zinc-900/40 border-zinc-800 hover:bg-zinc-900/80 transition-colors">
-              <CardContent className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-3">
-                    <Link href={`/org/events/${event.id}`} className="font-semibold text-lg text-zinc-100 hover:text-indigo-400 transition-colors">
-                      {event.name}
-                    </Link>
-                    <span className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full border ${statusColors[event.status as keyof typeof statusColors]}`}>
+          </div>
+        ) : (
+          <div className="border border-zinc-200 rounded-xl bg-white overflow-hidden shadow-2xs divide-y divide-zinc-200">
+            {events.map((event: any) => (
+              <div key={event.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-50/60 transition-colors">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[11px] font-mono px-2 py-0.5 rounded-sm border font-medium ${statusBadges[event.status as keyof typeof statusBadges] || "bg-zinc-100 text-zinc-600 border-zinc-200"}`}>
                       {event.status}
                     </span>
-                    <span className="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full border bg-zinc-800/50 text-zinc-300 border-zinc-700">
+                    <span className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
                       {event.event_type}
                     </span>
                   </div>
-                  <div className="text-sm text-zinc-400 flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <h3 className="text-base font-semibold text-zinc-900">
+                    {event.name}
+                  </h3>
+                  <div className="text-xs text-zinc-500 flex items-center gap-3">
+                    <span className="font-mono">/{event.slug}</span>
                     {event.date_start && (
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {format(new Date(event.date_start), "MMM d, yyyy")}
-                      </span>
+                      <>
+                        <span>•</span>
+                        <span>{format(new Date(event.date_start), "MMM d, yyyy h:mm a")}</span>
+                      </>
                     )}
-                    <span className="flex items-center gap-1 text-zinc-500">
-                      /{event.slug}
-                    </span>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-2">
-                  <Link href={`/events/${event.slug}`} target="_blank">
-                    <Button variant="ghost" size="sm" className="h-8">
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      View Page
-                    </Button>
-                  </Link>
+
+                <div className="flex items-center gap-2 shrink-0">
                   <Link href={`/org/events/${event.id}`}>
-                    <Button variant="secondary" size="sm" className="h-8">
-                      <Settings className="mr-2 h-4 w-4" />
+                    <Button variant="outline" size="sm" className="text-xs font-semibold">
                       Manage
+                      <ArrowRight className="ml-1 h-3.5 w-3.5" />
                     </Button>
                   </Link>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
