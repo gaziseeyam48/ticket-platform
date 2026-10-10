@@ -52,7 +52,7 @@ export function MetricCard({
         {trendText && (
           <span
             className={cn(
-              "inline-flex items-center text-[11px] font-semibold font-mono px-2 py-0.5 rounded-full border",
+              "inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full border",
               trendBadgeClasses[trendType]
             )}
           >
@@ -63,14 +63,14 @@ export function MetricCard({
 
       {/* Metric Content */}
       <div className="space-y-1">
-        <p className="text-[11px] font-mono uppercase tracking-wider text-zinc-500 font-medium">
+        <p className="text-xs text-zinc-500 font-medium">
           {label}
         </p>
         <p className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
           {value}
         </p>
         {subtext && (
-          <p className="text-xs text-zinc-400 font-normal">
+          <p className="text-xs text-zinc-500 font-normal leading-relaxed">
             {subtext}
           </p>
         )}

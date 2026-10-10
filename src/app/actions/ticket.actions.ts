@@ -130,7 +130,7 @@ export async function resendTicketEmail(ticketId: string) {
  * Verifier action: checks in an attendee by public token or ticket URL.
  * Atomic transition: tickets.status = 'CHECKED_IN' WHERE status = 'ISSUED'
  */
-export async function verifyEntrancePass(rawInput: string) {
+export async function verifyEntrancePass(rawInput: string, expectedEventId?: string) {
   if (!rawInput || !rawInput.trim()) {
     return {
       success: false,
@@ -161,6 +161,18 @@ export async function verifyEntrancePass(rawInput: string) {
       success: false,
       status: "INVALID",
       message: "Unrecognized pass. No matching ticket record exists in the system.",
+    };
+  }
+
+  // Check expected event ID
+  if (expectedEventId && ticket.event_id !== expectedEventId) {
+    return {
+      success: false,
+      status: "WRONG_EVENT",
+      message: `Wrong event! This pass was issued for "${ticket.events.name}", not the currently selected gate.`,
+      eventName: ticket.events.name,
+      participantName: ticket.participant_name,
+      ticketNumber: ticket.ticket_number,
     };
   }
 

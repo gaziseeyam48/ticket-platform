@@ -54,7 +54,7 @@ export function OrgHeader({
         ) : (
           <div className="flex items-center gap-2.5">
             <h1 className="text-sm font-semibold text-zinc-900">{title}</h1>
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live Sync
             </span>
@@ -62,19 +62,18 @@ export function OrgHeader({
         )}
       </div>
 
-      {/* Right: Search trigger & Create Event Action */}
-      <div className="flex items-center gap-3">
-        {/* Quick Search Shortcut Display */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-zinc-200 bg-zinc-50/70 text-xs text-zinc-400 font-sans shadow-2xs">
-          <Search className="h-3.5 w-3.5 text-zinc-400" />
-          <span>Quick filter...</span>
-          <kbd className="text-[10px] font-mono bg-white border border-zinc-200 px-1.5 py-0.2 rounded-sm text-zinc-500 shadow-2xs">
-            ⌘K
-          </kbd>
-        </div>
+      {/* Right: Actions */}
+      <div className="flex items-center gap-2.5">
+        <Link href="/verify">
+          <Button variant="outline" size="sm" className="font-medium text-xs gap-1.5 shadow-2xs">
+            <ShieldCheck className="h-3.5 w-3.5 text-zinc-600" />
+            <span className="hidden sm:inline">Verify Entrance</span>
+            <span className="sm:hidden">Verify</span>
+          </Button>
+        </Link>
 
         <Link href="/org/events/new">
-          <Button size="sm" className="font-semibold gap-1.5 shadow-xs">
+          <Button size="sm" className="font-semibold text-xs gap-1.5 shadow-xs">
             <Plus className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Create Event</span>
             <span className="sm:hidden">New</span>

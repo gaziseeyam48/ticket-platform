@@ -95,10 +95,10 @@ export function OrgSidebar({
             <Ticket className="h-4.5 w-4.5 text-zinc-100" />
           </div>
           <div>
-            <div className="font-editorial text-lg font-bold tracking-tight text-zinc-900 leading-none">
+            <div className="text-base font-bold tracking-tight text-zinc-900 leading-none">
               TicketPlatform
             </div>
-            <div className="text-[11px] font-mono text-zinc-400 mt-1 flex items-center gap-1.5 truncate max-w-[140px]">
+            <div className="text-xs text-zinc-500 mt-1 flex items-center gap-1.5 truncate max-w-[140px]">
               <Building2 className="h-3 w-3 text-zinc-400 shrink-0" />
               <span className="truncate">{organizationName}</span>
             </div>
@@ -120,7 +120,7 @@ export function OrgSidebar({
       <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6">
         {navItems.map((group, gIdx) => (
           <div key={gIdx} className="space-y-1">
-            <div className="px-2.5 pb-1.5 text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
+            <div className="px-2.5 pb-1.5 text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">
               {group.group}
             </div>
 
@@ -155,7 +155,7 @@ export function OrgSidebar({
                   {item.badge !== undefined && (
                     <span
                       className={cn(
-                        "text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-full shrink-0",
+                        "text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0",
                         active
                           ? "bg-zinc-800 text-zinc-200"
                           : "bg-zinc-100 text-zinc-600 border border-zinc-200"
@@ -177,8 +177,8 @@ export function OrgSidebar({
             target="_blank"
             className="flex items-center justify-between p-2.5 rounded-xl border border-dashed border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50/50 transition-all text-xs"
           >
-            <span className="text-[11px] font-medium">Public Portal</span>
-            <ExternalLink className="h-3 w-3 text-zinc-400" />
+            <span className="text-xs font-medium">Public Portal</span>
+            <ExternalLink className="h-3.5 w-3.5 text-zinc-400" />
           </Link>
         </div>
       </div>
@@ -194,8 +194,8 @@ export function OrgSidebar({
               <p className="text-xs font-semibold text-zinc-900 truncate">
                 {userEmail.split("@")[0]}
               </p>
-              <p className="text-[10px] text-zinc-400 truncate font-mono">
-                Admin
+              <p className="text-[11px] text-zinc-500 truncate">
+                Organizer Admin
               </p>
             </div>
           </div>

@@ -3,14 +3,14 @@ import { createServerDbClient } from "@/lib/db/server";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import {
-  PlusCircle,
+  Plus,
   Calendar,
   ArrowRight,
   ExternalLink,
   MapPin,
   Clock,
   FileEdit,
-  Tag,
+  QrCode,
 } from "lucide-react";
 import Link from "next/link";
 import { getEvents } from "@/app/actions/event.actions";
@@ -39,21 +39,21 @@ export default async function EventsListPage() {
   const events = await getEvents(orgInfo.organizationId);
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="w-full space-y-6">
       {/* Title & Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200/80">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
             Events Directory
           </h1>
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-sm text-zinc-500 mt-1">
             Configure registration forms, monitor capacities, and control entrance turnstiles.
           </p>
         </div>
 
         <Link href="/org/events/new">
-          <Button size="sm" className="font-semibold text-xs gap-1.5 shadow-xs">
-            <PlusCircle className="h-3.5 w-3.5" />
+          <Button size="sm" className="font-semibold text-xs gap-1.5 shadow-xs h-9">
+            <Plus className="h-4 w-4" />
             Create Event
           </Button>
         </Link>
@@ -65,14 +65,14 @@ export default async function EventsListPage() {
             <Calendar className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-zinc-900">No events found</h3>
+            <h3 className="text-sm font-semibold text-zinc-900">No events found</h3>
             <p className="text-xs text-zinc-500 max-w-sm mx-auto">
               Get started by creating your first event to configure passes and open registrations.
             </p>
           </div>
           <Link href="/org/events/new">
             <Button size="sm" className="font-semibold text-xs">
-              <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
               Create Event
             </Button>
           </Link>
@@ -88,14 +88,14 @@ export default async function EventsListPage() {
                 {/* Header: Status & Type */}
                 <div className="flex items-center justify-between gap-2">
                   <StatusBadge status={event.status} />
-                  <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-500 px-2 py-0.5 rounded-sm bg-zinc-100 border border-zinc-200">
-                    {event.event_type}
+                  <span className="text-xs font-medium text-zinc-700 px-2.5 py-0.5 rounded-md bg-zinc-100 border border-zinc-200">
+                    {event.event_type === "FREE" ? "Free Admission" : "Paid Pass"}
                   </span>
                 </div>
 
                 {/* Event Name & Slug */}
                 <div>
-                  <h3 className="text-base font-bold text-zinc-900 group-hover:text-black line-clamp-1">
+                  <h3 className="text-base font-semibold text-zinc-900 group-hover:text-black line-clamp-1">
                     {event.name}
                   </h3>
                   <p className="text-xs font-mono text-zinc-400 mt-0.5">
@@ -110,16 +110,18 @@ export default async function EventsListPage() {
 
                 {/* Schedule & Venue Meta */}
                 <div className="space-y-1.5 pt-2 border-t border-zinc-100 text-xs text-zinc-600">
-                  {event.date_start && (
-                    <div className="flex items-center gap-1.5 text-[11px]">
-                      <Clock className="h-3 w-3 text-zinc-400 shrink-0" />
+                  {event.date_start ? (
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <Clock className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
                       <span>{format(new Date(event.date_start), "MMM d, yyyy h:mm a")}</span>
                     </div>
+                  ) : (
+                    <span className="text-zinc-400 italic text-xs">Unscheduled</span>
                   )}
 
                   {event.location && (
-                    <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 truncate">
-                      <MapPin className="h-3 w-3 text-zinc-400 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-500 truncate">
+                      <MapPin className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
                       <span className="truncate">{event.location}</span>
                     </div>
                   )}
@@ -129,6 +131,15 @@ export default async function EventsListPage() {
               {/* Bottom Actions */}
               <div className="pt-3 border-t border-zinc-100 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5">
+                  {event.status === "LIVE" && (
+                    <Link href={`/verify?event_id=${event.id}`}>
+                      <Button variant="outline" size="sm" className="h-8 px-2 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200">
+                        <QrCode className="h-3.5 w-3.5 mr-1 text-emerald-600" />
+                        Gate
+                      </Button>
+                    </Link>
+                  )}
+
                   <Link href={`/org/events/${event.id}/form`}>
                     <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-zinc-500 hover:text-zinc-900">
                       <FileEdit className="h-3.5 w-3.5 mr-1" />

@@ -304,7 +304,7 @@ export function FormBuilder({
                             {meta.label}
                           </span>
                           {field.isSystem && (
-                            <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded-xs bg-zinc-100 text-zinc-500 border border-zinc-200">
+                            <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-600 border border-zinc-200 font-semibold">
                               System Required
                             </span>
                           )}
@@ -501,7 +501,7 @@ export function FormBuilder({
         <div className="max-w-xl mx-auto space-y-6">
           <Card className="border-zinc-200 bg-white shadow-xs">
             <CardHeader className="border-b border-zinc-100 pb-4">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">
+              <span className="text-xs uppercase tracking-wider text-zinc-400 font-medium">
                 Live Registration Preview
               </span>
               <CardTitle className="text-xl font-bold text-zinc-900">{eventName}</CardTitle>
@@ -649,7 +649,7 @@ export function FormBuilder({
                 >
                   {previewSubmitted ? "✓ Preview Validated Successfully" : "Register for Event"}
                 </Button>
-                <p className="text-center text-[11px] text-zinc-400 mt-2 font-mono">
+                <p className="text-center text-xs text-zinc-400 mt-2">
                   Interactive preview mode only.
                 </p>
               </div>

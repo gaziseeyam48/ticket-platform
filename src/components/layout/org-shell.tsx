@@ -34,7 +34,7 @@ export function OrgShell({
       <div className="flex-1 flex flex-col min-w-0">
         <OrgHeader onMenuToggle={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-7xl xl:max-w-[1400px] 2xl:max-w-[1536px] mx-auto space-y-8">
           {children}
         </main>
       </div>

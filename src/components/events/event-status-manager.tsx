@@ -55,7 +55,7 @@ export function EventStatusManager({ eventId, currentStatus }: EventStatusManage
       )}
       
       <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200">
-        <p className="text-xs text-zinc-500 font-mono uppercase tracking-wider">
+        <p className="text-xs text-zinc-500 font-medium">
           Current State: <span className="text-zinc-900 font-bold ml-1">{currentStatus}</span>
         </p>
         
@@ -75,7 +75,7 @@ export function EventStatusManager({ eventId, currentStatus }: EventStatusManage
             ))}
           </div>
         ) : (
-          <p className="text-xs text-zinc-400 mt-2 font-mono">No further state transitions available.</p>
+          <p className="text-xs text-zinc-400 mt-2">No further lifecycle transitions available.</p>
         )}
       </div>
     </div>

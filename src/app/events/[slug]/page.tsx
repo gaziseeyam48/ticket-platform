@@ -41,10 +41,10 @@ export default async function PublicEventPage(props: { params: Promise<{ slug: s
   return (
     <div className="min-h-screen bg-[#fbfbf9] text-zinc-900 py-10 sm:py-16 px-4 sm:px-6 font-sans">
       <div className="max-w-3xl mx-auto space-y-8">
-        {/* Editorial Masthead Bar */}
-        <div className="border-b border-zinc-200 pb-4 flex items-center justify-between text-xs font-mono uppercase tracking-wider text-zinc-400">
+        {/* Masthead Bar */}
+        <div className="border-b border-zinc-200 pb-4 flex items-center justify-between text-xs text-zinc-500 font-medium">
           <span>Official Event Invitation</span>
-          <span>{event.organizations.name}</span>
+          <span className="font-semibold text-zinc-700">{event.organizations.name}</span>
         </div>
 
         {/* Main Event Article Card */}
@@ -52,14 +52,14 @@ export default async function PublicEventPage(props: { params: Promise<{ slug: s
           <div className="p-8 sm:p-12 space-y-8">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-sm bg-zinc-100 text-zinc-700 border border-zinc-200">
-                  {event.event_type} PASS
+                <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-zinc-100 text-zinc-700 border border-zinc-200">
+                  {event.event_type === "FREE" ? "Free Admission" : "Paid Pass"}
                 </span>
-                <span className="text-[11px] font-mono text-zinc-400">
+                <span className="text-xs text-zinc-400">
                   Presented by {event.organizations.name}
                 </span>
               </div>
-              <h1 className="font-editorial text-3xl sm:text-5xl font-bold tracking-tight text-zinc-900 leading-tight">
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900 leading-tight">
                 {event.name}
               </h1>
             </div>

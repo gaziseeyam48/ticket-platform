@@ -60,11 +60,11 @@ export default function Home() {
       <header className="border-b-2 border-zinc-900 px-4 sm:px-8 py-5">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-baseline gap-3">
-            <Link href="/" className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 hover:opacity-80 transition-opacity">
+            <Link href="/" className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 hover:opacity-80 transition-opacity">
               TicketPlatform
             </Link>
-            <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 hidden md:inline">
-              [System of Record]
+            <span className="text-xs text-zinc-400 hidden md:inline font-medium">
+              Event Ticketing & Verification
             </span>
           </div>
 
@@ -76,7 +76,7 @@ export default function Home() {
               Organizer Sign In
             </Link>
             <Link href="/org">
-              <Button size="sm" className="text-xs font-semibold px-4 tracking-wide">
+              <Button size="sm" className="text-xs font-semibold px-4 tracking-wide shadow-xs">
                 Dashboard
                 <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
               </Button>
@@ -87,20 +87,20 @@ export default function Home() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-8 py-10 sm:py-16 space-y-16">
-        {/* Editorial Front Page Header & Lede */}
-        <section className="space-y-6 pb-12 border-b border-zinc-900/15">
-          <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-zinc-500">
+        {/* Front Page Header & Lede */}
+        <section className="space-y-6 pb-12 border-b border-zinc-200">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
             <span className="w-2 h-2 rounded-full bg-zinc-900 inline-block" />
-            <span>Foundational Protocol • Release 1.0</span>
+            <span>Event Management Platform</span>
           </div>
 
-          <h1 className="font-editorial text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-zinc-900 leading-[1.08] max-w-5xl">
-            The Architecture of Gathering.
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-zinc-900 leading-[1.12] max-w-4xl">
+            Streamlined Event Ticketing & Turnstile Verification.
           </h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-4">
-            <p className="lg:col-span-8 font-editorial italic text-xl sm:text-2xl text-zinc-700 leading-relaxed">
-              &ldquo;Software for human assembly ought to be silent, uncompromising, and mathematically sound. No promotional spam, no attendee tracking, no gate delays.&rdquo;
+            <p className="lg:col-span-8 text-lg sm:text-xl text-zinc-600 leading-relaxed font-normal">
+              A lean ticketing platform designed for organizations who demand fast attendee registration, instant digital passes, and atomic entrance check-in.
             </p>
 
             <div className="lg:col-span-4 flex flex-col justify-end space-y-3">
@@ -136,23 +136,23 @@ export default function Home() {
             {folios.map((folio) => (
               <article
                 key={folio.num}
-                className="flex flex-col justify-between p-6 bg-white border border-zinc-200/90 rounded-none shadow-xs hover:border-zinc-400 transition-colors relative"
+                className="flex flex-col justify-between p-6 bg-white border border-zinc-200/90 rounded-2xl shadow-2xs hover:border-zinc-300 transition-colors relative"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="font-editorial text-2xl font-bold text-zinc-300">
+                    <span className="text-xl font-bold text-zinc-400">
                       {folio.num}
                     </span>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-xs border border-zinc-200">
+                    <span className="text-[11px] uppercase tracking-wider text-zinc-600 bg-zinc-100 px-2 py-0.5 rounded-md border border-zinc-200 font-medium">
                       {folio.badge}
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="font-editorial text-2xl font-bold text-zinc-900 leading-tight">
+                    <h3 className="text-xl font-bold text-zinc-900 leading-tight">
                       {folio.title}
                     </h3>
-                    <p className="text-xs font-mono text-zinc-500 mt-1 uppercase tracking-wider">
+                    <p className="text-xs text-zinc-500 mt-1 uppercase tracking-wider font-medium">
                       {folio.subtitle}
                     </p>
                   </div>
@@ -173,25 +173,25 @@ export default function Home() {
 
         {/* Technical Ledger Specification Table */}
         <section className="space-y-4 pt-4">
-          <div className="flex items-baseline justify-between border-b border-zinc-900/15 pb-2">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-500">
-              Technical Specification Ledger
+          <div className="flex items-baseline justify-between border-b border-zinc-200 pb-2">
+            <h2 className="text-xs uppercase tracking-wider text-zinc-500 font-semibold">
+              System Specifications
             </h2>
-            <span className="text-xs font-mono text-zinc-400">RFC Compliant</span>
+            <span className="text-xs text-zinc-400">RFC Compliant</span>
           </div>
 
-          <div className="border border-zinc-200 bg-white">
+          <div className="border border-zinc-200 bg-white rounded-2xl overflow-hidden shadow-2xs">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-zinc-200 bg-zinc-50/70 font-mono uppercase text-zinc-500 text-[11px]">
-                  <th className="p-3.5 font-medium sm:w-1/3">Component Parameter</th>
-                  <th className="p-3.5 font-medium">Guaranteed Architecture Standard</th>
+                <tr className="border-b border-zinc-200 bg-zinc-50/70 text-zinc-600 text-xs font-semibold">
+                  <th className="p-3.5 sm:w-1/3">Component Parameter</th>
+                  <th className="p-3.5">Guaranteed Architecture Standard</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200 font-sans">
                 {specifications.map((spec) => (
                   <tr key={spec.label} className="hover:bg-zinc-50/50 transition-colors">
-                    <td className="p-3.5 font-medium text-zinc-900 font-mono">{spec.label}</td>
+                    <td className="p-3.5 font-medium text-zinc-900">{spec.label}</td>
                     <td className="p-3.5 text-zinc-600">{spec.value}</td>
                   </tr>
                 ))}
@@ -200,12 +200,12 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Minimal Bottom Editorial Banner */}
-        <section className="p-8 sm:p-12 border-2 border-zinc-900 bg-white space-y-6 text-center max-w-4xl mx-auto">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500">
+        {/* Bottom Banner */}
+        <section className="p-8 sm:p-12 border border-zinc-200 bg-white rounded-2xl space-y-6 text-center max-w-4xl mx-auto shadow-2xs">
+          <span className="text-xs uppercase tracking-wider text-zinc-500 font-semibold">
             For Gatherings of Any Magnitude
           </span>
-          <h2 className="font-editorial text-3xl sm:text-5xl font-bold tracking-tight text-zinc-900">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900">
             Ready to issue your first verified pass?
           </h2>
           <p className="text-sm sm:text-base text-zinc-600 max-w-xl mx-auto leading-relaxed">

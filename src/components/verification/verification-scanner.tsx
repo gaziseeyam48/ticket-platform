@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { verifyEntrancePass } from "@/app/actions/ticket.actions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -13,18 +12,16 @@ import {
   Volume2,
   VolumeX,
   RotateCcw,
-  Sparkles,
-  Ticket,
   Clock,
-  User,
-  ShieldCheck,
+  QrCode,
+  ShieldAlert,
 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 
 type ScanResultState = {
   success: boolean;
-  status: "VALID" | "ALREADY_CHECKED_IN" | "INVALID" | "REVOKED" | "EVENT_NOT_LIVE";
+  status: "VALID" | "ALREADY_CHECKED_IN" | "INVALID" | "REVOKED" | "EVENT_NOT_LIVE" | "WRONG_EVENT";
   message: string;
   eventName?: string;
   participantName?: string;
@@ -35,9 +32,23 @@ type ScanResultState = {
 
 interface VerificationScannerProps {
   organizationName?: string;
+  selectedEvent?: {
+    id: string;
+    name: string;
+    slug: string;
+    status: string;
+  };
+  availableEvents?: Array<{
+    id: string;
+    name: string;
+  }>;
 }
 
-export function VerificationScanner({ organizationName }: VerificationScannerProps) {
+export function VerificationScanner({
+  organizationName,
+  selectedEvent,
+  availableEvents,
+}: VerificationScannerProps) {
   const [tokenInput, setTokenInput] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [lastResult, setLastResult] = useState<ScanResultState>(null);
@@ -64,7 +75,7 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
 
     setIsVerifying(true);
     try {
-      const result = await verifyEntrancePass(raw);
+      const result = await verifyEntrancePass(raw, selectedEvent?.id);
       setLastResult(result as ScanResultState);
 
       if (result.participantName) {
@@ -110,21 +121,32 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
           <span>Exit Gate</span>
         </Link>
 
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-300">
-            Entrance Turnstile Gate
+        <div className="flex items-center gap-2 max-w-[200px] sm:max-w-xs truncate">
+          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+          <span className="text-xs font-semibold text-white truncate">
+            {selectedEvent ? selectedEvent.name : "Turnstile Gate"}
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setSoundEnabled(!soundEnabled)}
-          className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-          title={soundEnabled ? "Mute audio cues" : "Enable audio cues"}
-        >
-          {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-        </button>
+        <div className="flex items-center gap-2">
+          {availableEvents && availableEvents.length > 1 && (
+            <Link
+              href="/verify"
+              className="text-xs font-medium text-zinc-400 hover:text-white border border-zinc-700 px-2 py-1 rounded-lg"
+            >
+              Switch Gate
+            </Link>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+            title={soundEnabled ? "Mute audio cues" : "Enable audio cues"}
+          >
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </button>
+        </div>
       </header>
 
       {/* Main Verification Viewport */}
@@ -139,7 +161,7 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs font-mono uppercase tracking-widest text-emerald-200 font-semibold">
+                  <span className="text-xs uppercase tracking-wider text-emerald-200 font-semibold">
                     Access Granted
                   </span>
                   <h2 className="text-3xl font-bold tracking-tight">
@@ -150,8 +172,8 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
                   </p>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-black/20 font-mono text-xs text-emerald-100 flex items-center justify-between">
-                  <span>Pass: {lastResult.ticketNumber}</span>
+                <div className="p-3 rounded-2xl bg-black/20 text-xs text-emerald-100 flex items-center justify-between">
+                  <span className="font-mono">Pass: {lastResult.ticketNumber}</span>
                   <span>{format(new Date(), "h:mm a")}</span>
                 </div>
 
@@ -172,7 +194,7 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs font-mono uppercase tracking-widest text-amber-950 font-bold">
+                  <span className="text-xs uppercase tracking-wider text-amber-950 font-bold">
                     Duplicate Entrance Scan
                   </span>
                   <h2 className="text-2xl font-bold tracking-tight">
@@ -184,8 +206,8 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
                 </div>
 
                 {lastResult.checkedInAt && (
-                  <div className="p-3 rounded-2xl bg-black/10 font-mono text-xs text-amber-950">
-                    Prior scan: {format(new Date(lastResult.checkedInAt), "MMM d, h:mm a")}
+                  <div className="p-3 rounded-2xl bg-black/10 text-xs text-amber-950">
+                    Prior admittance: {format(new Date(lastResult.checkedInAt), "MMM d, h:mm a")}
                   </div>
                 )}
 
@@ -199,6 +221,34 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
               </div>
             )}
 
+            {lastResult.status === "WRONG_EVENT" && (
+              <div className="p-6 rounded-3xl bg-amber-600 text-white shadow-2xl text-center space-y-5 animate-in zoom-in-95 duration-150">
+                <div className="mx-auto w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
+                  <ShieldAlert className="h-10 w-10 text-white" />
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-xs uppercase tracking-wider text-amber-200 font-semibold">
+                    Gate Mismatch
+                  </span>
+                  <h2 className="text-2xl font-bold tracking-tight">
+                    Wrong Event Pass
+                  </h2>
+                  <p className="text-xs text-amber-100 max-w-xs mx-auto leading-relaxed">
+                    {lastResult.message}
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleResetForNext}
+                  className="w-full bg-white text-amber-950 hover:bg-amber-50 font-bold text-sm h-12 rounded-xl shadow-lg"
+                >
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Dismiss / Next Pass
+                </Button>
+              </div>
+            )}
+
             {(lastResult.status === "INVALID" || lastResult.status === "REVOKED") && (
               <div className="p-6 rounded-3xl bg-rose-600 text-white shadow-2xl text-center space-y-5 animate-in zoom-in-95 duration-150">
                 <div className="mx-auto w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
@@ -206,7 +256,7 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs font-mono uppercase tracking-widest text-rose-200 font-semibold">
+                  <span className="text-xs uppercase tracking-wider text-rose-200 font-semibold">
                     Entrance Denied
                   </span>
                   <h2 className="text-2xl font-bold tracking-tight">
@@ -234,7 +284,7 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs font-mono uppercase tracking-widest text-sky-200 font-semibold">
+                  <span className="text-xs uppercase tracking-wider text-sky-200 font-semibold">
                     Gate Inactive
                   </span>
                   <h2 className="text-2xl font-bold tracking-tight">
@@ -262,11 +312,11 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
               <div className="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center text-zinc-400">
                 <ScanLine className="h-6 w-6 animate-pulse text-emerald-400" />
               </div>
-              <p className="text-xs font-semibold text-zinc-300">
+              <p className="text-xs font-semibold text-zinc-200">
                 Scan Pass QR Code
               </p>
-              <p className="text-[11px] text-zinc-500 font-mono">
-                Laser scanner autofocus active
+              <p className="text-xs text-zinc-400">
+                {selectedEvent ? selectedEvent.name : "Ready to scan"}
               </p>
 
               {/* Reticle corner markers */}
@@ -277,7 +327,7 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
             </div>
 
             <p className="text-xs text-zinc-400 max-w-xs">
-              Point hardware barcode gun or enter token string below.
+              Hardware barcode scanner autofocus active. Point camera or scan QR pass below.
             </p>
           </div>
         )}
@@ -291,7 +341,7 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
               autoFocus
               value={tokenInput}
               onChange={(e) => setTokenInput(e.target.value)}
-              placeholder="Paste token or scan QR URL..."
+              placeholder="Paste token or scan QR code..."
               disabled={isVerifying}
               className="flex-1 h-12 px-4 rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
@@ -308,14 +358,14 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
         {/* Recent Scans Log */}
         {recentScans.length > 0 && (
           <div className="pt-2 border-t border-zinc-900 space-y-1.5">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">
+            <span className="text-xs uppercase tracking-wider text-zinc-500 font-medium">
               Station Log (Last Scans)
             </span>
             <div className="space-y-1">
               {recentScans.map((scan) => (
                 <div
                   key={scan.id}
-                  className="flex items-center justify-between p-2 rounded-lg bg-zinc-900/60 border border-zinc-800/60 text-xs font-mono"
+                  className="flex items-center justify-between p-2 rounded-lg bg-zinc-900/60 border border-zinc-800/60 text-xs"
                 >
                   <div className="flex items-center gap-2 truncate">
                     <span
@@ -323,9 +373,9 @@ export function VerificationScanner({ organizationName }: VerificationScannerPro
                         scan.status === "VALID" ? "bg-emerald-400" : "bg-amber-400"
                       }`}
                     />
-                    <span className="text-zinc-200 truncate">{scan.name}</span>
+                    <span className="text-zinc-200 truncate font-medium">{scan.name}</span>
                   </div>
-                  <span className="text-zinc-500 text-[10px]">{scan.time}</span>
+                  <span className="text-zinc-500 text-xs font-mono">{scan.time}</span>
                 </div>
               ))}
             </div>

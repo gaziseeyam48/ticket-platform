@@ -137,8 +137,8 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
 
         {ticket && (
           <div className="p-6 rounded-xl bg-zinc-50 border border-zinc-200 text-center space-y-4 max-w-sm mx-auto">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">
-              Pass #{ticket.ticketNumber}
+            <span className="text-xs uppercase tracking-wider text-zinc-500 font-medium">
+              Digital Entrance Pass
             </span>
 
             {ticket.qrCodeDataUrl && (
@@ -151,7 +151,11 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
               </div>
             )}
 
-            <p className="text-[11px] text-zinc-500">
+            <p className="font-mono text-sm font-bold text-zinc-900">
+              #{ticket.ticketNumber}
+            </p>
+
+            <p className="text-xs text-zinc-500">
               A copy of your pass and secure access link has been dispatched to{" "}
               <span className="font-semibold text-zinc-800">{registrationResult.email}</span>.
             </p>
@@ -171,16 +175,16 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
 
         <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 text-left space-y-2 max-w-sm mx-auto text-xs text-zinc-600">
           <div className="flex justify-between">
-            <span className="text-zinc-400 font-mono">Attendee:</span>
-            <span className="text-zinc-900 font-medium">{registrationResult.participantName}</span>
+            <span className="text-zinc-500 font-medium">Attendee:</span>
+            <span className="text-zinc-900 font-semibold">{registrationResult.participantName}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-zinc-400 font-mono">Delivered to:</span>
+            <span className="text-zinc-500 font-medium">Delivered to:</span>
             <span className="text-zinc-900 font-medium">{registrationResult.email}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-zinc-400 font-mono">Status:</span>
-            <span className="text-emerald-700 font-semibold uppercase">Active (Issued)</span>
+            <span className="text-zinc-500 font-medium">Status:</span>
+            <span className="text-emerald-700 font-semibold">Confirmed (Issued)</span>
           </div>
         </div>
       </Card>
@@ -288,10 +292,10 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
     <Card className="border-zinc-200 bg-white shadow-xs overflow-hidden">
       <CardHeader className="border-b border-zinc-100 pb-4">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-sm bg-zinc-100 text-zinc-700 border border-zinc-200">
-            {event.event_type} PASS
+          <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-zinc-100 text-zinc-700 border border-zinc-200">
+            {event.event_type === "FREE" ? "Free Admission" : "Paid Pass"}
           </span>
-          <span className="text-xs text-zinc-400 flex items-center gap-1 font-mono">
+          <span className="text-xs text-zinc-500 flex items-center gap-1 font-medium">
             <ShieldCheck className="h-3.5 w-3.5 text-zinc-500" />
             Verified Pass
           </span>

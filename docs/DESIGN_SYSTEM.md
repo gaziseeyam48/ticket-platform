@@ -57,19 +57,18 @@ The TicketPlatform design system is crafted for high-performance event operation
 
 ### 2.2 Typography Scale
 
-- **UI Font Family**: `Plus Jakarta Sans`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, sans-serif.
-- **Editorial Accent Font**: `Newsreader`, `Georgia`, serif (for public mastheads, hero titles, boarding pass titles).
-- **Code & Token Font**: `JetBrains Mono`, monospace (for ticket numbers, hashes, slug URLs, timestamps).
+- **Primary Font Family**: `Inter`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, sans-serif. Used consistently across all dashboard headings, navigation, metric cards, tables, forms, badges, and public screens.
+- **Code & Token Font**: `JetBrains Mono`, monospace. Retained sparingly for technical identifiers, ticket serial numbers, transaction IDs, token hashes, and slugs. Avoid using monospace for ordinary labels, navigation, headings, and descriptions.
 
 | Scale | Size | Line Height | Weight | Typical Application |
 |---|---|---|---|---|
-| **Display** | 36px–48px | 1.1 | 700 | Public hero headers, public event invitations |
+| **Display** | 36px–48px | 1.1 | 700 | Public hero headers, event titles |
 | **H1** | 24px (1.5rem) | 1.25 | 700 | Dashboard page titles, major view headers |
 | **H2** | 18px (1.125rem) | 1.35 | 600 | Card titles, section headers |
 | **H3 / Body Bold** | 14px (0.875rem) | 1.4 | 600 | Metric card headers, table row titles, button labels |
 | **Body Regular** | 14px (0.875rem) | 1.5 | 400 | Form fields, descriptive paragraphs |
 | **Caption / Small** | 12px (0.75rem) | 1.4 | 500 | Badges, table headers, breadcrumbs, helper texts |
-| **Micro / Mono** | 10px–11px | 1.3 | 500/600 | Ticket serial numbers, uppercase status pills |
+| **Micro / Mono** | 11px–12px | 1.3 | 500/600 | Ticket serial numbers, transaction reference codes |
 
 ---
 
@@ -117,15 +116,21 @@ The TicketPlatform design system is crafted for high-performance event operation
 - Status pills with colored bullet dots (`● Live`, `● Published`, `● Draft`, `● Ended`).
 - Interactive row actions (`Manage`, `View Public Page`, `Form Builder`).
 
-### 3.4 Verification & Scanner Interface
-- High-contrast, single-purpose mobile interface.
-- Viewport for camera QR scanner with guide reticle.
-- Instant full-screen status flash:
-  - **VALID PASS**: Emerald green banner, check icon, attendee details, seat/tier, timestamp.
-  - **ALREADY CHECKED IN**: Amber banner with prior check-in timestamp.
-  - **INVALID PASS**: Red banner with warning message.
-  - **REVOKED PASS**: Red banner indicating cancelled registration.
-- Fallback manual token code input.
+### 3.4 Verification & Scanner Interface (State-Aware Gating)
+- **State-Aware Routing**:
+  - **Single Live Event**: Automatically opens the dedicated scanner for that active event.
+  - **Multiple Live Events**: Presents an entrance gate selector requiring the operator to select the active turnstile.
+  - **No Live Events / Before Start**: Displays clear status card explaining that verification is inactive until the event is marked `LIVE`.
+  - **Ended / Cancelled Events**: Displays verification closed feedback card.
+- **Cross-Event Guarding (`WRONG_EVENT`)**: Prevents admitting passes issued for other events at the selected gate.
+- **Atomic Concurrency**: Single-use atomic update (`status = 'CHECKED_IN' WHERE status = 'ISSUED'`) prevents double-admittance race conditions.
+- **Turnstile Mobile Feedback Cards**:
+  - **VALID PASS**: Emerald green card, check icon, attendee name, pass number, event name.
+  - **ALREADY CHECKED IN**: Amber card with prior check-in timestamp.
+  - **WRONG EVENT PASS**: Amber/red card indicating pass was issued for a different gathering.
+  - **INVALID PASS**: Red card with warning message.
+  - **REVOKED PASS**: Red card indicating cancelled registration.
+- Fallback manual token code input with laser barcode autofocus.
 
 ---
 

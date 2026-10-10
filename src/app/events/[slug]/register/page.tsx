@@ -82,10 +82,10 @@ export default async function EventRegistrationPage(props: {
             {/* Quick Event Summary Header Card */}
             <div className="p-5 rounded-xl bg-white border border-zinc-200 shadow-xs space-y-2">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-sm bg-zinc-100 text-zinc-700 border border-zinc-200">
-                  {event.event_type}
+                <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-zinc-100 text-zinc-700 border border-zinc-200">
+                  {event.event_type === "FREE" ? "Free Admission" : "Paid Pass"}
                 </span>
-                <span className="text-xs font-mono text-zinc-400">Hosted by {event.organizations.name}</span>
+                <span className="text-xs text-zinc-400">Hosted by {event.organizations.name}</span>
               </div>
               <h1 className="text-xl font-bold text-zinc-900">{event.name}</h1>
 
