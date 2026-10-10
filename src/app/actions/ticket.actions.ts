@@ -125,3 +125,124 @@ export async function resendTicketEmail(ticketId: string) {
     recipient: ticket.participant_email,
   };
 }
+
+/**
+ * Verifier action: checks in an attendee by public token or ticket URL.
+ * Atomic transition: tickets.status = 'CHECKED_IN' WHERE status = 'ISSUED'
+ */
+export async function verifyEntrancePass(rawInput: string) {
+  if (!rawInput || !rawInput.trim()) {
+    return {
+      success: false,
+      status: "INVALID",
+      message: "Scan input is empty. Please present a valid entrance QR pass.",
+    };
+  }
+
+  // Parse raw input: could be full URL (https://domain/t/TOKEN) or just TOKEN
+  let token = rawInput.trim();
+  if (token.includes("/t/")) {
+    const parts = token.split("/t/");
+    token = parts[parts.length - 1].split("?")[0].split("#")[0].trim();
+  }
+
+  const tokenHash = hashToken(token);
+  const adminDb = getAdminClient();
+
+  // Fetch ticket details
+  const { data: ticket, error } = await (adminDb
+    .from("tickets")
+    .select("id, ticket_number, status, participant_name, participant_email, issued_at, checked_in_at, revoked_at, event_id, events(id, name, slug, status, date_start, date_end, location, organization_id)")
+    .eq("token_hash", tokenHash)
+    .maybeSingle() as any);
+
+  if (error || !ticket) {
+    return {
+      success: false,
+      status: "INVALID",
+      message: "Unrecognized pass. No matching ticket record exists in the system.",
+    };
+  }
+
+  // Check event status
+  if (ticket.events.status !== "LIVE" && ticket.events.status !== "PUBLISHED") {
+    return {
+      success: false,
+      status: "EVENT_NOT_LIVE",
+      message: `Event "${ticket.events.name}" is currently in ${ticket.events.status} status. Entrance gate is not open.`,
+      eventName: ticket.events.name,
+      participantName: ticket.participant_name,
+      ticketNumber: ticket.ticket_number,
+    };
+  }
+
+  // Check if revoked
+  if (ticket.status === "REVOKED") {
+    return {
+      success: false,
+      status: "REVOKED",
+      message: "This entrance pass has been revoked by the event organizer.",
+      eventName: ticket.events.name,
+      participantName: ticket.participant_name,
+      ticketNumber: ticket.ticket_number,
+    };
+  }
+
+  // Check if already checked in
+  if (ticket.status === "CHECKED_IN") {
+    return {
+      success: false,
+      status: "ALREADY_CHECKED_IN",
+      message: "Duplicate scan! This ticket was already verified and admitted.",
+      eventName: ticket.events.name,
+      participantName: ticket.participant_name,
+      ticketNumber: ticket.ticket_number,
+      checkedInAt: ticket.checked_in_at,
+    };
+  }
+
+  // Atomic update: only admit if status is currently ISSUED
+  const now = new Date().toISOString();
+  const { data: updated, error: updateError } = await ((adminDb
+    .from("tickets") as any)
+    .update({
+      status: "CHECKED_IN",
+      checked_in_at: now,
+    })
+    .eq("id", ticket.id)
+    .eq("status", "ISSUED")
+    .select("id, ticket_number, status, checked_in_at")
+    .maybeSingle() as any);
+
+  if (updateError || !updated) {
+    // Concurrency collision: another scanner just admitted this ticket!
+    return {
+      success: false,
+      status: "ALREADY_CHECKED_IN",
+      message: "Simultaneous entrance attempt detected. Ticket was just checked in at another gate.",
+      eventName: ticket.events.name,
+      participantName: ticket.participant_name,
+      ticketNumber: ticket.ticket_number,
+      checkedInAt: ticket.checked_in_at || now,
+    };
+  }
+
+  // Log to checkins table
+  await (adminDb.from("checkins") as any).insert({
+    ticket_id: ticket.id,
+    event_id: ticket.event_id,
+    checked_in_at: now,
+  });
+
+  return {
+    success: true,
+    status: "VALID",
+    message: "Valid Pass — Entrance Permitted",
+    eventName: ticket.events.name,
+    participantName: ticket.participant_name,
+    participantEmail: ticket.participant_email,
+    ticketNumber: ticket.ticket_number,
+    checkedInAt: now,
+  };
+}
+
