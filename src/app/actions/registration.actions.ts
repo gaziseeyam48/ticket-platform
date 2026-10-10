@@ -94,6 +94,34 @@ export async function getPublicEventRegistrationData(slug: string): Promise<Publ
   };
 }
 
+export type SubmitRegistrationResult =
+  | {
+      success: true;
+      registrationId: string;
+      eventType: "FREE" | "PAID";
+      participantName: string;
+      email: string;
+      eventName: string;
+      paymentConfig: any;
+      ticket: { ticketNumber: string; ticketUrl: string; qrCodeDataUrl: string } | null;
+    }
+  | {
+      success: false;
+      error: string;
+      fieldErrors?: Record<string, string>;
+    };
+
+export type SubmitPaymentTransactionResult =
+  | {
+      success: true;
+      registrationId: string;
+      paymentStatus: string;
+    }
+  | {
+      success: false;
+      error: string;
+    };
+
 /**
  * Handles public participant registration submission.
  * Validates inputs against dynamic form schema, performs duplicate detection,
@@ -103,192 +131,216 @@ export async function submitRegistration(
   slug: string,
   submission: Record<string, unknown>,
   honeypot?: string
-) {
-  // 1. Anti-abuse honeypot check
-  if (honeypot && honeypot.trim().length > 0) {
-    // Silently reject or simulate success for bots
+): Promise<SubmitRegistrationResult> {
+  try {
+    // 1. Anti-abuse honeypot check
+    if (honeypot && honeypot.trim().length > 0) {
+      // Silently reject or simulate success for bots
+      return {
+        success: true,
+        registrationId: "mock-id",
+        eventType: "FREE",
+        participantName: "Guest",
+        email: "guest@example.com",
+        eventName: "Event",
+        paymentConfig: null,
+        ticket: null,
+      };
+    }
+
+    // 2. IP-based rate limiting
+    const headerList = await headers();
+    const forwardedFor = headerList.get("x-forwarded-for");
+    const ip = forwardedFor ? forwardedFor.split(",")[0].trim() : "127.0.0.1";
+
+    const rateCheck = rateLimiter.check(`registration:${ip}`, 12, 60_000);
+    if (!rateCheck.allowed) {
+      return {
+        success: false,
+        error: "Too many registration requests from your network. Please wait a minute before trying again.",
+      };
+    }
+
+    const adminDb = getAdminClient();
+
+    // 3. Look up event and verify status
+    const { data: event, error: eventError } = await (adminDb
+      .from("events")
+      .select("id, name, slug, event_type, status, payment_config, organization_id")
+      .eq("slug", slug)
+      .single() as any);
+
+    if (eventError || !event) {
+      return {
+        success: false,
+        error: "Event not found.",
+      };
+    }
+
+    if (event.status !== "PUBLISHED" && event.status !== "LIVE") {
+      const message =
+        event.status === "ENDED"
+          ? "Registration is closed because this event has already concluded."
+          : event.status === "CANCELLED"
+          ? "This event has been cancelled."
+          : "Registration is not currently open for this event.";
+
+      return {
+        success: false,
+        error: message,
+      };
+    }
+
+    // 4. Look up registration form
+    const { data: form, error: formError } = await (adminDb
+      .from("registration_forms")
+      .select("id, fields")
+      .eq("event_id", event.id)
+      .single() as any);
+
+    if (formError || !form || !Array.isArray(form.fields)) {
+      return {
+        success: false,
+        error: "Registration form configuration is missing for this event.",
+      };
+    }
+
+    const fields: FormField[] = form.fields;
+
+    // 5. Server-side validation against dynamic form schema
+    const validation = validateSubmissionData(fields, submission);
+    if (!validation.isValid) {
+      return {
+        success: false,
+        error: "Please fill out all required fields correctly.",
+        fieldErrors: validation.errors,
+      };
+    }
+
+    // 6. Extract Email and Participant Name
+    const emailField = fields.find((f) => f.type === "email") || fields.find((f) => f.id === "field_email");
+    const nameField = fields.find((f) => f.id === "field_name") || fields.find((f) => f.type === "text" && f.required);
+
+    const rawEmail = emailField ? submission[emailField.id] : undefined;
+    const rawName = nameField ? submission[nameField.id] : undefined;
+
+    if (!rawEmail || typeof rawEmail !== "string") {
+      return {
+        success: false,
+        error: "A valid email address is required.",
+      };
+    }
+
+    const normalizedEmail = rawEmail.trim().toLowerCase();
+    const participantName = rawName && typeof rawName === "string" ? rawName.trim() : "Participant";
+
+    // 7. Duplicate registration check (one registration per email per event)
+    const { data: existingReg } = await (adminDb
+      .from("registrations")
+      .select("id, email, status")
+      .eq("event_id", event.id)
+      .eq("email", normalizedEmail)
+      .maybeSingle() as any);
+
+    if (existingReg) {
+      return {
+        success: false,
+        error: `The email address ${normalizedEmail} is already registered for this event.`,
+      };
+    }
+
+    // 8. Insert new registration record
+    const initialPaymentStatus = event.event_type === "PAID" ? "PENDING" : null;
+
+    const { data: newRegistration, error: insertError } = await ((adminDb as any)
+      .from("registrations")
+      .insert([
+        {
+          event_id: event.id,
+          form_id: form.id,
+          email: normalizedEmail,
+          participant_name: participantName,
+          status: "REGISTERED",
+          form_data: submission,
+          payment_status: initialPaymentStatus,
+        },
+      ])
+      .select()
+      .single() as any);
+
+    if (insertError) {
+      if (insertError.code === "23505") {
+        return {
+          success: false,
+          error: `The email address ${normalizedEmail} is already registered for this event.`,
+        };
+      }
+      console.error("Failed to create registration:", insertError);
+      return {
+        success: false,
+        error: "Failed to complete registration. Please try again.",
+      };
+    }
+
+    // 9. Automatically issue ticket immediately for FREE events
+    let ticketPayload: { ticketNumber: string; ticketUrl: string; qrCodeDataUrl: string } | null = null;
+    if (event.event_type === "FREE") {
+      try {
+        const ticketResult = await issueTicket({
+          eventId: event.id,
+          participantName,
+          participantEmail: normalizedEmail,
+          registrationId: newRegistration.id,
+          participantData: submission,
+        });
+
+        ticketPayload = {
+          ticketNumber: ticketResult.ticket.ticket_number,
+          ticketUrl: ticketResult.ticketUrl,
+          qrCodeDataUrl: ticketResult.qrCodeDataUrl,
+        };
+      } catch (ticketError) {
+        console.error("Automatic ticket issuance error for free event:", ticketError);
+        // Registration is preserved; ticket can be issued/retried
+      }
+    }
+
+    await logAuditEvent({
+      organizationId: event.organization_id || null,
+      eventId: event.id,
+      actorId: null,
+      actorType: "SYSTEM",
+      action: "REGISTRATION_CREATED",
+      targetType: "REGISTRATION",
+      targetId: newRegistration.id,
+      metadata: {
+        participant_name: participantName,
+        email: normalizedEmail,
+        event_type: event.event_type,
+      },
+    });
+
+    revalidatePath(`/events/${slug}`);
+    revalidatePath(`/events/${slug}/register`);
+
     return {
       success: true,
-      registrationId: "mock-id",
-      eventType: "FREE",
-      participantName: "Guest",
-      email: "guest@example.com",
+      registrationId: newRegistration.id,
+      eventType: event.event_type,
+      participantName,
+      email: normalizedEmail,
+      eventName: event.name,
+      paymentConfig: event.payment_config || null,
+      ticket: ticketPayload,
+    };
+  } catch (error: unknown) {
+    console.error("Unexpected error in submitRegistration:", error);
+    const msg = error instanceof Error ? error.message : "Failed to complete registration. Please try again.";
+    return {
+      success: false,
+      error: msg,
     };
   }
-
-  // 2. IP-based rate limiting
-  const headerList = await headers();
-  const forwardedFor = headerList.get("x-forwarded-for");
-  const ip = forwardedFor ? forwardedFor.split(",")[0].trim() : "127.0.0.1";
-
-  const rateCheck = rateLimiter.check(`registration:${ip}`, 12, 60_000);
-  if (!rateCheck.allowed) {
-    throw new AppError(
-      ERROR_CODES.RATE_LIMITED,
-      "Too many registration requests from your network. Please wait a minute before trying again."
-    );
-  }
-
-  const adminDb = getAdminClient();
-
-  // 3. Look up event and verify status
-  const { data: event, error: eventError } = await (adminDb
-    .from("events")
-    .select("id, name, slug, event_type, status, payment_config")
-    .eq("slug", slug)
-    .single() as any);
-
-  if (eventError || !event) {
-    throw new AppError(ERROR_CODES.NOT_FOUND, "Event not found.");
-  }
-
-  if (event.status !== "PUBLISHED" && event.status !== "LIVE") {
-    const message =
-      event.status === "ENDED"
-        ? "Registration is closed because this event has already concluded."
-        : event.status === "CANCELLED"
-        ? "This event has been cancelled."
-        : "Registration is not currently open for this event.";
-
-    throw new AppError(ERROR_CODES.EVENT_NOT_ACCEPTING, message);
-  }
-
-  // 4. Look up registration form
-  const { data: form, error: formError } = await (adminDb
-    .from("registration_forms")
-    .select("id, fields")
-    .eq("event_id", event.id)
-    .single() as any);
-
-  if (formError || !form || !Array.isArray(form.fields)) {
-    throw new AppError(
-      ERROR_CODES.INTERNAL_ERROR,
-      "Registration form configuration is missing for this event."
-    );
-  }
-
-  const fields: FormField[] = form.fields;
-
-  // 5. Server-side validation against dynamic form schema
-  const validation = validateSubmissionData(fields, submission);
-  if (!validation.isValid) {
-    throw new AppError(
-      ERROR_CODES.VALIDATION_ERROR,
-      "Please fill out all required fields correctly.",
-      { details: validation.errors }
-    );
-  }
-
-  // 6. Extract Email and Participant Name
-  const emailField = fields.find((f) => f.type === "email") || fields.find((f) => f.id === "field_email");
-  const nameField = fields.find((f) => f.id === "field_name") || fields.find((f) => f.type === "text" && f.required);
-
-  const rawEmail = emailField ? submission[emailField.id] : undefined;
-  const rawName = nameField ? submission[nameField.id] : undefined;
-
-  if (!rawEmail || typeof rawEmail !== "string") {
-    throw new AppError(ERROR_CODES.VALIDATION_ERROR, "A valid email address is required.");
-  }
-
-  const normalizedEmail = rawEmail.trim().toLowerCase();
-  const participantName = rawName && typeof rawName === "string" ? rawName.trim() : "Participant";
-
-  // 7. Duplicate registration check (one registration per email per event)
-  const { data: existingReg } = await (adminDb
-    .from("registrations")
-    .select("id, email, status")
-    .eq("event_id", event.id)
-    .eq("email", normalizedEmail)
-    .maybeSingle() as any);
-
-  if (existingReg) {
-    throw new AppError(
-      ERROR_CODES.DUPLICATE_REGISTRATION,
-      `The email address ${normalizedEmail} is already registered for this event.`
-    );
-  }
-
-  // 8. Insert new registration record
-  const initialPaymentStatus = event.event_type === "PAID" ? "PENDING" : null;
-
-  const { data: newRegistration, error: insertError } = await ((adminDb as any)
-    .from("registrations")
-    .insert([
-      {
-        event_id: event.id,
-        form_id: form.id,
-        email: normalizedEmail,
-        participant_name: participantName,
-        status: "REGISTERED",
-        form_data: submission,
-        payment_status: initialPaymentStatus,
-      },
-    ])
-    .select()
-    .single() as any);
-
-  if (insertError) {
-    if (insertError.code === "23505") {
-      throw new AppError(
-        ERROR_CODES.DUPLICATE_REGISTRATION,
-        `The email address ${normalizedEmail} is already registered for this event.`
-      );
-    }
-    console.error("Failed to create registration:", insertError);
-    throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to complete registration. Please try again.");
-  }
-
-  // 9. Automatically issue ticket immediately for FREE events
-  let ticketPayload: { ticketNumber: string; ticketUrl: string; qrCodeDataUrl: string } | null = null;
-  if (event.event_type === "FREE") {
-    try {
-      const ticketResult = await issueTicket({
-        eventId: event.id,
-        participantName,
-        participantEmail: normalizedEmail,
-        registrationId: newRegistration.id,
-        participantData: submission,
-      });
-
-      ticketPayload = {
-        ticketNumber: ticketResult.ticket.ticket_number,
-        ticketUrl: ticketResult.ticketUrl,
-        qrCodeDataUrl: ticketResult.qrCodeDataUrl,
-      };
-    } catch (ticketError) {
-      console.error("Automatic ticket issuance error for free event:", ticketError);
-      // Registration is preserved; ticket can be issued/retried
-    }
-  }
-
-  await logAuditEvent({
-    organizationId: event.organization_id || event.organizations?.id,
-    eventId: event.id,
-    actorId: null,
-    actorType: "SYSTEM",
-    action: "REGISTRATION_CREATED",
-    targetType: "REGISTRATION",
-    targetId: newRegistration.id,
-    metadata: {
-      participant_name: participantName,
-      email: normalizedEmail,
-      event_type: event.event_type,
-    },
-  });
-
-  revalidatePath(`/events/${slug}`);
-  revalidatePath(`/events/${slug}/register`);
-
-  return {
-    success: true,
-    registrationId: newRegistration.id,
-    eventType: event.event_type,
-    participantName,
-    email: normalizedEmail,
-    eventName: event.name,
-    paymentConfig: event.payment_config || null,
-    ticket: ticketPayload,
-  };
 }
 
 /**
@@ -297,66 +349,84 @@ export async function submitRegistration(
 export async function submitPaymentTransaction(
   registrationId: string,
   transactionId: string
-) {
-  if (!transactionId || transactionId.trim().length === 0) {
-    throw new AppError(ERROR_CODES.VALIDATION_ERROR, "Transaction ID is required.");
+): Promise<SubmitPaymentTransactionResult> {
+  try {
+    if (!transactionId || transactionId.trim().length === 0) {
+      return {
+        success: false,
+        error: "Transaction ID is required.",
+      };
+    }
+
+    const adminDb = getAdminClient();
+
+    // Verify registration
+    const { data: reg, error: regError } = await (adminDb
+      .from("registrations")
+      .select("id, payment_status, event_id")
+      .eq("id", registrationId)
+      .single() as any);
+
+    if (regError || !reg) {
+      return {
+        success: false,
+        error: "Registration not found.",
+      };
+    }
+
+    if (!canSubmitTransaction(reg.payment_status)) {
+      return {
+        success: false,
+        error: "Payment is already approved. Cannot submit or modify transaction identifier.",
+      };
+    }
+
+    assertValidPaymentTransition(reg.payment_status, "SUBMITTED");
+
+    // Update payment status to SUBMITTED
+    const { data: updatedReg, error: updateError } = await ((adminDb as any)
+      .from("registrations")
+      .update({
+        payment_status: "SUBMITTED",
+        transaction_id: transactionId.trim(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", registrationId)
+      .select()
+      .single() as any);
+
+    if (updateError) {
+      console.error("Error submitting transaction ID:", updateError);
+      return {
+        success: false,
+        error: "Failed to submit transaction details.",
+      };
+    }
+
+    await logAuditEvent({
+      eventId: reg.event_id,
+      actorType: "USER",
+      action: "PAYMENT_SUBMITTED",
+      targetType: "REGISTRATION",
+      targetId: registrationId,
+      metadata: {
+        transaction_id: transactionId.trim(),
+      },
+    });
+
+    return {
+      success: true,
+      registrationId: updatedReg.id,
+      paymentStatus: updatedReg.payment_status,
+    };
+  } catch (error: unknown) {
+    console.error("Unexpected error in submitPaymentTransaction:", error);
+    const msg = error instanceof Error ? error.message : "Failed to submit transaction details.";
+    return {
+      success: false,
+      error: msg,
+    };
   }
-
-  const adminDb = getAdminClient();
-
-  // Verify registration
-  const { data: reg, error: regError } = await (adminDb
-    .from("registrations")
-    .select("id, payment_status, event_id")
-    .eq("id", registrationId)
-    .single() as any);
-
-  if (regError || !reg) {
-    throw new AppError(ERROR_CODES.NOT_FOUND, "Registration not found.");
-  }
-
-  if (!canSubmitTransaction(reg.payment_status)) {
-    throw new AppError(
-      ERROR_CODES.VALIDATION_ERROR,
-      "Payment is already approved. Cannot submit or modify transaction identifier."
-    );
-  }
-
-  assertValidPaymentTransition(reg.payment_status, "SUBMITTED");
-
-  // Update payment status to SUBMITTED
-  const { data: updatedReg, error: updateError } = await ((adminDb as any)
-    .from("registrations")
-    .update({
-      payment_status: "SUBMITTED",
-      transaction_id: transactionId.trim(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", registrationId)
-    .select()
-    .single() as any);
-
-  if (updateError) {
-    console.error("Error submitting transaction ID:", updateError);
-    throw new AppError(ERROR_CODES.INTERNAL_ERROR, "Failed to submit transaction details.");
-  }
-
-  await logAuditEvent({
-    eventId: reg.event_id,
-    actorType: "USER",
-    action: "PAYMENT_SUBMITTED",
-    targetType: "REGISTRATION",
-    targetId: registrationId,
-    metadata: {
-      transaction_id: transactionId.trim(),
-    },
-  });
-
-  return {
-    success: true,
-    registrationId: updatedReg.id,
-    paymentStatus: updatedReg.payment_status,
-  };
 }
 
 /**

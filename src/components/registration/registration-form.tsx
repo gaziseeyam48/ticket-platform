@@ -77,14 +77,44 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
     setGeneralError("");
     setFieldErrors({});
 
+    // Client-side instant validation check
+    const clientErrors: Record<string, string> = {};
+    for (const field of fields) {
+      const val = formData[field.id];
+      if (field.required) {
+        if (field.type === "checkbox") {
+          if (!val) {
+            clientErrors[field.id] = `${field.label} must be checked`;
+          }
+        } else if (val === undefined || val === null || (typeof val === "string" && val.trim() === "")) {
+          clientErrors[field.id] = `${field.label} is required`;
+        }
+      }
+    }
+
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
+      setGeneralError("Please complete all required fields before continuing.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const response = await submitRegistration(event.slug, formData, honeypot);
 
+      if (!response.success) {
+        setGeneralError(response.error);
+        if (response.fieldErrors) {
+          setFieldErrors(response.fieldErrors);
+        }
+        return;
+      }
+
       setRegistrationResult({
-        registrationId: response.registrationId!,
-        eventType: response.eventType!,
-        participantName: response.participantName!,
-        email: response.email!,
+        registrationId: response.registrationId,
+        eventType: response.eventType,
+        participantName: response.participantName,
+        email: response.email,
         paymentConfig: response.paymentConfig,
         ticket: response.ticket,
       });
@@ -107,9 +137,12 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
         transactionId.trim()
       );
 
-      if (response.success) {
-        setPaymentSubmittedSuccess(true);
+      if (!response.success) {
+        setGeneralError(response.error);
+        return;
       }
+
+      setPaymentSubmittedSuccess(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to submit transaction details.";
       setGeneralError(msg);
@@ -445,9 +478,14 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
                 {/* Single Checkbox */}
                 {field.type === "checkbox" && (
                   <div className="pt-0.5">
-                    <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer transition-colors">
+                    <label
+                      className={`flex items-start gap-2.5 p-2.5 rounded-lg border bg-white hover:bg-zinc-50 cursor-pointer transition-colors ${
+                        error ? "border-red-300 ring-1 ring-red-300" : "border-zinc-200"
+                      }`}
+                    >
                       <input
                         type="checkbox"
+                        required={field.required}
                         checked={Boolean(value)}
                         onChange={(e) => handleFieldChange(field.id, e.target.checked)}
                         className="rounded text-zinc-900 focus:ring-zinc-900 mt-0.5"
