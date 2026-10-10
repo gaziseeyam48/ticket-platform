@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -30,6 +30,40 @@ export default function HomePage() {
   const [emailInput, setEmailInput] = useState("");
   const [activeScanDemo, setActiveScanDemo] = useState<"valid" | "duplicate">("valid");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    // Handle scroll progress
+    const handleScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalHeight > 0) {
+        setScrollProgress((window.scrollY / totalHeight) * 100);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    // Handle intersection observer for scroll reveal animations
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("reveal-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }
+    );
+
+    const elements = document.querySelectorAll(".reveal-hidden");
+    elements.forEach((el) => observer.observe(el));
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      observer.disconnect();
+    };
+  }, []);
 
   const handleStartWithEmail = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,6 +112,14 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#fcfcfb] text-zinc-900 flex flex-col font-sans selection:bg-zinc-900 selection:text-white antialiased">
+      {/* Top Scroll Progress Indicator */}
+      <div className="fixed top-0 left-0 right-0 h-[2.5px] z-[60] bg-zinc-200/40 pointer-events-none">
+        <div
+          className="h-full bg-blue-600 transition-[width] duration-75 ease-out shadow-[0_0_8px_rgba(37,99,235,0.5)]"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
       {/* --------------------------------------------------------------------- */}
       {/* 1. CLEAN NAVIGATION (Minimal, spacious, no heavy borders)              */}
       {/* --------------------------------------------------------------------- */}
@@ -273,7 +315,7 @@ export default function HomePage() {
       {/* --------------------------------------------------------------------- */}
       {/* 3. SUBTLE SOCIAL PROOF STRIP (Minimalist typography)                  */}
       {/* --------------------------------------------------------------------- */}
-      <section className="py-12 border-y border-zinc-200/50 bg-white/60">
+      <section className="reveal-hidden py-12 border-y border-zinc-200/50 bg-white/60">
         <div className="max-w-6xl mx-auto px-6 text-center space-y-4">
           <p className="text-xs text-zinc-400 font-medium tracking-wide">
             Trusted by independent organizers, universities, and gatherings worldwide
@@ -293,7 +335,7 @@ export default function HomePage() {
       {/* 4. THREE CORE EXPERIENCES (Edgelabs & Finpay Inspiration)             */}
       {/* --------------------------------------------------------------------- */}
       <section id="features" className="py-24 sm:py-32 max-w-6xl mx-auto px-6 space-y-20">
-        <div className="max-w-xl mx-auto text-center space-y-3">
+        <div className="reveal-hidden max-w-xl mx-auto text-center space-y-3">
           <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">
             Simple by design
           </span>
@@ -306,7 +348,7 @@ export default function HomePage() {
         </div>
 
         {/* Feature 1: Seamless Guest Experience */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div className="reveal-hidden grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="space-y-4">
             <span className="text-xs uppercase tracking-widest text-blue-600 font-semibold">
               01 • Guest Experience
@@ -351,7 +393,7 @@ export default function HomePage() {
         </div>
 
         {/* Feature 2: Phone Camera Gate Scanning */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div className="reveal-hidden grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="order-2 md:order-1 p-8 rounded-3xl bg-zinc-900 text-white shadow-xl space-y-5">
             <div className="flex items-center justify-between text-xs text-zinc-400 pb-3 border-b border-zinc-800">
               <span className="flex items-center gap-1.5 font-medium text-white">
@@ -409,7 +451,7 @@ export default function HomePage() {
         </div>
 
         {/* Feature 3: Team Collaboration */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div className="reveal-hidden grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="space-y-4">
             <span className="text-xs uppercase tracking-widest text-blue-600 font-semibold">
               03 • Staff Delegation
@@ -460,7 +502,7 @@ export default function HomePage() {
       {/* --------------------------------------------------------------------- */}
       {/* 5. INTERACTIVE LIVE SCANNER SIMULATION (Sound + Haptic)                */}
       {/* --------------------------------------------------------------------- */}
-      <section id="scanner" className="py-24 sm:py-32 bg-zinc-950 text-white relative">
+      <section id="scanner" className="reveal-hidden py-24 sm:py-32 bg-zinc-950 text-white relative">
         <div className="max-w-4xl mx-auto px-6 space-y-12 text-center">
           <div className="space-y-3">
             <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">
@@ -545,7 +587,7 @@ export default function HomePage() {
       {/* 6. HOW IT WORKS (3 Simple Steps)                                      */}
       {/* --------------------------------------------------------------------- */}
       <section id="how-it-works" className="py-24 sm:py-32 max-w-6xl mx-auto px-6 space-y-16">
-        <div className="max-w-xl mx-auto text-center space-y-3">
+        <div className="reveal-hidden max-w-xl mx-auto text-center space-y-3">
           <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">
             Getting Started
           </span>
@@ -558,7 +600,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="p-8 rounded-3xl bg-white shadow-[0_12px_32px_rgba(0,0,0,0.04)] space-y-3">
+          <div className="reveal-hidden reveal-stagger-1 p-8 rounded-3xl bg-white shadow-[0_12px_32px_rgba(0,0,0,0.04)] space-y-3">
             <span className="text-3xl font-extrabold text-zinc-200">01</span>
             <h3 className="text-lg font-bold text-zinc-900">Create your event</h3>
             <p className="text-xs text-zinc-500 leading-relaxed">
@@ -566,7 +608,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="p-8 rounded-3xl bg-white shadow-[0_12px_32px_rgba(0,0,0,0.04)] space-y-3">
+          <div className="reveal-hidden reveal-stagger-2 p-8 rounded-3xl bg-white shadow-[0_12px_32px_rgba(0,0,0,0.04)] space-y-3">
             <span className="text-3xl font-extrabold text-zinc-200">02</span>
             <h3 className="text-lg font-bold text-zinc-900">Share your link</h3>
             <p className="text-xs text-zinc-500 leading-relaxed">
@@ -574,7 +616,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="p-8 rounded-3xl bg-white shadow-[0_12px_32px_rgba(0,0,0,0.04)] space-y-3">
+          <div className="reveal-hidden reveal-stagger-3 p-8 rounded-3xl bg-white shadow-[0_12px_32px_rgba(0,0,0,0.04)] space-y-3">
             <span className="text-3xl font-extrabold text-zinc-200">03</span>
             <h3 className="text-lg font-bold text-zinc-900">Scan at the door</h3>
             <p className="text-xs text-zinc-500 leading-relaxed">
@@ -589,7 +631,7 @@ export default function HomePage() {
       {/* --------------------------------------------------------------------- */}
       <section id="pricing" className="py-20 sm:py-28 bg-white border-y border-zinc-200/50">
         <div className="max-w-4xl mx-auto px-6 space-y-12">
-          <div className="text-center space-y-3">
+          <div className="reveal-hidden text-center space-y-3">
             <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">
               Pricing
             </span>
@@ -603,7 +645,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
             {/* Free Tier */}
-            <div className="p-8 rounded-3xl bg-[#fcfcfb] space-y-6 flex flex-col justify-between">
+            <div className="reveal-hidden reveal-stagger-1 p-8 rounded-3xl bg-[#fcfcfb] space-y-6 flex flex-col justify-between">
               <div className="space-y-4">
                 <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                   Community & Free Events
@@ -644,7 +686,7 @@ export default function HomePage() {
             </div>
 
             {/* Paid Tier */}
-            <div className="p-8 rounded-3xl bg-zinc-900 text-white space-y-6 flex flex-col justify-between shadow-xl">
+            <div className="reveal-hidden reveal-stagger-2 p-8 rounded-3xl bg-zinc-900 text-white space-y-6 flex flex-col justify-between shadow-xl">
               <div className="space-y-4">
                 <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                   Paid Events
@@ -690,7 +732,7 @@ export default function HomePage() {
       {/* --------------------------------------------------------------------- */}
       {/* 8. FAQ ACCORDION                                                      */}
       {/* --------------------------------------------------------------------- */}
-      <section id="faq" className="py-24 sm:py-32 max-w-3xl mx-auto px-6 space-y-12">
+      <section id="faq" className="reveal-hidden py-24 sm:py-32 max-w-3xl mx-auto px-6 space-y-12">
         <div className="text-center space-y-3">
           <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">
             Common questions
@@ -734,7 +776,7 @@ export default function HomePage() {
       {/* --------------------------------------------------------------------- */}
       {/* 9. BOTTOM LEAD CAPTURE CALL TO ACTION                                 */}
       {/* --------------------------------------------------------------------- */}
-      <section className="py-20 sm:py-28 px-6">
+      <section className="reveal-hidden py-20 sm:py-28 px-6">
         <div className="max-w-4xl mx-auto p-10 sm:p-16 rounded-3xl bg-zinc-900 text-white text-center space-y-6 shadow-2xl relative overflow-hidden">
           <div className="space-y-3 max-w-xl mx-auto">
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tight">
