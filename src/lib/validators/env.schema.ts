@@ -10,7 +10,7 @@ export const envSchema = z.object({
     .min(32, "VERIFIER_JWT_SECRET must be at least 32 characters")
     .optional(),
   RESEND_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().optional().default("Ticket Platform <tickets@example.com>"),
+  EMAIL_FROM: z.string().optional().default("TicketKoi <tickets@example.com>"),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;
@@ -43,7 +43,7 @@ export function getServerEnv(): EnvConfig {
         NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co",
         NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-anon-key",
         NEXT_PUBLIC_APP_URL: "http://localhost:3000",
-        EMAIL_FROM: "Ticket Platform <tickets@example.com>",
+        EMAIL_FROM: "TicketKoi <tickets@example.com>",
       };
     }
   }
@@ -55,7 +55,7 @@ export function getServerEnv(): EnvConfig {
       NEXT_PUBLIC_SUPABASE_ANON_KEY:
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "placeholder-anon-key",
       NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-      EMAIL_FROM: process.env.EMAIL_FROM ?? "Ticket Platform <tickets@example.com>",
+      EMAIL_FROM: process.env.EMAIL_FROM ?? "TicketKoi <tickets@example.com>",
     }
   );
 }

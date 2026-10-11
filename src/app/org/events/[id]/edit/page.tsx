@@ -9,7 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
 
 export const metadata = {
-  title: "Edit Event - Ticket Platform",
+  title: "Edit Event - TicketKoi",
   description: "Edit event details",
 };
 

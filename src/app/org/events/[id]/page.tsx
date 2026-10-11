@@ -7,7 +7,7 @@ import { getCachedSession } from "@/lib/db/cached-session";
 import { EventWorkspace } from "@/components/events/event-workspace";
 
 export const metadata = {
-  title: "Event Details — Ticket Platform",
+  title: "Event Details — TicketKoi",
   description: "Manage event parameters, registration form, passes, and gates",
 };
 

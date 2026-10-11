@@ -26,7 +26,7 @@ import {
 import { format } from "date-fns";
 
 export const metadata = {
-  title: "Entrance Verification — Ticket Platform",
+  title: "Entrance Verification — TicketKoi",
   description: "Atomic entrance QR pass verification and turnstile check-in station",
 };
 

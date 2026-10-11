@@ -78,7 +78,7 @@ export function TicketPassView({ ticket }: { ticket: TicketPassData }) {
     const icsContent = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      "PRODID:-//TicketPlatform//EntrancePass//EN",
+      "PRODID:-//TicketKoi//EntrancePass//EN",
       "CALSCALE:GREGORIAN",
       "BEGIN:VEVENT",
       `SUMMARY:${ticket.eventName}`,
@@ -369,7 +369,7 @@ export function TicketPassView({ ticket }: { ticket: TicketPassData }) {
       </div>
 
       <p className="no-print text-center text-[10px] font-mono text-zinc-400">
-        TicketPlatform • Cryptographic Token Hash Protocol
+        TicketKoi • Cryptographic Token Hash Protocol
       </p>
     </div>
   );

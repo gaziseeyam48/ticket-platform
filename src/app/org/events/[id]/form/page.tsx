@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
 
 export const metadata = {
-  title: "Registration Form Builder - Ticket Platform",
+  title: "Registration Form Builder - TicketKoi",
   description: "Customize the participant registration form for your event",
 };
 

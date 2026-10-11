@@ -1,7 +1,7 @@
 import { SignUpForm } from "@/components/auth/signup-form";
 
 export const metadata = {
-  title: "Sign Up - Ticket Platform",
+  title: "Sign Up - TicketKoi",
   description: "Create an organization account",
 };
 

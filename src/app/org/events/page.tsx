@@ -17,7 +17,7 @@ import { getCachedSession } from "@/lib/db/cached-session";
 import { getAdminClient } from "@/lib/db/admin";
 
 export const metadata = {
-  title: "Events — Ticket Platform",
+  title: "Events — TicketKoi",
   description: "Manage, publish, and monitor your organization's events",
 };
 

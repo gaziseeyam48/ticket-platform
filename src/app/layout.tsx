@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Ticket Platform | Event Ticket Generation & Verification",
+  title: "TicketKoi | Event Ticket Generation & Verification",
   description: "Production-grade, lean event ticketing and atomic entrance verification system.",
 };
 

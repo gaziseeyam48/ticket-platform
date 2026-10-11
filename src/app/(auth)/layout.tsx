@@ -6,7 +6,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen flex flex-col justify-between bg-zinc-50 p-6 sm:p-8 font-sans">
       <header className="max-w-md w-full mx-auto">
         <Link href="/" className="text-2xl font-bold tracking-tight text-zinc-900 hover:opacity-80 transition-opacity">
-          TicketPlatform
+          TicketKoi
         </Link>
       </header>
 
@@ -15,7 +15,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       </div>
 
       <footer className="max-w-md w-full mx-auto text-xs text-zinc-400 text-center">
-        &copy; 2026 TicketPlatform • Autonomous Event Ticketing
+        &copy; 2026 TicketKoi • Autonomous Event Ticketing
       </footer>
     </div>
   );

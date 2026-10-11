@@ -21,7 +21,7 @@ import { format } from "date-fns";
 import { getCachedSession } from "@/lib/db/cached-session";
 
 export const metadata = {
-  title: "Dashboard — Ticket Platform",
+  title: "Dashboard — TicketKoi",
   description: "Organization overview, events, and entrance verification metrics",
 };
 

@@ -103,7 +103,7 @@ export function OrgSidebar({
           </div>
           <div>
             <div className="text-base font-bold tracking-tight text-zinc-900 leading-none">
-              TicketPlatform
+              TicketKoi
             </div>
             <div className="text-xs text-zinc-500 mt-1 flex items-center gap-1.5 truncate max-w-[140px]">
               <Building2 className="h-3 w-3 text-zinc-400 shrink-0" />

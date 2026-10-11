@@ -1,8 +1,8 @@
-# TicketPlatform
+# TicketKoi
 
 > **Secure, Lean Event Ticket Generation & Atomic Verification Platform**
 
-TicketPlatform is a production-quality, monolithic web application built for organizations to create events, configure dynamic registration forms, issue cryptographically signed digital tickets, and verify tickets at event entrances with concurrency-safe atomic check-in.
+TicketKoi is a production-quality, monolithic web application built for organizations to create events, configure dynamic registration forms, issue cryptographically signed digital tickets, and verify tickets at event entrances with concurrency-safe atomic check-in.
 
 ---
 

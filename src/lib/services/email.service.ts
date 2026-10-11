@@ -105,7 +105,7 @@ export async function sendTicketEmail(payload: TicketEmailPayload): Promise<{ su
   const env = getServerEnv();
   const resend = getResendClient();
 
-  const fromEmail = env.EMAIL_FROM || "Ticket Platform <tickets@example.com>";
+  const fromEmail = env.EMAIL_FROM || "TicketKoi <tickets@example.com>";
   const html = buildTicketEmailHtml(payload);
   const subject = `Your Ticket: ${payload.eventName} (${payload.ticketNumber})`;
 
@@ -203,7 +203,7 @@ export function buildVerifierInviteEmailHtml(payload: VerifierInviteEmailPayload
       </p>
     </div>
     <div class="footer">
-      TicketPlatform • Ephemeral Verifier Protocol
+      TicketKoi • Ephemeral Verifier Protocol
     </div>
   </div>
 </body>
@@ -216,7 +216,7 @@ export function buildVerifierInviteEmailHtml(payload: VerifierInviteEmailPayload
 export async function sendVerifierInviteEmail(payload: VerifierInviteEmailPayload) {
   const resend = getResendClient();
   const env = getServerEnv();
-  const fromEmail = env.EMAIL_FROM || "Ticket Platform <tickets@example.com>";
+  const fromEmail = env.EMAIL_FROM || "TicketKoi <tickets@example.com>";
   const html = buildVerifierInviteEmailHtml(payload);
   const subject = `Gate Verifier Invitation: ${payload.eventName}`;
 

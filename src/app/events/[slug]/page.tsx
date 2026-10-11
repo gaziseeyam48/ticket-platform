@@ -15,7 +15,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
   try {
     const event = await getEventBySlug(params.slug);
     return {
-      title: `${event.name} — Ticket Platform`,
+      title: `${event.name} — TicketKoi`,
       description: event.description || `Register for ${event.name}`,
     };
   } catch {
@@ -124,7 +124,7 @@ export default async function PublicEventPage(props: { params: Promise<{ slug: s
         </div>
 
         <p className="text-center text-xs font-mono text-zinc-400">
-          Powered by TicketPlatform • Accountless Attendee Verification
+          Powered by TicketKoi • Accountless Attendee Verification
         </p>
       </div>
     </div>

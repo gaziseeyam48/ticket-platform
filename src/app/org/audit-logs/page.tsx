@@ -5,6 +5,11 @@ import { getOrganizationAuditLogs } from "@/lib/services/audit.service";
 import { AuditLogViewer } from "@/components/audit/audit-log-viewer";
 import { getCachedSession } from "@/lib/db/cached-session";
 
+export const metadata = {
+  title: "Audit Logs — TicketKoi",
+  description: "View organization security and activity logs",
+};
+
 export const instant = false;
 
 export default async function OrgAuditLogsPage() {

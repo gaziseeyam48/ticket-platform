@@ -20,7 +20,7 @@ export async function generateMetadata(props: {
     };
   } catch {
     return {
-      title: "Digital Pass — Ticket Platform",
+      title: "Digital Pass — TicketKoi",
       description: "Event ticket verification and entrance pass.",
     };
   }
@@ -74,7 +74,7 @@ export default async function PublicTicketPage(props: {
           </div>
 
           <p className="text-[11px] font-mono text-zinc-400">
-            TicketPlatform • Anti-Enumeration Protection Active
+            TicketKoi • Anti-Enumeration Protection Active
           </p>
         </div>
       </div>

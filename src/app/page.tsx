@@ -106,7 +106,7 @@ export default function HomePage() {
     },
     {
       q: "How much does it cost?",
-      a: "TicketPlatform is completely free for free events. For paid events, you can collect payments directly with zero platform deductions.",
+      a: "TicketKoi is completely free for free events. For paid events, you can collect payments directly with zero platform deductions.",
     },
   ];
 
@@ -131,7 +131,7 @@ export default function HomePage() {
               <Ticket className="h-4 w-4 text-zinc-100" />
             </div>
             <span className="font-semibold text-lg tracking-tight text-zinc-900">
-              TicketPlatform
+              TicketKoi
             </span>
           </Link>
 
@@ -357,7 +357,7 @@ export default function HomePage() {
               Your attendees never create an account
             </h3>
             <p className="text-sm text-zinc-500 leading-relaxed">
-              Forced logins and password creation are the number one reason people drop out of registration forms. With TicketPlatform, your guests enter their name and email, and their ticket pass arrives in their inbox in seconds.
+              Forced logins and password creation are the number one reason people drop out of registration forms. With TicketKoi, your guests enter their name and email, and their ticket pass arrives in their inbox in seconds.
             </p>
             <ul className="space-y-2.5 pt-2 text-xs text-zinc-600">
               <li className="flex items-center gap-2.5">
@@ -820,7 +820,7 @@ export default function HomePage() {
             <div className="h-6 w-6 rounded-lg bg-zinc-900 text-white flex items-center justify-center">
               <Ticket className="h-3.5 w-3.5" />
             </div>
-            <span className="font-semibold text-zinc-900">TicketPlatform</span>
+            <span className="font-semibold text-zinc-900">TicketKoi</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-6 text-xs text-zinc-500 font-medium">
@@ -840,7 +840,7 @@ export default function HomePage() {
         </div>
 
         <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-zinc-200/40 text-center sm:text-left text-[11px] text-zinc-400 flex flex-col sm:flex-row justify-between gap-2">
-          <p>© 2026 TicketPlatform. All rights reserved.</p>
+          <p>© 2026 TicketKoi. All rights reserved.</p>
           <p>Simple, reliable event ticketing for independent hosts and organizations.</p>
         </div>
       </footer>

@@ -3,7 +3,7 @@ import { getCachedSession } from "@/lib/db/cached-session";
 import { Building2, UserCheck, Mail, ShieldCheck } from "lucide-react";
 
 export const metadata = {
-  title: "Organization Settings — Ticket Platform",
+  title: "Organization Settings — TicketKoi",
   description: "Manage organization workspace, admin credentials, and gate permissions",
 };
 

@@ -18,12 +18,12 @@ export async function generateMetadata(props: {
   try {
     const data = await getPublicEventRegistrationData(params.slug);
     return {
-      title: `Register for ${data.event.name} — Ticket Platform`,
+      title: `Register for ${data.event.name} — TicketKoi`,
       description: data.event.description || `Register for ${data.event.name}`,
     };
   } catch {
     return {
-      title: "Registration — Ticket Platform",
+      title: "Registration — TicketKoi",
     };
   }
 }
