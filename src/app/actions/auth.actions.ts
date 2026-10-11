@@ -135,3 +135,33 @@ export async function logoutAction() {
   revalidatePath("/", "layout");
   redirect("/login");
 }
+
+const updatePasswordSchema = z.object({
+  newPassword: z.string().min(8, "New password must be at least 8 characters"),
+  confirmPassword: z.string().min(8, "Confirm password must be at least 8 characters"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+export async function updatePasswordAction(prevState: any, formData: FormData) {
+  const newPassword = formData.get("newPassword") as string;
+  const confirmPassword = formData.get("confirmPassword") as string;
+
+  const result = updatePasswordSchema.safeParse({ newPassword, confirmPassword });
+  if (!result.success) {
+    return { error: result.error.issues[0].message };
+  }
+
+  const supabase = await createServerDbClient();
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true, message: "Password updated successfully!" };
+}
+
