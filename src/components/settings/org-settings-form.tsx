@@ -30,10 +30,10 @@ export function OrgSettingsForm({
     <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs">
       <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
         <div>
-          <h2 className="text-sm font-semibold text-zinc-900">
+          <h2 className="text-base font-semibold text-zinc-900">
             Organization Details
           </h2>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <p className="text-sm text-zinc-500 mt-0.5">
             Your organization name and workspace handle shown to attendees
           </p>
         </div>
@@ -43,7 +43,7 @@ export function OrgSettingsForm({
             variant="outline"
             size="sm"
             onClick={() => setIsEditing(true)}
-            className="gap-1.5"
+            className="gap-1.5 text-xs font-medium"
           >
             <Pencil className="h-3.5 w-3.5" />
             Edit Name
@@ -52,13 +52,13 @@ export function OrgSettingsForm({
       </div>
 
       {state?.error && (
-        <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-medium">
+        <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 font-medium">
           {state.error}
         </div>
       )}
 
       {state?.success && !isEditing && (
-        <div className="mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-medium flex items-center gap-2">
+        <div className="mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-800 font-medium flex items-center gap-2">
           <Check className="h-4 w-4 text-emerald-600" />
           <span>{state.message}</span>
         </div>
@@ -86,7 +86,7 @@ export function OrgSettingsForm({
           </div>
 
           <div className="flex items-center gap-2 pt-1">
-            <Button type="submit" size="sm" isLoading={isPending}>
+            <Button type="submit" size="sm" isLoading={isPending} className="text-sm font-medium">
               Save
             </Button>
             <Button
@@ -98,6 +98,7 @@ export function OrgSettingsForm({
                 setOrgName(initialName);
                 setIsEditing(false);
               }}
+              className="text-sm font-medium"
             >
               Cancel
             </Button>
@@ -106,17 +107,17 @@ export function OrgSettingsForm({
       ) : (
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="p-4 rounded-lg bg-zinc-50 border border-zinc-200 space-y-1">
-            <div className="text-xs text-zinc-500 font-medium">
+            <div className="text-sm text-zinc-600 font-medium">
               Organization Name
             </div>
-            <div className="text-sm font-semibold text-zinc-900">
+            <div className="text-base font-semibold text-zinc-900">
               {orgName}
             </div>
           </div>
 
           <div className="p-4 rounded-lg bg-zinc-50 border border-zinc-200 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-zinc-500 font-medium">
+              <span className="text-sm text-zinc-600 font-medium">
                 Workspace Handle
               </span>
               <button

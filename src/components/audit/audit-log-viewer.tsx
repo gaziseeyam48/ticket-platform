@@ -208,22 +208,22 @@ export function AuditLogViewer({
       {/* 1. Header & Summary Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200/80">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-zinc-900 flex items-center justify-center text-white">
-              <ScrollText className="h-4 w-4 text-zinc-100" />
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-zinc-900 flex items-center justify-center text-white shadow-2xs">
+              <ScrollText className="h-4.5 w-4.5 text-zinc-100" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-zinc-900">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
               Organization Audit Trail
             </h1>
           </div>
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-sm text-zinc-500 mt-1.5">
             Immutable, cryptographically verifiable compliance trail for {organizationName}.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-500 bg-white border border-zinc-200 px-3 py-1 rounded-lg font-medium shadow-2xs">
-            <strong>{filteredLogs.length}</strong> of {logs.length} records shown
+          <span className="text-sm text-zinc-600 bg-white border border-zinc-200 px-3.5 py-1.5 rounded-lg font-medium shadow-2xs">
+            <strong className="text-zinc-900 font-semibold">{filteredLogs.length}</strong> of {logs.length} records shown
           </span>
         </div>
       </div>
@@ -233,21 +233,21 @@ export function AuditLogViewer({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Search Box */}
           <div className="relative">
-            <Search className="h-3.5 w-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="h-4 w-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search by action, ID, name, email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+              className="w-full pl-9 pr-3.5 h-10 text-sm rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
               >
-                <X className="h-3 w-3" />
+                <X className="h-3.5 w-3.5" />
               </button>
             )}
           </div>
@@ -257,7 +257,7 @@ export function AuditLogViewer({
             <select
               value={selectedEventId}
               onChange={(e) => setSelectedEventId(e.target.value)}
-              className="w-full text-xs py-1.5 px-2.5 rounded-lg border border-zinc-300 bg-white text-zinc-800 font-medium focus:outline-none"
+              className="w-full text-sm h-10 px-3 rounded-lg border border-zinc-300 bg-white text-zinc-800 font-medium focus:outline-none"
             >
               <option value="ALL">All Events</option>
               {events.map((ev) => (
@@ -273,7 +273,7 @@ export function AuditLogViewer({
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full text-xs py-1.5 px-2.5 rounded-lg border border-zinc-300 bg-white text-zinc-800 font-medium focus:outline-none"
+              className="w-full text-sm h-10 px-3 rounded-lg border border-zinc-300 bg-white text-zinc-800 font-medium focus:outline-none"
             >
               <option value="ALL">All Categories</option>
               <option value="LIFECYCLE">Event Lifecycle</option>
@@ -290,7 +290,7 @@ export function AuditLogViewer({
             <select
               value={selectedActorType}
               onChange={(e) => setSelectedActorType(e.target.value)}
-              className="w-full text-xs py-1.5 px-2.5 rounded-lg border border-zinc-300 bg-white text-zinc-800 font-medium focus:outline-none"
+              className="w-full text-sm h-10 px-3 rounded-lg border border-zinc-300 bg-white text-zinc-800 font-medium focus:outline-none"
             >
               <option value="ALL">All Actors</option>
               <option value="USER">Admins & Organizers (USER)</option>
@@ -302,8 +302,8 @@ export function AuditLogViewer({
 
         {/* Active Filters Summary Tag */}
         {(search || selectedEventId !== "ALL" || selectedCategory !== "ALL" || selectedActorType !== "ALL") && (
-          <div className="flex items-center gap-2 pt-2 border-t border-zinc-100 text-xs">
-            <span className="text-zinc-400">Active filters:</span>
+          <div className="flex items-center gap-2 pt-2.5 border-t border-zinc-100 text-sm">
+            <span className="text-zinc-500">Active filters:</span>
             <button
               type="button"
               onClick={() => {
@@ -312,7 +312,7 @@ export function AuditLogViewer({
                 setSelectedCategory("ALL");
                 setSelectedActorType("ALL");
               }}
-              className="text-[11px] text-zinc-600 hover:text-zinc-900 font-semibold underline"
+              className="text-xs text-zinc-700 hover:text-zinc-900 font-semibold underline"
             >
               Reset all filters
             </button>
@@ -327,10 +327,10 @@ export function AuditLogViewer({
             <div className="mx-auto w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400">
               <ScrollText className="h-6 w-6" />
             </div>
-            <h4 className="text-sm font-semibold text-zinc-900">
+            <h4 className="text-base font-semibold text-zinc-900">
               No audit records match your filters
             </h4>
-            <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+            <p className="text-sm text-zinc-500 max-w-sm mx-auto">
               {search || selectedEventId !== "ALL" || selectedCategory !== "ALL" || selectedActorType !== "ALL"
                 ? "Try adjusting your search criteria or resetting filters."
                 : "Administrative actions, check-ins, and ticket transactions will be logged here automatically."}
@@ -338,15 +338,15 @@ export function AuditLogViewer({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full text-left border-collapse text-sm">
               <thead>
                 <tr className="border-b border-zinc-200/80 bg-zinc-50/70 text-zinc-600 font-semibold">
-                  <th className="py-3 px-4">Timestamp</th>
-                  <th className="py-3 px-4">Action</th>
-                  <th className="py-3 px-4">Actor</th>
-                  <th className="py-3 px-4">Target Entity</th>
-                  <th className="py-3 px-4">Event Context</th>
-                  <th className="py-3 px-4 text-right">Inspect</th>
+                  <th className="py-3.5 px-4 font-semibold text-sm">Timestamp</th>
+                  <th className="py-3.5 px-4 font-semibold text-sm">Action</th>
+                  <th className="py-3.5 px-4 font-semibold text-sm">Actor</th>
+                  <th className="py-3.5 px-4 font-semibold text-sm">Target Entity</th>
+                  <th className="py-3.5 px-4 font-semibold text-sm">Event Context</th>
+                  <th className="py-3.5 px-4 text-right font-semibold text-sm">Inspect</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 text-zinc-700">
@@ -359,20 +359,20 @@ export function AuditLogViewer({
                   return (
                     <tr key={log.id} className="hover:bg-zinc-50/70 transition-colors">
                       {/* Timestamp */}
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <p className="font-semibold text-zinc-900">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <p className="font-semibold text-zinc-900 text-sm">
                           {format(new Date(log.created_at), "MMM d, yyyy")}
                         </p>
-                        <p className="text-[11px] text-zinc-400 font-mono">
+                        <p className="text-xs text-zinc-500 font-mono mt-0.5">
                           {format(new Date(log.created_at), "h:mm:ss a")}
                         </p>
                       </td>
 
                       {/* Action */}
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4">
                         <span
                           className={cn(
-                            "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border font-mono uppercase tracking-tight",
+                            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border font-mono uppercase tracking-normal",
                             badge.classes
                           )}
                         >
@@ -382,26 +382,26 @@ export function AuditLogViewer({
                       </td>
 
                       {/* Actor */}
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         <span
                           className={cn(
-                            "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border",
+                            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border",
                             actor.classes
                           )}
                         >
-                          <ActorIcon className="h-3 w-3 shrink-0" />
+                          <ActorIcon className="h-3.5 w-3.5 shrink-0" />
                           <span>{actor.label}</span>
                         </span>
                       </td>
 
                       {/* Target */}
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4">
                         {log.target_type ? (
                           <div>
-                            <span className="font-mono text-[10px] uppercase font-bold text-zinc-400">
+                            <span className="font-mono text-xs uppercase font-bold text-zinc-400">
                               {log.target_type}
                             </span>
-                            <p className="font-mono text-xs text-zinc-800 truncate max-w-[150px]">
+                            <p className="font-mono text-sm text-zinc-800 truncate max-w-[160px] mt-0.5">
                               {log.metadata?.ticket_number
                                 ? `#${log.metadata.ticket_number}`
                                 : log.target_id
@@ -415,25 +415,25 @@ export function AuditLogViewer({
                       </td>
 
                       {/* Event Context */}
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4">
                         {log.events ? (
-                          <span className="font-medium text-zinc-800 truncate max-w-[160px] block">
+                          <span className="font-medium text-zinc-800 truncate max-w-[180px] block text-sm">
                             {log.events.name}
                           </span>
                         ) : (
-                          <span className="text-zinc-400 text-[11px]">Organization Wide</span>
+                          <span className="text-zinc-500 text-xs">Organization Wide</span>
                         )}
                       </td>
 
                       {/* Action Button */}
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3.5 px-4 text-right">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-[11px] font-medium h-7 px-2 gap-1 text-zinc-700"
+                          className="text-xs font-medium h-8 px-2.5 gap-1.5 text-zinc-700"
                           onClick={() => setInspectingLog(log)}
                         >
-                          <Eye className="h-3 w-3 text-zinc-400" />
+                          <Eye className="h-3.5 w-3.5 text-zinc-400" />
                           Details
                         </Button>
                       </td>
@@ -457,10 +457,10 @@ export function AuditLogViewer({
         >
           <div className="space-y-4">
             {/* Header parameter summary */}
-            <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-200/80 text-xs space-y-2">
-              <div className="flex justify-between items-center pb-2 border-b border-zinc-200/60">
+            <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/80 text-sm space-y-2.5">
+              <div className="flex justify-between items-center pb-2.5 border-b border-zinc-200/60">
                 <span className="text-zinc-500 font-medium">Action:</span>
-                <span className="font-mono font-bold text-zinc-900 bg-white px-2 py-0.5 rounded border border-zinc-200">
+                <span className="font-mono font-bold text-zinc-900 bg-white px-2.5 py-1 rounded border border-zinc-200 text-xs">
                   {inspectingLog.action}
                 </span>
               </div>
@@ -472,14 +472,14 @@ export function AuditLogViewer({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-zinc-500 font-medium">Actor Type & ID:</span>
-                <span className="font-mono text-zinc-800">
+                <span className="font-mono text-zinc-800 text-xs">
                   {inspectingLog.actor_type} · {inspectingLog.actor_id || "SYSTEM"}
                 </span>
               </div>
               {inspectingLog.target_type && (
                 <div className="flex justify-between items-center">
                   <span className="text-zinc-500 font-medium">Target Entity:</span>
-                  <span className="font-mono text-zinc-800">
+                  <span className="font-mono text-zinc-800 text-xs">
                     {inspectingLog.target_type} ({inspectingLog.target_id || "None"})
                   </span>
                 </div>
@@ -495,16 +495,16 @@ export function AuditLogViewer({
             </div>
 
             {/* Metadata Payload Box */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <h5 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
                 Metadata Payload (JSON)
               </h5>
               {inspectingLog.metadata && Object.keys(inspectingLog.metadata).length > 0 ? (
-                <pre className="p-3.5 rounded-xl bg-zinc-900 text-zinc-100 font-mono text-[11px] overflow-x-auto max-h-60 leading-relaxed">
+                <pre className="p-4 rounded-xl bg-zinc-900 text-zinc-100 font-mono text-xs overflow-x-auto max-h-60 leading-relaxed">
                   {JSON.stringify(inspectingLog.metadata, null, 2)}
                 </pre>
               ) : (
-                <div className="p-4 rounded-xl bg-zinc-50 border border-dashed border-zinc-200 text-center text-xs text-zinc-500">
+                <div className="p-4 rounded-xl bg-zinc-50 border border-dashed border-zinc-200 text-center text-sm text-zinc-500">
                   No additional metadata was recorded for this entry.
                 </div>
               )}
@@ -516,7 +516,7 @@ export function AuditLogViewer({
                 variant="outline"
                 size="sm"
                 onClick={() => setInspectingLog(null)}
-                className="text-xs font-medium"
+                className="text-sm font-medium"
               >
                 Close
               </Button>

@@ -31,7 +31,7 @@ export function OrgHeader({
         )}
 
         {breadcrumbs && breadcrumbs.length > 0 ? (
-          <nav className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
+          <nav className="flex items-center gap-1.5 text-sm font-medium text-zinc-500">
             {breadcrumbs.map((crumb, idx) => {
               const isLast = idx === breadcrumbs.length - 1;
               return (
@@ -53,8 +53,8 @@ export function OrgHeader({
           </nav>
         ) : (
           <div className="flex items-center gap-2.5">
-            <h1 className="text-sm font-semibold text-zinc-900">{title}</h1>
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+            <h1 className="text-base font-semibold text-zinc-900">{title}</h1>
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live Sync
             </span>

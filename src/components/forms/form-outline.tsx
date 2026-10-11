@@ -1,13 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { FormField, FieldType } from "@/lib/validations/form";
 import { Button } from "@/components/ui/button";
 import {
   Plus,
-  ArrowUp,
-  ArrowDown,
   Trash2,
   Lock,
+  GripVertical,
   Type,
   Mail,
   Phone,
@@ -16,7 +16,6 @@ import {
   CheckCircle2,
   CheckSquare,
   AlignLeft,
-  Sliders,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,7 +23,7 @@ interface FormOutlineProps {
   fields: FormField[];
   selectedFieldId: string | null;
   onSelectField: (id: string) => void;
-  onMoveField: (index: number, direction: "up" | "down") => void;
+  onReorder: (sourceIndex: number, destinationIndex: number) => void;
   onRemoveField: (id: string) => void;
   onOpenAddField: () => void;
 }
@@ -55,11 +54,43 @@ export function FormOutline({
   fields,
   selectedFieldId,
   onSelectField,
-  onMoveField,
+  onReorder,
   onRemoveField,
   onOpenAddField,
 }: FormOutlineProps) {
   const customFieldsCount = fields.filter((f) => !f.isSystem).length;
+
+  // Drag and drop sorting state
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== targetIndex) {
+      onReorder(draggedIndex, targetIndex);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
 
   return (
     <section
@@ -69,11 +100,11 @@ export function FormOutline({
       {/* Header with Title and Add Field action */}
       <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
         <div>
-          <h2 className="text-sm font-bold text-zinc-900 tracking-tight">
+          <h2 className="text-base font-semibold text-zinc-900 tracking-tight">
             Form outline
           </h2>
-          <p className="text-[11px] text-zinc-500">
-            {fields.length} {fields.length === 1 ? "field" : "fields"} in sequence
+          <p className="text-xs text-zinc-500 mt-0.5">
+            {fields.length} {fields.length === 1 ? "field" : "fields"} • Drag cards to reorder
           </p>
         </div>
 
@@ -81,7 +112,7 @@ export function FormOutline({
           type="button"
           size="sm"
           onClick={onOpenAddField}
-          className="gap-1.5 text-xs h-8 px-2.5 font-semibold"
+          className="gap-1.5 text-xs h-8 px-3 font-semibold shadow-xs"
           aria-label="Add a new field to form"
         >
           <Plus className="h-3.5 w-3.5" aria-hidden="true" />
@@ -89,16 +120,16 @@ export function FormOutline({
         </Button>
       </div>
 
-      {/* Ordered List of Fields */}
+      {/* Ordered List of Draggable Cards */}
       <div
         role="list"
         aria-label="Ordered list of fields"
-        className="space-y-1.5 flex-1 overflow-y-auto pr-0.5"
+        className="space-y-2 flex-1 overflow-y-auto pr-0.5"
       >
         {fields.map((field, index) => {
           const isSelected = selectedFieldId === field.id;
-          const isFirst = index === 0;
-          const isLast = index === fields.length - 1;
+          const isDragging = draggedIndex === index;
+          const isDragOver = dragOverIndex === index && draggedIndex !== index;
           const Icon = TYPE_ICONS[field.type] || Type;
           const typeName = TYPE_NAMES[field.type] || field.type;
 
@@ -106,36 +137,58 @@ export function FormOutline({
             <div
               key={field.id}
               role="listitem"
-              className={`group relative rounded-xl border transition-all text-left flex items-center justify-between gap-2 p-2.5 ${
-                isSelected
+              draggable
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
+              className={`group relative rounded-xl border transition-all text-left flex items-center justify-between gap-1 p-2.5 select-none ${
+                isDragging
+                  ? "opacity-30 border-dashed border-zinc-400 bg-zinc-50 cursor-grabbing"
+                  : isDragOver
+                  ? "border-zinc-900 ring-2 ring-zinc-900/20 bg-zinc-50/80 -translate-y-0.5"
+                  : isSelected
                   ? "bg-zinc-900 text-white border-zinc-900 shadow-xs"
                   : "bg-white text-zinc-900 border-zinc-200/80 hover:border-zinc-300 hover:bg-zinc-50/80"
               }`}
             >
-              {/* Field Main Clickable Region */}
+              {/* Hand Picker / Drag Handle */}
+              <div
+                className={`p-1.5 -ml-1 rounded-lg flex items-center justify-center cursor-grab active:cursor-grabbing transition-colors shrink-0 ${
+                  isSelected
+                    ? "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                    : "text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
+                }`}
+                title="Drag to sort card"
+                aria-label="Drag to reorder card"
+              >
+                <GripVertical className="h-4 w-4" aria-hidden="true" />
+              </div>
+
+              {/* Field Clickable Selection Area */}
               <button
                 type="button"
                 onClick={() => onSelectField(field.id)}
                 aria-selected={isSelected}
                 className="flex items-center gap-2.5 flex-1 min-w-0 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-zinc-900 rounded-lg p-1"
               >
-                {/* Order Index and Type Icon */}
+                {/* Type Icon */}
                 <div
-                  className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-semibold ${
+                  className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-semibold ${
                     isSelected
                       ? "bg-zinc-800 text-white"
                       : "bg-zinc-100 text-zinc-600 border border-zinc-200/60"
                   }`}
                   aria-hidden="true"
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <Icon className="h-4 w-4" />
                 </div>
 
-                {/* Field Label and Metadata */}
+                {/* Field Label and Details */}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span
-                      className={`text-xs font-semibold truncate ${
+                      className={`text-sm font-semibold truncate ${
                         isSelected ? "text-white" : "text-zinc-900"
                       }`}
                       title={field.label}
@@ -144,7 +197,7 @@ export function FormOutline({
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 mt-0.5 text-[11px]">
+                  <div className="flex items-center gap-2 mt-0.5 text-xs">
                     <span
                       className={isSelected ? "text-zinc-300" : "text-zinc-500"}
                     >
@@ -160,11 +213,11 @@ export function FormOutline({
 
                     {field.isSystem ? (
                       <span
-                        className={`text-[10px] font-semibold flex items-center gap-1 ${
+                        className={`text-xs font-medium flex items-center gap-1 ${
                           isSelected ? "text-zinc-300" : "text-zinc-600"
                         }`}
                       >
-                        <Lock className="h-2.5 w-2.5" aria-hidden="true" />
+                        <Lock className="h-3 w-3" aria-hidden="true" />
                         System required
                       </span>
                     ) : field.required ? (
@@ -186,45 +239,12 @@ export function FormOutline({
                 </div>
               </button>
 
-              {/* Accessible Reorder and Action Controls */}
+              {/* Action: Delete custom field (No arrows!) */}
               <div
-                className="flex items-center gap-0.5 shrink-0"
+                className="flex items-center shrink-0"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Move Up */}
-                <button
-                  type="button"
-                  disabled={isFirst}
-                  onClick={() => onMoveField(index, "up")}
-                  aria-label={`Move ${field.label} up`}
-                  title={`Move ${field.label} up`}
-                  className={`p-1.5 rounded-md min-h-[32px] min-w-[32px] flex items-center justify-center transition-colors disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed ${
-                    isSelected
-                      ? "text-zinc-300 hover:text-white hover:bg-zinc-800"
-                      : "text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
-                  }`}
-                >
-                  <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-
-                {/* Move Down */}
-                <button
-                  type="button"
-                  disabled={isLast}
-                  onClick={() => onMoveField(index, "down")}
-                  aria-label={`Move ${field.label} down`}
-                  title={`Move ${field.label} down`}
-                  className={`p-1.5 rounded-md min-h-[32px] min-w-[32px] flex items-center justify-center transition-colors disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed ${
-                    isSelected
-                      ? "text-zinc-300 hover:text-white hover:bg-zinc-800"
-                      : "text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
-                  }`}
-                >
-                  <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-
-                {/* Delete Button (Only for custom fields) */}
-                {!field.isSystem && (
+                {!field.isSystem ? (
                   <button
                     type="button"
                     onClick={() => onRemoveField(field.id)}
@@ -238,6 +258,13 @@ export function FormOutline({
                   >
                     <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
+                ) : (
+                  <div
+                    className="p-1.5 text-zinc-300 opacity-60"
+                    title="System required field cannot be removed"
+                  >
+                    <Lock className="h-3 w-3" />
+                  </div>
                 )}
               </div>
             </div>

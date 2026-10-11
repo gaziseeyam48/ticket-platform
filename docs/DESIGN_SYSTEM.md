@@ -55,20 +55,49 @@ The TicketPlatform design system is crafted for high-performance event operation
 
 ---
 
-### 2.2 Typography Scale
+### 2.2 Global Typography System
 
-- **Primary Font Family**: `Inter`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, sans-serif. Used consistently across all dashboard headings, navigation, metric cards, tables, forms, badges, and public screens.
-- **Code & Token Font**: `JetBrains Mono`, monospace. Retained sparingly for technical identifiers, ticket serial numbers, transaction IDs, token hashes, and slugs. Avoid using monospace for ordinary labels, navigation, headings, and descriptions.
+The TicketKoi design system establishes a deliberate, readable B2B SaaS typography hierarchy powered by **Inter** for all UI surfaces and **JetBrains Mono** strictly reserved for technical tokens.
 
-| Scale | Size | Line Height | Weight | Typical Application |
-|---|---|---|---|---|
-| **Display** | 36px–48px | 1.1 | 700 | Public hero headers, event titles |
-| **H1** | 24px (1.5rem) | 1.25 | 700 | Dashboard page titles, major view headers |
-| **H2** | 18px (1.125rem) | 1.35 | 600 | Card titles, section headers |
-| **H3 / Body Bold** | 14px (0.875rem) | 1.4 | 600 | Metric card headers, table row titles, button labels |
-| **Body Regular** | 14px (0.875rem) | 1.5 | 400 | Form fields, descriptive paragraphs |
-| **Caption / Small** | 12px (0.75rem) | 1.4 | 500 | Badges, table headers, breadcrumbs, helper texts |
-| **Micro / Mono** | 11px–12px | 1.3 | 500/600 | Ticket serial numbers, transaction reference codes |
+- **Primary Font Family**: `Inter`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, Roboto, sans-serif. Used consistently across all dashboard headings, navigation, metric cards, tables, forms, badges, modals, and public screens.
+- **Technical & Monospace Font**: `JetBrains Mono`, `ui-monospace`, monospace. Reserved strictly for technical identifiers, ticket serial numbers, transaction IDs, token hashes, codes, and slugs.
+- **Forbidden Patterns**:
+  - No condensed font variants or artificial negative letter-spacing for UI copy.
+  - Weights below 400 are forbidden (no 300 or ultra-light weights).
+  - 11–12px is prohibited as the default for ordinary table data, form labels, or body text. Minimum micro size is 12px for compact technical metadata.
+
+#### Semantic Type Scale
+
+| Semantic Token | Desktop Size | Mobile Size | Line Height | Weight | Letter Spacing | Intended Application |
+|---|---|---|---|---|---|---|
+| **Display / Page Hero** | 32–36px (`2rem–2.25rem`) | 28–30px | 1.15–1.20 | 700 (Bold) | -0.025em | Major standalone public event headings, hero titles |
+| **Page Title** | 28–32px (`1.75rem–2rem`) | 24–26px | 1.20–1.25 | 700 (Bold) | -0.02em | Primary workspace titles: Overview, Events, Form Builder, Audit Trail |
+| **Section Heading** | 20–24px (`1.25rem–1.5rem`) | 18–20px | 1.25–1.35 | 600–700 | -0.015em | Major page sections, prominent card group headings |
+| **Card Heading** | 16–18px (`1rem–1.125rem`) | 16px | 1.30–1.40 | 600 (Semibold) | Normal | Card titles, panel headings, modal titles, table section titles |
+| **Body Large** | 16px (`1rem`) | 15px | 1.50–1.60 | 400–500 | Normal | Prominent event descriptions, lead paragraphs, important alerts |
+| **Body Default** | 14–15px (`0.875rem–0.9375rem`) | 14px | 1.45–1.55 | 400–500 | Normal | Standard interface text, navigation, table values, general descriptions |
+| **Label** | 14px (`0.875rem`) | 14px | 1.35–1.45 | 500–600 | Normal | Input labels, table column headers, form control descriptions |
+| **Small / Helper** | 13px (`0.8125rem`) | 13px | 1.45–1.50 | 400–500 | Normal | Secondary information, helper text, timestamps, supporting metadata |
+| **Micro / Technical** | 12px (`0.75rem`) min | 12px | 1.35–1.40 | 500–600 | +0.02em | Compact technical metadata, status badges, serial IDs (mono) |
+
+#### Font Weight Distribution
+
+- **400 (Regular)**: Body copy, long descriptions, standard table values, helper text.
+- **500 (Medium)**: Unselected navigation items, input values, buttons, tabs, secondary labels, filter dropdowns.
+- **600 (Semibold)**: Card titles, section headings, table headers, active navigation, input labels, prominent badges.
+- **700 (Bold)**: Page titles, key metric numbers, entrance pass attendee name, major emphasis.
+
+#### Semantic CSS Utility Classes (`src/app/globals.css`)
+
+- `.page-title`: `text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 leading-tight`
+- `.section-heading`: `text-xl sm:text-2xl font-semibold tracking-tight text-zinc-900 leading-snug`
+- `.card-heading`: `text-base sm:text-lg font-semibold text-zinc-900 leading-snug`
+- `.body-large`: `text-base font-normal text-zinc-700 leading-relaxed`
+- `.body-default`: `text-[15px] font-normal text-zinc-700 leading-normal`
+- `.field-label`: `text-sm font-medium text-zinc-800 leading-snug`
+- `.helper-text`: `text-[13px] font-normal text-zinc-500 leading-normal`
+- `.caption-text`: `text-xs font-medium text-zinc-500 leading-normal`
+- `.technical-mono`: `font-mono text-xs font-medium tracking-normal text-zinc-700`
 
 ---
 

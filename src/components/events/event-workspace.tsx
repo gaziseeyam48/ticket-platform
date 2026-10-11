@@ -466,10 +466,10 @@ export function EventWorkspace({
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-zinc-500 font-medium">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-zinc-600 font-medium">
               {(event.date_start || event.date_end) && (
                 <span className="flex items-center gap-1.5 text-zinc-700">
-                  <Calendar className="h-3.5 w-3.5 text-zinc-400" />
+                  <Calendar className="h-4 w-4 text-zinc-400" />
                   {event.date_start &&
                     format(new Date(event.date_start), "EEEE, MMMM d, yyyy · h:mm a")}
                   {event.date_end && ` – ${format(new Date(event.date_end), "h:mm a")}`}
@@ -478,13 +478,13 @@ export function EventWorkspace({
 
               {event.location && (
                 <span className="flex items-center gap-1.5 text-zinc-700">
-                  <MapPin className="h-3.5 w-3.5 text-zinc-400" />
+                  <MapPin className="h-4 w-4 text-zinc-400" />
                   {event.location}
                 </span>
               )}
 
-              <div className="flex items-center gap-1.5 bg-zinc-50 px-2 py-0.5 rounded-md border border-zinc-200/70">
-                <span className="font-mono text-zinc-600 font-medium">/{event.slug}</span>
+              <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 py-0.5 rounded-md border border-zinc-200/70">
+                <span className="font-mono text-xs text-zinc-600 font-medium">/{event.slug}</span>
                 <button
                   type="button"
                   onClick={handleCopyLink}
@@ -675,18 +675,18 @@ export function EventWorkspace({
 
       {/* 4. Event-Scoped Navigation Bar */}
       <div className="border-b border-zinc-200/80">
-        <nav className="flex space-x-1 sm:space-x-4 overflow-x-auto" aria-label="Event Tabs">
+        <nav className="flex space-x-1 sm:space-x-3 overflow-x-auto" aria-label="Event Tabs">
           <button
             type="button"
             onClick={() => handleTabChange("overview")}
             className={cn(
-              "px-3.5 py-2.5 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
+              "px-3.5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
               activeTab === "overview"
-                ? "border-zinc-900 text-zinc-900"
+                ? "border-zinc-900 text-zinc-900 font-semibold"
                 : "border-transparent text-zinc-500 hover:text-zinc-800 hover:border-zinc-300"
             )}
           >
-            <Eye className="h-3.5 w-3.5" />
+            <Eye className="h-4 w-4" />
             Overview
           </button>
 
@@ -694,17 +694,17 @@ export function EventWorkspace({
             type="button"
             onClick={() => handleTabChange("registrations")}
             className={cn(
-              "px-3.5 py-2.5 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
+              "px-3.5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
               activeTab === "registrations"
-                ? "border-zinc-900 text-zinc-900"
+                ? "border-zinc-900 text-zinc-900 font-semibold"
                 : "border-transparent text-zinc-500 hover:text-zinc-800 hover:border-zinc-300"
             )}
           >
-            <Users className="h-3.5 w-3.5" />
+            <Users className="h-4 w-4" />
             Registrations
             <span
               className={cn(
-                "px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight",
+                "px-2 py-0.5 rounded-full text-xs font-semibold tracking-normal",
                 activeTab === "registrations"
                   ? "bg-zinc-900 text-white"
                   : "bg-zinc-100 text-zinc-600"
@@ -718,17 +718,17 @@ export function EventWorkspace({
             type="button"
             onClick={() => handleTabChange("tickets")}
             className={cn(
-              "px-3.5 py-2.5 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
+              "px-3.5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
               activeTab === "tickets"
-                ? "border-zinc-900 text-zinc-900"
+                ? "border-zinc-900 text-zinc-900 font-semibold"
                 : "border-transparent text-zinc-500 hover:text-zinc-800 hover:border-zinc-300"
             )}
           >
-            <Ticket className="h-3.5 w-3.5" />
+            <Ticket className="h-4 w-4" />
             Tickets
             <span
               className={cn(
-                "px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight",
+                "px-2 py-0.5 rounded-full text-xs font-semibold tracking-normal",
                 activeTab === "tickets"
                   ? "bg-zinc-900 text-white"
                   : "bg-zinc-100 text-zinc-600"
@@ -743,16 +743,16 @@ export function EventWorkspace({
               type="button"
               onClick={() => handleTabChange("payments")}
               className={cn(
-                "px-3.5 py-2.5 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
+                "px-3.5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
                 activeTab === "payments"
-                  ? "border-zinc-900 text-zinc-900"
+                  ? "border-zinc-900 text-zinc-900 font-semibold"
                   : "border-transparent text-zinc-500 hover:text-zinc-800 hover:border-zinc-300"
               )}
             >
-              <CreditCard className="h-3.5 w-3.5" />
+              <CreditCard className="h-4 w-4" />
               Payments
               {metrics.pendingPaymentsCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
                   {metrics.pendingPaymentsCount}
                 </span>
               )}
@@ -763,17 +763,17 @@ export function EventWorkspace({
             type="button"
             onClick={() => handleTabChange("verifiers")}
             className={cn(
-              "px-3.5 py-2.5 text-xs font-semibold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
+              "px-3.5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
               activeTab === "verifiers"
-                ? "border-zinc-900 text-zinc-900"
+                ? "border-zinc-900 text-zinc-900 font-semibold"
                 : "border-transparent text-zinc-500 hover:text-zinc-800 hover:border-zinc-300"
             )}
           >
-            <KeyRound className="h-3.5 w-3.5" />
+            <KeyRound className="h-4 w-4" />
             Gate Staff
             <span
               className={cn(
-                "px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight",
+                "px-2 py-0.5 rounded-full text-xs font-semibold tracking-normal",
                 activeTab === "verifiers"
                   ? "bg-zinc-900 text-white"
                   : "bg-zinc-100 text-zinc-600"
@@ -1257,23 +1257,23 @@ export function EventWorkspace({
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-200/80 bg-zinc-50/70 text-zinc-600 font-semibold">
-                    <th className="py-3 px-4">Attendee</th>
-                    <th className="py-3 px-4">Registration Status</th>
-                    {isPaid && <th className="py-3 px-4">Payment Status</th>}
-                    {isPaid && <th className="py-3 px-4">Transaction ID</th>}
-                    <th className="py-3 px-4">Registered At</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
+                  <tr className="border-b border-zinc-200/80 bg-zinc-50/70 text-zinc-600 text-sm font-semibold">
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Attendee</th>
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Registration Status</th>
+                    {isPaid && <th className="py-3.5 px-4 font-semibold text-zinc-600">Payment Status</th>}
+                    {isPaid && <th className="py-3.5 px-4 font-semibold text-zinc-600">Transaction ID</th>}
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Registered At</th>
+                    <th className="py-3.5 px-4 text-right font-semibold text-zinc-600">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 text-zinc-700">
                   {filteredRegistrations.map((reg) => (
                     <tr key={reg.id} className="hover:bg-zinc-50/70 transition-colors">
                       <td className="py-3.5 px-4">
-                        <p className="font-semibold text-zinc-900">{reg.participant_name}</p>
-                        <p className="text-xs text-zinc-400">{reg.email}</p>
+                        <p className="font-semibold text-zinc-900 text-sm">{reg.participant_name}</p>
+                        <p className="text-[13px] text-zinc-500">{reg.email}</p>
                       </td>
                       <td className="py-3.5 px-4">
                         <StatusBadge status={reg.status} />
@@ -1288,7 +1288,7 @@ export function EventWorkspace({
                           {reg.transaction_id || "—"}
                         </td>
                       )}
-                      <td className="py-3.5 px-4 text-xs text-zinc-500">
+                      <td className="py-3.5 px-4 text-sm text-zinc-600">
                         {format(new Date(reg.created_at), "MMM d, yyyy h:mm a")}
                       </td>
                       <td className="py-3.5 px-4 text-right">
@@ -1296,10 +1296,10 @@ export function EventWorkspace({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-[11px] font-medium h-7 px-2.5 gap-1 text-zinc-700"
+                            className="text-xs font-medium h-8 px-2.5 gap-1 text-zinc-700 shadow-2xs"
                             onClick={() => setInspectingRegistration(reg)}
                           >
-                            <Eye className="h-3 w-3 text-zinc-400" />
+                            <Eye className="h-3.5 w-3.5 text-zinc-400" />
                             Inspect
                           </Button>
                           {isPaid &&
@@ -1307,7 +1307,7 @@ export function EventWorkspace({
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="text-[11px] font-semibold h-7 px-2.5 bg-amber-50/50 text-amber-800 border-amber-200"
+                                className="text-xs font-semibold h-8 px-2.5 bg-amber-50/50 text-amber-800 border-amber-200"
                                 onClick={() => setReviewingPayment(reg)}
                               >
                                 Review Payment
@@ -1405,34 +1405,34 @@ export function EventWorkspace({
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-200/80 bg-zinc-50/70 text-zinc-600 font-semibold">
-                    <th className="py-3 px-4">Pass Number</th>
-                    <th className="py-3 px-4">Attendee</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Issued At</th>
-                    <th className="py-3 px-4">Checked In At</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
+                  <tr className="border-b border-zinc-200/80 bg-zinc-50/70 text-zinc-600 text-sm font-semibold">
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Pass Number</th>
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Attendee</th>
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Status</th>
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Issued At</th>
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Checked In At</th>
+                    <th className="py-3.5 px-4 text-right font-semibold text-zinc-600">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 text-zinc-700">
                   {filteredTickets.map((t) => (
                     <tr key={t.id} className="hover:bg-zinc-50/70 transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-semibold text-zinc-900">
+                      <td className="py-3.5 px-4 font-mono font-semibold text-sm text-zinc-900">
                         {t.ticket_number}
                       </td>
                       <td className="py-3.5 px-4">
-                        <p className="font-semibold text-zinc-900">{t.participant_name}</p>
-                        <p className="text-xs text-zinc-400">{t.participant_email}</p>
+                        <p className="font-semibold text-zinc-900 text-sm">{t.participant_name}</p>
+                        <p className="text-[13px] text-zinc-500">{t.participant_email}</p>
                       </td>
                       <td className="py-3.5 px-4">
                         <StatusBadge status={t.status} />
                       </td>
-                      <td className="py-3.5 px-4 text-xs text-zinc-500">
+                      <td className="py-3.5 px-4 text-sm text-zinc-600">
                         {format(new Date(t.issued_at), "MMM d, yyyy h:mm a")}
                       </td>
-                      <td className="py-3.5 px-4 text-xs text-zinc-500">
+                      <td className="py-3.5 px-4 text-sm text-zinc-600">
                         {t.checked_in_at ? (
                           <span className="text-emerald-700 font-medium">
                             {format(new Date(t.checked_in_at), "MMM d, h:mm a")}
@@ -1446,37 +1446,37 @@ export function EventWorkspace({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-[11px] font-medium h-7 px-2.5 gap-1 text-zinc-700"
+                            className="text-xs font-medium h-8 px-2.5 gap-1 text-zinc-700 shadow-2xs"
                             onClick={() => setInspectingTicket(t)}
                             title="Inspect Pass"
                           >
-                            <Eye className="h-3 w-3 text-zinc-400" />
+                            <Eye className="h-3.5 w-3.5 text-zinc-400" />
                             Inspect
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-[11px] font-medium h-7 px-2.5 gap-1"
+                            className="text-xs font-medium h-8 px-2.5 gap-1 shadow-2xs"
                             onClick={() => handleResendTicket(t.id, t.participant_email)}
                             isLoading={resendingTicketId === t.id}
                             title="Resend Entrance Pass Email"
                           >
-                            <Mail className="h-3 w-3 text-zinc-400" />
+                            <Mail className="h-3.5 w-3.5 text-zinc-400" />
                             Resend
                           </Button>
                           {t.status !== "REVOKED" ? (
                             <Button
                               variant="outline"
                               size="sm"
-                              className="text-[11px] font-medium h-7 px-2.5 gap-1 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+                              className="text-xs font-medium h-8 px-2.5 gap-1 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
                               onClick={() => setRevokingTicket(t)}
                               title="Revoke Pass"
                             >
-                              <Ban className="h-3 w-3 text-rose-500" />
+                              <Ban className="h-3.5 w-3.5 text-rose-500" />
                               Revoke
                             </Button>
                           ) : (
-                            <span className="text-[11px] font-medium text-rose-600 px-2 py-0.5 bg-rose-50 border border-rose-200 rounded">
+                            <span className="text-xs font-medium text-rose-600 px-2 py-0.5 bg-rose-50 border border-rose-200 rounded">
                               Revoked
                             </span>
                           )}
@@ -1633,24 +1633,24 @@ export function EventWorkspace({
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
+                <table className="w-full text-left border-collapse text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-200/80 bg-zinc-50/70 text-zinc-600 font-semibold">
-                      <th className="py-3 px-4">Attendee</th>
-                      <th className="py-3 px-4">Transaction ID / Reference</th>
-                      <th className="py-3 px-4">Payment Status</th>
-                      <th className="py-3 px-4">Date Submitted</th>
-                      <th className="py-3 px-4 text-right">Review Action</th>
+                    <tr className="border-b border-zinc-200/80 bg-zinc-50/70 text-zinc-600 text-sm font-semibold">
+                      <th className="py-3.5 px-4 font-semibold text-zinc-600">Attendee</th>
+                      <th className="py-3.5 px-4 font-semibold text-zinc-600">Transaction ID / Reference</th>
+                      <th className="py-3.5 px-4 font-semibold text-zinc-600">Payment Status</th>
+                      <th className="py-3.5 px-4 font-semibold text-zinc-600">Date Submitted</th>
+                      <th className="py-3.5 px-4 text-right font-semibold text-zinc-600">Review Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100 text-zinc-700">
                     {paymentRegistrations.map((reg) => (
                       <tr key={reg.id} className="hover:bg-zinc-50/70 transition-colors">
                         <td className="py-3.5 px-4">
-                          <p className="font-semibold text-zinc-900">{reg.participant_name}</p>
-                          <p className="text-xs text-zinc-400">{reg.email}</p>
+                          <p className="font-semibold text-zinc-900 text-sm">{reg.participant_name}</p>
+                          <p className="text-[13px] text-zinc-500">{reg.email}</p>
                         </td>
-                        <td className="py-3.5 px-4 font-mono font-semibold text-zinc-900">
+                        <td className="py-3.5 px-4 font-mono font-semibold text-sm text-zinc-900">
                           {reg.transaction_id ? (
                             <span className="px-2 py-0.5 rounded bg-zinc-100 border border-zinc-200/80">
                               {reg.transaction_id}
@@ -1662,7 +1662,7 @@ export function EventWorkspace({
                         <td className="py-3.5 px-4">
                           <StatusBadge status={reg.payment_status || "PENDING"} />
                         </td>
-                        <td className="py-3.5 px-4 text-xs text-zinc-500">
+                        <td className="py-3.5 px-4 text-sm text-zinc-600">
                           {format(new Date(reg.created_at), "MMM d, yyyy h:mm a")}
                         </td>
                         <td className="py-3.5 px-4 text-right">
@@ -1670,7 +1670,7 @@ export function EventWorkspace({
                             <Button
                               variant="primary"
                               size="sm"
-                              className="text-xs font-semibold h-7 px-3"
+                              className="text-xs font-semibold h-8 px-3"
                               onClick={() => setReviewingPayment(reg)}
                             >
                               Review & Verify
@@ -1765,14 +1765,14 @@ export function EventWorkspace({
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-200/80 bg-zinc-50/50 text-zinc-600 font-semibold">
-                    <th className="py-3 px-4">Staff Member</th>
-                    <th className="py-3 px-4">Access Status</th>
-                    <th className="py-3 px-4">Access Window / Expiry</th>
-                    <th className="py-3 px-4">Last Entrance Scan</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
+                  <tr className="border-b border-zinc-200/80 bg-zinc-50/50 text-zinc-600 text-sm font-semibold">
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Staff Member</th>
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Access Status</th>
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Access Window / Expiry</th>
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Last Entrance Scan</th>
+                    <th className="py-3.5 px-4 text-right font-semibold text-zinc-600">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 text-zinc-700">
@@ -1790,23 +1790,23 @@ export function EventWorkspace({
                       return (
                         <tr key={v.id} className="hover:bg-zinc-50/70 transition-colors">
                           <td className="py-3.5 px-4">
-                            <p className="font-semibold text-zinc-900">{v.name}</p>
-                            <p className="text-xs text-zinc-400 font-mono">{v.email}</p>
+                            <p className="font-semibold text-zinc-900 text-sm">{v.name}</p>
+                            <p className="text-xs text-zinc-500 font-mono">{v.email}</p>
                           </td>
                           <td className="py-3.5 px-4">
                             <StatusBadge status={displayStatus} />
                           </td>
-                          <td className="py-3.5 px-4 text-xs text-zinc-600">
+                          <td className="py-3.5 px-4 text-sm text-zinc-600">
                             <span className="font-medium">
                               {format(new Date(v.expires_at), "MMM d, yyyy h:mm a")}
                             </span>
                             {isExpired && (
-                              <span className="block text-[11px] text-rose-500 font-medium">
+                              <span className="block text-xs text-rose-500 font-medium">
                                 (Window lapsed)
                               </span>
                             )}
                           </td>
-                          <td className="py-3.5 px-4 text-xs text-zinc-500">
+                          <td className="py-3.5 px-4 text-sm text-zinc-500">
                             {v.last_accessed_at ? (
                               format(new Date(v.last_accessed_at), "MMM d, yyyy h:mm a")
                             ) : (
@@ -1820,7 +1820,7 @@ export function EventWorkspace({
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-xs h-7 px-2.5 text-zinc-700 border-zinc-200 hover:bg-zinc-100"
+                                    className="text-xs h-8 px-2.5 text-zinc-700 border-zinc-200 hover:bg-zinc-100 shadow-2xs"
                                     disabled={resendingVerifierId === v.id}
                                     onClick={() => handleResendVerifier(v.id, v.email)}
                                     title="Resend invitation email & copy fresh magic link"

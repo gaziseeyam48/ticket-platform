@@ -23,10 +23,10 @@ export default async function SettingsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-zinc-200">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
             Organization Settings
           </h1>
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-sm text-zinc-500 mt-1">
             Manage your organization information and account security
           </p>
         </div>
@@ -43,35 +43,35 @@ export default async function SettingsPage() {
       {/* 2. Account Details */}
       <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs space-y-4">
         <div className="pb-3 border-b border-zinc-100">
-          <h2 className="text-sm font-semibold text-zinc-900">
+          <h2 className="text-base font-semibold text-zinc-900">
             Account Details
           </h2>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <p className="text-sm text-zinc-500 mt-0.5">
             Your login email and workspace permission level
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="p-4 rounded-lg bg-zinc-50 border border-zinc-200 space-y-1">
-            <div className="text-xs text-zinc-500 font-medium">
+            <div className="text-sm text-zinc-600 font-medium">
               Email Address
             </div>
-            <div className="text-sm font-semibold text-zinc-900 truncate">
+            <div className="text-base font-semibold text-zinc-900 truncate">
               {user.email}
             </div>
-            <div className="text-[11px] text-zinc-500">
+            <div className="text-xs text-zinc-500">
               Primary account for login and notifications
             </div>
           </div>
 
           <div className="p-4 rounded-lg bg-zinc-50 border border-zinc-200 space-y-1">
-            <div className="text-xs text-zinc-500 font-medium">
+            <div className="text-sm text-zinc-600 font-medium">
               Role
             </div>
-            <div className="text-sm font-semibold text-zinc-900">
+            <div className="text-base font-semibold text-zinc-900">
               {orgInfo.role === "OWNER" ? "Owner" : "Administrator"}
             </div>
-            <div className="text-[11px] text-zinc-500">
+            <div className="text-xs text-zinc-500">
               Can manage events, customize forms, and issue tickets
             </div>
           </div>
@@ -84,27 +84,27 @@ export default async function SettingsPage() {
       {/* 4. Ticket Security & Protection (Plain English, Clean Layout) */}
       <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs space-y-4">
         <div className="pb-3 border-b border-zinc-100">
-          <h2 className="text-sm font-semibold text-zinc-900">
+          <h2 className="text-base font-semibold text-zinc-900">
             Ticket Protection & Security
           </h2>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <p className="text-sm text-zinc-500 mt-0.5">
             How tickets and event check-ins are kept secure
           </p>
         </div>
 
-        <div className="space-y-3 text-xs text-zinc-600">
+        <div className="space-y-3 text-sm text-zinc-600">
           <div className="flex items-start gap-2.5">
-            <span className="font-semibold text-zinc-900 min-w-[130px]">No Double Entry:</span>
+            <span className="font-semibold text-zinc-900 min-w-[140px]">No Double Entry:</span>
             <span className="text-zinc-600">Each ticket pass can only be checked in once. Second scan attempts are flagged immediately at the gate.</span>
           </div>
 
           <div className="flex items-start gap-2.5">
-            <span className="font-semibold text-zinc-900 min-w-[130px]">Tamper-Proof QR:</span>
+            <span className="font-semibold text-zinc-900 min-w-[140px]">Tamper-Proof QR:</span>
             <span className="text-zinc-600">Ticket links and QR codes use encrypted tokens so attendees cannot guess or duplicate others&apos; passes.</span>
           </div>
 
           <div className="flex items-start gap-2.5">
-            <span className="font-semibold text-zinc-900 min-w-[130px]">Staff Scanner Links:</span>
+            <span className="font-semibold text-zinc-900 min-w-[140px]">Staff Scanner Links:</span>
             <span className="text-zinc-600">Volunteers use a single-click magic link to scan tickets on their phone camera without needing an account.</span>
           </div>
         </div>

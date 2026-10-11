@@ -12,6 +12,7 @@ import {
   Maximize2,
   Calendar,
   Sparkles,
+  X,
 } from "lucide-react";
 
 interface FormPreviewProps {
@@ -20,6 +21,7 @@ interface FormPreviewProps {
   isModalOpen?: boolean;
   onCloseModal?: () => void;
   onOpenModal?: () => void;
+  onClosePreview?: () => void;
 }
 
 export function FormPreview({
@@ -28,6 +30,7 @@ export function FormPreview({
   isModalOpen = false,
   onCloseModal,
   onOpenModal,
+  onClosePreview,
 }: FormPreviewProps) {
   const [testValues, setTestValues] = useState<Record<string, string | boolean>>({});
   const [testErrors, setTestErrors] = useState<Record<string, string>>({});
@@ -35,6 +38,29 @@ export function FormPreview({
 
   const handleTestChange = (fieldId: string, val: string | boolean) => {
     setTestValues((prev) => ({ ...prev, [fieldId]: val }));
+
+    const targetField = fields.find((f) => f.id === fieldId);
+    if (targetField?.type === "phone") {
+      const str = typeof val === "string" ? val.trim() : "";
+      if (str.length > 0) {
+        const digits = str.replace(/\D/g, "");
+        if (digits.length !== 11) {
+          setTestErrors((prev) => ({
+            ...prev,
+            [fieldId]: "Phone number must be 11 digits",
+          }));
+          return;
+        } else {
+          setTestErrors((prev) => {
+            const next = { ...prev };
+            delete next[fieldId];
+            return next;
+          });
+          return;
+        }
+      }
+    }
+
     if (testErrors[fieldId]) {
       setTestErrors((prev) => {
         const next = { ...prev };
@@ -59,6 +85,14 @@ export function FormPreview({
           }
         } else if (!val || (typeof val === "string" && !val.trim())) {
           errors[f.id] = `${f.label} is required`;
+        }
+      }
+
+      // Phone validation: must be 11 digits when value is entered
+      if (f.type === "phone" && val) {
+        const digits = String(val).replace(/\D/g, "");
+        if (digits.length !== 11) {
+          errors[f.id] = "Phone number must be 11 digits";
         }
       }
     }
@@ -108,7 +142,7 @@ export function FormPreview({
             <div key={field.id} className="space-y-1 text-left">
               <label
                 htmlFor={`preview-${field.id}`}
-                className="block text-xs font-medium text-zinc-700"
+                className="block text-sm font-medium text-zinc-800"
               >
                 {field.label}{" "}
                 {field.required && (
@@ -127,7 +161,7 @@ export function FormPreview({
                   value={val}
                   onChange={(e) => handleTestChange(field.id, e.target.value)}
                   error={error}
-                  className="text-xs h-9 bg-white"
+                  className="text-sm h-10 bg-white"
                 />
               )}
 
@@ -140,7 +174,7 @@ export function FormPreview({
                   value={val}
                   onChange={(e) => handleTestChange(field.id, e.target.value)}
                   error={error}
-                  className="text-xs h-9 bg-white"
+                  className="text-sm h-10 bg-white"
                 />
               )}
 
@@ -149,11 +183,11 @@ export function FormPreview({
                 <Input
                   id={`preview-${field.id}`}
                   type="tel"
-                  placeholder={field.placeholder || "+1 (555) 000-0000"}
+                  placeholder={field.placeholder || "01XXXXXXXXX"}
                   value={val}
                   onChange={(e) => handleTestChange(field.id, e.target.value)}
                   error={error}
-                  className="text-xs h-9 bg-white"
+                  className="text-sm h-10 bg-white"
                 />
               )}
 
@@ -166,7 +200,7 @@ export function FormPreview({
                   value={val}
                   onChange={(e) => handleTestChange(field.id, e.target.value)}
                   error={error}
-                  className="text-xs h-9 bg-white"
+                  className="text-sm h-10 bg-white"
                 />
               )}
 
@@ -179,9 +213,9 @@ export function FormPreview({
                     placeholder={field.placeholder || "Provide details here..."}
                     value={val}
                     onChange={(e) => handleTestChange(field.id, e.target.value)}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 shadow-2xs"
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 shadow-2xs"
                   />
-                  {error && <p className="text-[11px] text-red-600 mt-0.5">{error}</p>}
+                  {error && <p className="text-xs text-red-600 mt-1 font-medium">{error}</p>}
                 </div>
               )}
 
@@ -192,7 +226,7 @@ export function FormPreview({
                     id={`preview-${field.id}`}
                     value={val}
                     onChange={(e) => handleTestChange(field.id, e.target.value)}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 shadow-2xs"
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 shadow-2xs"
                   >
                     <option value="">{field.placeholder || "Select an option..."}</option>
                     {(field.options || []).map((opt, i) => (
@@ -201,7 +235,7 @@ export function FormPreview({
                       </option>
                     ))}
                   </select>
-                  {error && <p className="text-[11px] text-red-600 mt-0.5">{error}</p>}
+                  {error && <p className="text-xs text-red-600 mt-1 font-medium">{error}</p>}
                 </div>
               )}
 
@@ -211,7 +245,7 @@ export function FormPreview({
                   {(field.options || []).map((opt, i) => (
                     <label
                       key={i}
-                      className="flex items-center gap-2 p-2 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer text-xs text-zinc-800 transition-colors"
+                      className="flex items-center gap-2.5 p-2.5 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer text-sm text-zinc-800 transition-colors"
                     >
                       <input
                         type="radio"
@@ -224,14 +258,14 @@ export function FormPreview({
                       <span>{opt}</span>
                     </label>
                   ))}
-                  {error && <p className="text-[11px] text-red-600 mt-0.5">{error}</p>}
+                  {error && <p className="text-xs text-red-600 mt-1 font-medium">{error}</p>}
                 </div>
               )}
 
               {/* Consent checkbox */}
               {field.type === "checkbox" && (
                 <div>
-                  <label className="flex items-start gap-2.5 p-2 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer text-xs text-zinc-700 transition-colors">
+                  <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer text-sm text-zinc-700 transition-colors">
                     <input
                       type="checkbox"
                       id={`preview-${field.id}`}
@@ -239,11 +273,11 @@ export function FormPreview({
                       onChange={(e) => handleTestChange(field.id, e.target.checked)}
                       className="rounded text-zinc-900 focus:ring-zinc-900 mt-0.5"
                     />
-                    <span className="leading-tight">
+                    <span className="leading-snug">
                       {field.placeholder || field.label || "I agree to the event guidelines."}
                     </span>
                   </label>
-                  {error && <p className="text-[11px] text-red-600 mt-0.5">{error}</p>}
+                  {error && <p className="text-xs text-red-600 mt-1 font-medium">{error}</p>}
                 </div>
               )}
             </div>
@@ -254,11 +288,11 @@ export function FormPreview({
         <div className="pt-2">
           <Button
             type="submit"
-            className="w-full text-xs font-semibold h-9"
+            className="w-full text-sm font-semibold h-10 shadow-xs"
           >
             Test Registration Form
           </Button>
-          <p className="text-[11px] text-center text-zinc-400 mt-1.5">
+          <p className="text-xs text-center text-zinc-400 mt-1.5">
             Test mode: no emails sent or tickets created.
           </p>
         </div>
@@ -276,22 +310,36 @@ export function FormPreview({
         <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
           <div className="flex items-center gap-2">
             <Eye className="h-4 w-4 text-zinc-500" aria-hidden="true" />
-            <h2 className="text-sm font-bold text-zinc-900 tracking-tight">
+            <h2 className="text-base font-semibold text-zinc-900 tracking-tight">
               Live preview
             </h2>
           </div>
 
-          {onOpenModal && (
-            <button
-              type="button"
-              onClick={onOpenModal}
-              title="Expand to full screen"
-              className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
-              aria-label="Expand preview modal"
-            >
-              <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
-            </button>
-          )}
+          <div className="flex items-center gap-1">
+            {onOpenModal && (
+              <button
+                type="button"
+                onClick={onOpenModal}
+                title="Expand to full screen"
+                className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+                aria-label="Expand preview modal"
+              >
+                <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            )}
+
+            {onClosePreview && (
+              <button
+                type="button"
+                onClick={onClosePreview}
+                title="Hide preview"
+                className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+                aria-label="Hide live preview"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            )}
+          </div>
         </div>
 
         {renderFormContent(false)}

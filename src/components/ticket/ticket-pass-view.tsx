@@ -158,38 +158,38 @@ export function TicketPassView({ ticket }: { ticket: TicketPassData }) {
         {/* Top Header Segment */}
         <div className="p-6 pb-5 space-y-3 bg-zinc-50/50 border-b border-zinc-100">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] uppercase tracking-wider text-zinc-400 font-bold flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-zinc-500" />
+            <span className="text-xs uppercase tracking-wider text-zinc-500 font-bold flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4 text-zinc-500" />
               Verified Admission Pass
             </span>
 
             {/* Dynamic Status Badge */}
             {isValid && (
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold flex items-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                 Active • Admissible
               </span>
             )}
             {isCheckedIn && (
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-700 border border-zinc-300 font-semibold flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3 text-zinc-500" />
+              <span className="text-xs px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-700 border border-zinc-300 font-semibold flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5 text-zinc-500" />
                 Checked In
               </span>
             )}
             {isRevoked && (
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-semibold flex items-center gap-1">
-                <XCircle className="h-3 w-3 text-rose-600" />
+              <span className="text-xs px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-semibold flex items-center gap-1.5">
+                <XCircle className="h-3.5 w-3.5 text-rose-600" />
                 Revoked
               </span>
             )}
           </div>
 
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 leading-tight">
               {ticket.eventName}
             </h1>
-            <p className="text-xs text-zinc-500 flex items-center gap-1.5 font-medium">
-              <Building className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+            <p className="text-sm text-zinc-600 flex items-center gap-1.5 font-medium">
+              <Building className="h-4 w-4 text-zinc-400 shrink-0" />
               {ticket.organizationName}
             </p>
           </div>
@@ -200,7 +200,7 @@ export function TicketPassView({ ticket }: { ticket: TicketPassData }) {
           <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#fbfbf9] border-r border-zinc-200/90" />
           <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#fbfbf9] border-l border-zinc-200/90" />
           <div className="text-center">
-            <span className="text-[10px] uppercase tracking-widest text-zinc-400 font-semibold font-mono">
+            <span className="text-xs uppercase tracking-widest text-zinc-500 font-semibold font-mono">
               Scan Gate Entrance Token
             </span>
           </div>
@@ -240,19 +240,19 @@ export function TicketPassView({ ticket }: { ticket: TicketPassData }) {
           </div>
 
           {/* Ticket Number & Category */}
-          <div className="space-y-1">
-            <p className="font-mono text-lg font-bold text-zinc-900 tracking-wider">
+          <div className="space-y-1.5">
+            <p className="font-mono text-xl font-bold text-zinc-900 tracking-wider">
               #{ticket.ticketNumber}
             </p>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-semibold text-zinc-700">
-              <TicketIcon className="h-3 w-3 text-zinc-400" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-semibold text-zinc-700">
+              <TicketIcon className="h-3.5 w-3.5 text-zinc-400" />
               {ticket.category}
             </div>
           </div>
 
           {/* Alert Status Banners */}
           {isCheckedIn && (
-            <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-600 flex items-center justify-center gap-2">
+            <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-200 text-sm text-zinc-600 flex items-center justify-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
               <span>
                 Admitted at gate turnstile{" "}
@@ -264,7 +264,7 @@ export function TicketPassView({ ticket }: { ticket: TicketPassData }) {
           )}
 
           {isRevoked && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center justify-center gap-2 font-medium">
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-sm text-rose-700 flex items-center justify-center gap-2 font-medium">
               <XCircle className="h-4 w-4 text-rose-600 shrink-0" />
               <span>
                 This entrance pass has been revoked by the event organizer. Turnstile scan will be refused.
@@ -273,27 +273,27 @@ export function TicketPassView({ ticket }: { ticket: TicketPassData }) {
           )}
 
           {/* Attendee Details Grid */}
-          <div className="pt-4 border-t border-zinc-100 text-left space-y-2.5 text-xs">
-            <div className="flex justify-between items-center py-1 border-b border-zinc-100/60">
-              <span className="text-zinc-500 font-medium flex items-center gap-1">
-                <User className="h-3 w-3 text-zinc-400" /> Attendee
+          <div className="pt-4 border-t border-zinc-100 text-left space-y-2.5 text-sm">
+            <div className="flex justify-between items-center py-1.5 border-b border-zinc-100/60">
+              <span className="text-zinc-500 font-medium flex items-center gap-1.5">
+                <User className="h-4 w-4 text-zinc-400" /> Attendee
               </span>
               <span className="text-zinc-900 font-semibold">{ticket.participantName}</span>
             </div>
 
             {ticket.participantEmailMasked && (
-              <div className="flex justify-between items-center py-1 border-b border-zinc-100/60">
+              <div className="flex justify-between items-center py-1.5 border-b border-zinc-100/60">
                 <span className="text-zinc-500 font-medium">Registered Account</span>
-                <span className="font-mono text-zinc-700 font-medium">
+                <span className="font-mono text-zinc-700 font-medium text-xs">
                   {ticket.participantEmailMasked}
                 </span>
               </div>
             )}
 
             {ticket.eventDateStart && (
-              <div className="flex justify-between items-center py-1 border-b border-zinc-100/60">
-                <span className="text-zinc-500 font-medium flex items-center gap-1">
-                  <Calendar className="h-3 w-3 text-zinc-400" /> Date & Time
+              <div className="flex justify-between items-center py-1.5 border-b border-zinc-100/60">
+                <span className="text-zinc-500 font-medium flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4 text-zinc-400" /> Date & Time
                 </span>
                 <span className="text-zinc-800 font-semibold">
                   {format(new Date(ticket.eventDateStart), "MMM d, yyyy · h:mm a")}
@@ -302,18 +302,18 @@ export function TicketPassView({ ticket }: { ticket: TicketPassData }) {
             )}
 
             {ticket.eventLocation && (
-              <div className="flex justify-between items-center py-1">
-                <span className="text-zinc-500 font-medium flex items-center gap-1">
-                  <MapPin className="h-3 w-3 text-zinc-400" /> Location
+              <div className="flex justify-between items-center py-1.5">
+                <span className="text-zinc-500 font-medium flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4 text-zinc-400" /> Location
                 </span>
-                <span className="text-zinc-800 font-medium text-right max-w-[200px] truncate">
+                <span className="text-zinc-800 font-medium text-right max-w-[220px] truncate">
                   {ticket.eventLocation}
                 </span>
               </div>
             )}
           </div>
 
-          <p className="text-[11px] text-zinc-400 pt-1 leading-relaxed">
+          <p className="text-xs text-zinc-500 pt-1 leading-relaxed">
             Please present this digital entrance pass on your mobile device or printed copy at the event gate scanner.
           </p>
         </div>
@@ -368,7 +368,7 @@ export function TicketPassView({ ticket }: { ticket: TicketPassData }) {
         )}
       </div>
 
-      <p className="no-print text-center text-[10px] font-mono text-zinc-400">
+      <p className="no-print text-center text-xs font-mono text-zinc-400">
         TicketKoi • Cryptographic Token Hash Protocol
       </p>
     </div>

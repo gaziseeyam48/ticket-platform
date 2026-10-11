@@ -86,16 +86,16 @@ export default async function DashboardPage() {
     <div className="w-full space-y-8">
       {/* Welcome & Quick Action Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200/80">
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 leading-tight">
               Overview
             </h1>
-            <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-700 border border-zinc-200">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-700 border border-zinc-200">
               {orgInfo.organization.name}
             </span>
           </div>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm sm:text-base text-zinc-600 leading-normal">
             Monitor active registrations, issued passes, and entrance check-in activity.
           </p>
         </div>
@@ -105,7 +105,7 @@ export default async function DashboardPage() {
             <Button
               variant="outline"
               size="sm"
-              className="font-medium text-xs gap-1.5 shadow-2xs h-9"
+              className="font-medium text-sm gap-2 shadow-2xs h-9 sm:h-10 px-3.5"
             >
               <QrCode className="h-4 w-4 text-zinc-600" />
               <span>Verify Entrance</span>
@@ -115,7 +115,7 @@ export default async function DashboardPage() {
             </Button>
           </Link>
           <Link href="/org/events/new">
-            <Button size="sm" className="font-semibold text-xs gap-1.5 shadow-xs h-9">
+            <Button size="sm" className="font-semibold text-sm gap-2 shadow-xs h-9 sm:h-10 px-3.5">
               <Plus className="h-4 w-4" />
               <span>Create Event</span>
             </Button>
@@ -174,10 +174,10 @@ export default async function DashboardPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-zinc-900">
+            <h2 className="text-lg font-semibold text-zinc-900">
               Events
             </h2>
-            <span className="text-xs font-medium text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-200">
+            <span className="text-xs font-medium text-zinc-500 bg-zinc-100 px-2.5 py-0.5 rounded-full border border-zinc-200">
               {events.length}
             </span>
           </div>
@@ -185,7 +185,7 @@ export default async function DashboardPage() {
           {events.length > 0 && (
             <Link
               href="/org/events"
-              className="text-xs font-semibold text-zinc-600 hover:text-zinc-900 transition-colors flex items-center gap-1"
+              className="text-sm font-semibold text-zinc-600 hover:text-zinc-900 transition-colors flex items-center gap-1"
             >
               View directory <ArrowRight className="h-3.5 w-3.5" />
             </Link>
@@ -199,14 +199,14 @@ export default async function DashboardPage() {
               <Calendar className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-zinc-900">No events created yet</h3>
-              <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+              <h3 className="text-base font-semibold text-zinc-900">No events created yet</h3>
+              <p className="text-sm text-zinc-500 max-w-sm mx-auto leading-relaxed">
                 Create your first event to configure registration questions, manage passes, and begin entrance check-in.
               </p>
             </div>
             <Link href="/org/events/new">
-              <Button size="sm" className="font-semibold text-xs shadow-xs">
-                <Plus className="mr-1.5 h-3.5 w-3.5" />
+              <Button size="sm" className="font-semibold text-sm shadow-xs h-9 px-4">
+                <Plus className="mr-1.5 h-4 w-4" />
                 Create First Event
               </Button>
             </Link>
@@ -215,14 +215,14 @@ export default async function DashboardPage() {
           /* Compact & Professional Event Table */
           <div className="bg-white border border-zinc-200/80 rounded-2xl shadow-2xs overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-200/80 bg-zinc-50/75 text-zinc-600 text-xs font-semibold">
-                    <th className="py-3 px-4">Event name</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Pass type</th>
-                    <th className="py-3 px-4">Schedule &amp; venue</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
+                  <tr className="border-b border-zinc-200/80 bg-zinc-50/75 text-zinc-600 text-sm font-semibold">
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Event name</th>
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Status</th>
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Pass type</th>
+                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Schedule &amp; venue</th>
+                    <th className="py-3.5 px-4 text-right font-semibold text-zinc-600">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 text-zinc-700">
@@ -240,7 +240,7 @@ export default async function DashboardPage() {
                           >
                             {event.name}
                           </Link>
-                          <div className="font-mono text-xs text-zinc-400">
+                          <div className="font-mono text-xs text-zinc-500">
                             /{event.slug}
                           </div>
                         </div>
@@ -262,16 +262,16 @@ export default async function DashboardPage() {
                       <td className="py-3.5 px-4 min-w-[220px]">
                         <div className="space-y-1 text-zinc-600">
                           {event.date_start ? (
-                            <div className="flex items-center gap-1.5 text-xs">
+                            <div className="flex items-center gap-1.5 text-sm text-zinc-700">
                               <Clock className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
                               <span>{format(new Date(event.date_start), "MMM d, yyyy h:mm a")}</span>
                             </div>
                           ) : (
-                            <span className="text-zinc-400 italic text-xs">Unscheduled</span>
+                            <span className="text-zinc-400 italic text-sm">Unscheduled</span>
                           )}
 
                           {event.location && (
-                            <div className="flex items-center gap-1.5 text-xs text-zinc-500 truncate max-w-[220px]">
+                            <div className="flex items-center gap-1.5 text-[13px] text-zinc-500 truncate max-w-[220px]">
                               <MapPin className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
                               <span className="truncate">{event.location}</span>
                             </div>

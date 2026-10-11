@@ -70,10 +70,10 @@ export function FieldConfigPanel({
           <Sliders className="h-6 w-6" aria-hidden="true" />
         </div>
         <div className="max-w-xs space-y-1">
-          <h2 className="text-sm font-semibold text-zinc-900">
+          <h2 className="text-base font-semibold text-zinc-900">
             No field selected
           </h2>
-          <p className="text-xs text-zinc-500 leading-relaxed">
+          <p className="text-sm text-zinc-500 leading-relaxed">
             Select a field from the outline on the left to edit its label, placeholder, and settings, or add a new field.
           </p>
         </div>
@@ -82,7 +82,7 @@ export function FieldConfigPanel({
           variant="outline"
           size="sm"
           onClick={onOpenAddField}
-          className="gap-1.5 text-xs mt-2"
+          className="gap-1.5 text-xs font-semibold h-8 px-3 mt-2 shadow-2xs"
         >
           <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           Add field
@@ -127,7 +127,7 @@ export function FieldConfigPanel({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-zinc-900 tracking-tight">
+              <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
                 {field.label || "Untitled field"}
               </h2>
             </div>
@@ -146,7 +146,7 @@ export function FieldConfigPanel({
                 variant="ghost"
                 size="sm"
                 onClick={() => setConfirmDelete(true)}
-                className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 gap-1.5 h-8 px-2.5"
+                className="text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 gap-1.5 h-8 px-2.5"
                 aria-label="Remove field"
               >
                 <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -154,7 +154,7 @@ export function FieldConfigPanel({
               </Button>
             ) : (
               <div className="flex items-center gap-1.5 bg-red-50 p-1.5 rounded-lg border border-red-200">
-                <span className="text-[11px] text-red-700 font-medium pl-1">
+                <span className="text-xs text-red-700 font-medium pl-1">
                   Confirm delete?
                 </span>
                 <button
@@ -163,7 +163,7 @@ export function FieldConfigPanel({
                     onRemoveField(field.id);
                     setConfirmDelete(false);
                   }}
-                  className="text-xs bg-red-600 text-white px-2 py-1 rounded font-semibold hover:bg-red-700 transition-colors"
+                  className="text-xs bg-red-600 text-white px-2.5 py-1 rounded-md font-semibold hover:bg-red-700 transition-colors"
                 >
                   Yes, remove
                 </button>
@@ -185,10 +185,10 @@ export function FieldConfigPanel({
         <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-200/80 flex items-start gap-2.5 text-xs text-zinc-600">
           <Lock className="h-4 w-4 text-zinc-500 shrink-0 mt-0.5" aria-hidden="true" />
           <div>
-            <span className="font-semibold text-zinc-900 block">
+            <span className="font-semibold text-zinc-900 block text-sm">
               Required system field
             </span>
-            <p className="text-zinc-500 mt-0.5 leading-relaxed">
+            <p className="text-zinc-500 mt-0.5 leading-relaxed text-xs sm:text-[13px]">
               This field is essential for attendee identification and digital ticket pass delivery. You can customize the label and placeholder text, but it cannot be deleted or set to optional.
             </p>
           </div>
@@ -205,7 +205,7 @@ export function FieldConfigPanel({
         <div className="space-y-1.5">
           <label
             htmlFor={`field-label-${field.id}`}
-            className="block text-xs font-medium text-zinc-700"
+            className="block text-sm font-medium text-zinc-800"
           >
             Field label <span className="text-red-500" aria-hidden="true">*</span>
           </label>
@@ -216,7 +216,7 @@ export function FieldConfigPanel({
             placeholder="e.g. Full Name"
             required
           />
-          <p className="text-[11px] text-zinc-500">
+          <p className="text-[13px] text-zinc-500">
             The question or label attendees see on the registration form.
           </p>
         </div>
@@ -226,7 +226,7 @@ export function FieldConfigPanel({
           <div className="space-y-1.5">
             <label
               htmlFor={`field-placeholder-${field.id}`}
-              className="block text-xs font-medium text-zinc-700"
+              className="block text-sm font-medium text-zinc-800"
             >
               Placeholder text
             </label>
@@ -238,7 +238,7 @@ export function FieldConfigPanel({
               }
               placeholder="e.g. Enter your response..."
             />
-            <p className="text-[11px] text-zinc-500">
+            <p className="text-[13px] text-zinc-500">
               Sample text shown inside the input box before the attendee types.
             </p>
           </div>
@@ -247,10 +247,10 @@ export function FieldConfigPanel({
         {/* Required / Optional Toggle */}
         <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-200/80 flex items-center justify-between gap-4">
           <div className="space-y-0.5">
-            <span className="text-xs font-semibold text-zinc-900">
+            <span className="text-sm font-semibold text-zinc-900">
               Required question
             </span>
-            <p className="text-[11px] text-zinc-500">
+            <p className="text-[13px] text-zinc-500">
               {field.isSystem
                 ? "This field is required by the ticket delivery protocol."
                 : "Attendees must complete this field to register."}
@@ -282,7 +282,7 @@ export function FieldConfigPanel({
               <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
                 Choices & Options
               </h3>
-              <p className="text-[11px] text-zinc-500 mt-0.5">
+              <p className="text-[13px] text-zinc-500 mt-0.5">
                 Attendees will pick one from this list. At least one option is required.
               </p>
             </div>
@@ -291,7 +291,7 @@ export function FieldConfigPanel({
               variant="outline"
               size="sm"
               onClick={handleAddOption}
-              className="gap-1 text-xs h-7 px-2"
+              className="gap-1 text-xs font-semibold h-8 px-2.5 shadow-2xs"
             >
               <Plus className="h-3 w-3" aria-hidden="true" />
               Add choice
@@ -308,7 +308,7 @@ export function FieldConfigPanel({
                   value={opt}
                   onChange={(e) => handleUpdateOption(optIdx, e.target.value)}
                   placeholder={`Choice ${optIdx + 1}`}
-                  className="text-xs h-9"
+                  className="text-sm h-10"
                   aria-label={`Choice ${optIdx + 1}`}
                 />
                 {options.length > 1 && (
@@ -317,9 +317,9 @@ export function FieldConfigPanel({
                     onClick={() => handleRemoveOption(optIdx)}
                     title="Remove choice"
                     aria-label={`Remove choice ${optIdx + 1}`}
-                    className="p-1.5 rounded-md text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                    className="p-2 rounded-md text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                   >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -334,14 +334,14 @@ export function FieldConfigPanel({
           <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
             Consent statement
           </h3>
-          <p className="text-[11px] text-zinc-500">
+          <p className="text-[13px] text-zinc-500">
             The agreement or waiver statement attendees must acknowledge by checking the box.
           </p>
           <Input
             value={field.placeholder || ""}
             onChange={(e) => onUpdateField(field.id, { placeholder: e.target.value })}
             placeholder="I agree to the terms, conditions, and code of conduct."
-            className="text-xs"
+            className="text-sm h-10"
             aria-label="Consent agreement statement"
           />
         </div>
@@ -349,22 +349,22 @@ export function FieldConfigPanel({
 
       {/* Helpful context for other field types */}
       {field.type === "number" && (
-        <div className="pt-4 border-t border-zinc-100 text-[11px] text-zinc-500 flex items-center gap-1.5">
-          <HelpCircle className="h-3.5 w-3.5 text-zinc-400 shrink-0" aria-hidden="true" />
+        <div className="pt-4 border-t border-zinc-100 text-xs sm:text-[13px] text-zinc-500 flex items-center gap-2">
+          <HelpCircle className="h-4 w-4 text-zinc-400 shrink-0" aria-hidden="true" />
           <span>Restricts attendee response to valid numeric values.</span>
         </div>
       )}
 
       {field.type === "phone" && (
-        <div className="pt-4 border-t border-zinc-100 text-[11px] text-zinc-500 flex items-center gap-1.5">
-          <HelpCircle className="h-3.5 w-3.5 text-zinc-400 shrink-0" aria-hidden="true" />
+        <div className="pt-4 border-t border-zinc-100 text-xs sm:text-[13px] text-zinc-500 flex items-center gap-2">
+          <HelpCircle className="h-4 w-4 text-zinc-400 shrink-0" aria-hidden="true" />
           <span>Validates that attendees enter a valid contact phone number with country code.</span>
         </div>
       )}
 
       {field.type === "textarea" && (
-        <div className="pt-4 border-t border-zinc-100 text-[11px] text-zinc-500 flex items-center gap-1.5">
-          <HelpCircle className="h-3.5 w-3.5 text-zinc-400 shrink-0" aria-hidden="true" />
+        <div className="pt-4 border-t border-zinc-100 text-xs sm:text-[13px] text-zinc-500 flex items-center gap-2">
+          <HelpCircle className="h-4 w-4 text-zinc-400 shrink-0" aria-hidden="true" />
           <span>Renders a multiline input suitable for longer notes, biographies, or special needs.</span>
         </div>
       )}

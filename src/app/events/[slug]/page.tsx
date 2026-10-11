@@ -42,9 +42,9 @@ export default async function PublicEventPage(props: { params: Promise<{ slug: s
     <div className="min-h-screen bg-[#fbfbf9] text-zinc-900 py-10 sm:py-16 px-4 sm:px-6 font-sans">
       <div className="max-w-3xl mx-auto space-y-8">
         {/* Masthead Bar */}
-        <div className="border-b border-zinc-200 pb-4 flex items-center justify-between text-xs text-zinc-500 font-medium">
+        <div className="border-b border-zinc-200 pb-4 flex items-center justify-between text-sm text-zinc-500 font-medium">
           <span>Official Event Invitation</span>
-          <span className="font-semibold text-zinc-700">{event.organizations.name}</span>
+          <span className="font-semibold text-zinc-800">{event.organizations.name}</span>
         </div>
 
         {/* Main Event Article Card */}
@@ -52,10 +52,10 @@ export default async function PublicEventPage(props: { params: Promise<{ slug: s
           <div className="p-8 sm:p-12 space-y-8">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-zinc-100 text-zinc-700 border border-zinc-200">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-zinc-100 text-zinc-800 border border-zinc-200">
                   {event.event_type === "FREE" ? "Free Admission" : "Paid Pass"}
                 </span>
-                <span className="text-xs text-zinc-400">
+                <span className="text-sm text-zinc-500 font-medium">
                   Presented by {event.organizations.name}
                 </span>
               </div>
@@ -65,10 +65,10 @@ export default async function PublicEventPage(props: { params: Promise<{ slug: s
             </div>
 
             {/* Date and Location Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-zinc-50 border border-zinc-200 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 rounded-xl bg-zinc-50 border border-zinc-200 text-sm">
               {(event.date_start || event.date_end) && (
                 <div className="flex items-start gap-2.5">
-                  <Calendar className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
+                  <Calendar className="w-5 h-5 text-zinc-500 shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold text-zinc-900">Schedule</span>
                     <p className="text-zinc-600 mt-0.5">
@@ -81,7 +81,7 @@ export default async function PublicEventPage(props: { params: Promise<{ slug: s
 
               {event.location && (
                 <div className="flex items-start gap-2.5">
-                  <MapPin className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
+                  <MapPin className="w-5 h-5 text-zinc-500 shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold text-zinc-900">Venue</span>
                     <p className="text-zinc-600 mt-0.5">{event.location}</p>
@@ -92,30 +92,30 @@ export default async function PublicEventPage(props: { params: Promise<{ slug: s
 
             {/* Description */}
             {event.description && (
-              <div className="space-y-2 pt-2 border-t border-zinc-100">
-                <h3 className="text-xs font-mono uppercase tracking-wider text-zinc-400">About Gathering</h3>
-                <p className="text-sm text-zinc-600 whitespace-pre-wrap leading-relaxed font-sans">{event.description}</p>
+              <div className="space-y-2.5 pt-2 border-t border-zinc-100">
+                <h3 className="text-xs font-mono uppercase tracking-wider text-zinc-400 font-semibold">About Gathering</h3>
+                <p className="text-base text-zinc-600 whitespace-pre-wrap leading-relaxed font-sans">{event.description}</p>
               </div>
             )}
 
             {/* Registration Action */}
             <div className="pt-6 border-t border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <span className="text-xs font-mono uppercase text-zinc-400">Status</span>
-                <p className="text-sm font-semibold text-zinc-900">
+                <span className="text-xs font-mono uppercase text-zinc-400 font-medium">Status</span>
+                <p className="text-base font-semibold text-zinc-900">
                   {isRegistrationOpen ? "Registration Open" : "Registration Closed"}
                 </p>
               </div>
 
               {isRegistrationOpen ? (
                 <Link href={`/events/${event.slug}/register`}>
-                  <Button size="lg" className="w-full sm:w-auto font-semibold px-6 gap-2">
+                  <Button size="lg" className="w-full sm:w-auto font-semibold px-6 gap-2 text-base">
                     Claim Attendee Pass
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
               ) : (
-                <Button disabled variant="outline" size="lg" className="w-full sm:w-auto">
+                <Button disabled variant="outline" size="lg" className="w-full sm:w-auto text-base">
                   Registration Closed
                 </Button>
               )}

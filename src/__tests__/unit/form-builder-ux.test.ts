@@ -4,6 +4,7 @@ import {
   DEFAULT_FORM_FIELDS,
   registrationFormSchema,
   formFieldSchema,
+  validateSubmissionData,
 } from "@/lib/validations/form";
 
 describe("Registration Form Builder Redesign — Information Architecture & UX Logic", () => {
@@ -185,5 +186,69 @@ describe("Registration Form Builder Redesign — Information Architecture & UX L
 
     const parsed = registrationFormSchema.safeParse(validForm);
     expect(parsed.success).toBe(true);
+  });
+
+  it("should validate that phone numbers must have exactly 11 digits when entered", () => {
+    const phoneField: FormField = {
+      id: "field_phone",
+      type: "phone",
+      label: "Contact Number",
+      required: false,
+      options: [],
+      order: 0,
+    };
+
+    // Exactly 11 digits (n = 11) -> valid, no error
+    const valid11_1 = validateSubmissionData([phoneField], { field_phone: "01712345678" });
+    expect(valid11_1.isValid).toBe(true);
+    expect(valid11_1.errors.field_phone).toBeUndefined();
+
+    const valid11_2 = validateSubmissionData([phoneField], { field_phone: "+1 (555) 123-4567" });
+    expect(valid11_2.isValid).toBe(true);
+    expect(valid11_2.errors.field_phone).toBeUndefined();
+
+    // Less than 11 digits (n < 11) -> error
+    const invalidShort = validateSubmissionData([phoneField], { field_phone: "01712345" });
+    expect(invalidShort.isValid).toBe(false);
+    expect(invalidShort.errors.field_phone).toBe("Phone number must be 11 digits");
+
+    // More than 11 digits (n > 11) -> error
+    const invalidLong = validateSubmissionData([phoneField], { field_phone: "0171234567890" });
+    expect(invalidLong.isValid).toBe(false);
+    expect(invalidLong.errors.field_phone).toBe("Phone number must be 11 digits");
+
+    // Empty optional phone -> no error
+    const emptyOptional = validateSubmissionData([phoneField], { field_phone: "" });
+    expect(emptyOptional.isValid).toBe(true);
+  });
+
+  it("should allow manual card sorting by dragging from any position to any position", () => {
+    const cards: FormField[] = [
+      { id: "c1", type: "text", label: "Card 1", required: true, order: 0, options: [] },
+      { id: "c2", type: "email", label: "Card 2", required: true, order: 1, options: [] },
+      { id: "c3", type: "phone", label: "Card 3", required: false, order: 2, options: [] },
+      { id: "c4", type: "number", label: "Card 4", required: false, order: 3, options: [] },
+    ];
+
+    const reorderCards = (list: FormField[], sourceIndex: number, destinationIndex: number) => {
+      const copy = [...list];
+      const [moved] = copy.splice(sourceIndex, 1);
+      copy.splice(destinationIndex, 0, moved);
+      return copy.map((f, i) => ({ ...f, order: i }));
+    };
+
+    // Drag Card 4 (index 3) to the very top (index 0)
+    const resultTop = reorderCards(cards, 3, 0);
+    expect(resultTop[0].id).toBe("c4");
+    expect(resultTop[0].order).toBe(0);
+    expect(resultTop[1].id).toBe("c1");
+    expect(resultTop[1].order).toBe(1);
+
+    // Drag Card 1 (index 0) to index 2
+    const resultMiddle = reorderCards(cards, 0, 2);
+    expect(resultMiddle[0].id).toBe("c2");
+    expect(resultMiddle[1].id).toBe("c3");
+    expect(resultMiddle[2].id).toBe("c1");
+    expect(resultMiddle[2].order).toBe(2);
   });
 });

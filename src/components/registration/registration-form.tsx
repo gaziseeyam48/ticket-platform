@@ -62,6 +62,29 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
 
   const handleFieldChange = (fieldId: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [fieldId]: value }));
+
+    const targetField = fields.find((f) => f.id === fieldId);
+    if (targetField?.type === "phone") {
+      const str = typeof value === "string" ? value.trim() : "";
+      if (str.length > 0) {
+        const digits = str.replace(/\D/g, "");
+        if (digits.length !== 11) {
+          setFieldErrors((prev) => ({
+            ...prev,
+            [fieldId]: "Phone number must be 11 digits",
+          }));
+          return;
+        } else {
+          setFieldErrors((prev) => {
+            const next = { ...prev };
+            delete next[fieldId];
+            return next;
+          });
+          return;
+        }
+      }
+    }
+
     if (fieldErrors[fieldId]) {
       setFieldErrors((prev) => {
         const next = { ...prev };
@@ -88,6 +111,14 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
           }
         } else if (val === undefined || val === null || (typeof val === "string" && val.trim() === "")) {
           clientErrors[field.id] = `${field.label} is required`;
+        }
+      }
+
+      // Phone validation: must be 11 digits when value is present
+      if (field.type === "phone" && val) {
+        const digits = String(val).replace(/\D/g, "");
+        if (digits.length !== 11) {
+          clientErrors[field.id] = "Phone number must be 11 digits";
         }
       }
     }

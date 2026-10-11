@@ -68,7 +68,7 @@ export function StatusBadge({ status, showDot = true, className, ...props }: Sta
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border font-sans tracking-tight shrink-0",
+        "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border font-sans tracking-normal shrink-0 leading-normal",
         colorClasses,
         className
       )}

@@ -31,7 +31,7 @@ const DEFAULT_FIELD_TEMPLATES: Record<
   },
   phone: {
     label: "Phone number",
-    placeholder: "+1 (555) 000-0000",
+    placeholder: "01XXXXXXXXX",
   },
   number: {
     label: "Number",
@@ -78,9 +78,10 @@ export function FormBuilder({
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [saveErrorMessage, setSaveErrorMessage] = useState("");
 
-  // Modals & responsive drawer states
+  // Modals & optional preview panel states
   const [isAddFieldModalOpen, setIsAddFieldModalOpen] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [showPreviewPanel, setShowPreviewPanel] = useState(false);
   const [mobileTab, setMobileTab] = useState<"outline" | "configure" | "preview">("outline");
 
   // Screen-reader live announcement
@@ -150,21 +151,20 @@ export function FormBuilder({
     );
   }, []);
 
-  // 4. Move field handler
-  const handleMoveField = useCallback((index: number, direction: "up" | "down") => {
-    const targetIndex = direction === "up" ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= fields.length) return;
+  // 4. Card reorder handler (hand picker manual sorting)
+  const handleReorder = useCallback((sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
 
     setFields((prev) => {
       const copy = [...prev];
-      const [moved] = copy.splice(index, 1);
-      copy.splice(targetIndex, 0, moved);
+      const [moved] = copy.splice(sourceIndex, 1);
+      copy.splice(destinationIndex, 0, moved);
       return copy.map((f, i) => ({ ...f, order: i }));
     });
 
-    const targetField = fields[index];
+    const targetField = fields[sourceIndex];
     if (targetField) {
-      setAnnouncement(`Moved ${targetField.label} ${direction}`);
+      setAnnouncement(`Reordered ${targetField.label} to position ${destinationIndex + 1}`);
     }
   }, [fields]);
 
@@ -221,6 +221,8 @@ export function FormBuilder({
         saveErrorMessage={saveErrorMessage}
         onSave={handleSave}
         onOpenPreview={() => setIsPreviewModalOpen(true)}
+        isPreviewVisible={showPreviewPanel}
+        onTogglePreview={() => setShowPreviewPanel(!showPreviewPanel)}
       />
 
       {/* Mobile / Tablet Tab Navigation Bar (< lg screens) */}
@@ -259,7 +261,10 @@ export function FormBuilder({
 
           <button
             type="button"
-            onClick={() => setMobileTab("preview")}
+            onClick={() => {
+              setMobileTab("preview");
+              setShowPreviewPanel(true);
+            }}
             className={`flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-semibold rounded-lg transition-all ${
               mobileTab === "preview"
                 ? "bg-white text-zinc-900 shadow-xs"
@@ -275,27 +280,27 @@ export function FormBuilder({
 
       {/* B. Form Configuration Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* 1. Left — Form outline */}
+        {/* 1. Left — Form outline (Hand picker cards sorting) */}
         <div
-          className={`lg:col-span-3 lg:block ${
-            mobileTab === "outline" ? "block" : "hidden"
-          }`}
+          className={`${
+            showPreviewPanel ? "lg:col-span-4 xl:col-span-3" : "lg:col-span-5"
+          } lg:block ${mobileTab === "outline" ? "block" : "hidden"}`}
         >
           <FormOutline
             fields={fields}
             selectedFieldId={selectedFieldId}
             onSelectField={handleSelectField}
-            onMoveField={handleMoveField}
+            onReorder={handleReorder}
             onRemoveField={handleRemoveField}
             onOpenAddField={() => setIsAddFieldModalOpen(true)}
           />
         </div>
 
-        {/* 2. Center — Field configuration */}
+        {/* 2. Center/Right — Field configuration */}
         <div
-          className={`lg:col-span-5 lg:block ${
-            mobileTab === "configure" ? "block" : "hidden"
-          }`}
+          className={`${
+            showPreviewPanel ? "lg:col-span-4 xl:col-span-5" : "lg:col-span-7"
+          } lg:block ${mobileTab === "configure" ? "block" : "hidden"}`}
         >
           <FieldConfigPanel
             field={selectedField}
@@ -305,20 +310,28 @@ export function FormBuilder({
           />
         </div>
 
-        {/* 3. Right — Live preview */}
-        <div
-          className={`lg:col-span-4 lg:block ${
-            mobileTab === "preview" ? "block" : "hidden"
-          }`}
-        >
-          <FormPreview
-            fields={fields}
-            eventName={eventName}
-            isModalOpen={isPreviewModalOpen}
-            onCloseModal={() => setIsPreviewModalOpen(false)}
-            onOpenModal={() => setIsPreviewModalOpen(true)}
-          />
-        </div>
+        {/* 3. Optional Live Preview (Hidden by default) */}
+        {(showPreviewPanel || mobileTab === "preview") && (
+          <div
+            className={`${
+              showPreviewPanel ? "lg:col-span-4" : "lg:hidden"
+            } ${mobileTab === "preview" ? "block" : "hidden lg:block"}`}
+          >
+            <FormPreview
+              fields={fields}
+              eventName={eventName}
+              isModalOpen={isPreviewModalOpen}
+              onCloseModal={() => setIsPreviewModalOpen(false)}
+              onOpenModal={() => setIsPreviewModalOpen(true)}
+              onClosePreview={() => {
+                setShowPreviewPanel(false);
+                if (mobileTab === "preview") {
+                  setMobileTab("configure");
+                }
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Add Field Picker Modal */}

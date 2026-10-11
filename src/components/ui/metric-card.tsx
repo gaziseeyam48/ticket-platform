@@ -62,15 +62,15 @@ export function MetricCard({
       </div>
 
       {/* Metric Content */}
-      <div className="space-y-1">
-        <p className="text-xs text-zinc-500 font-medium">
+      <div className="space-y-1.5">
+        <p className="text-sm text-zinc-600 font-medium leading-none">
           {label}
         </p>
         <p className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">
           {value}
         </p>
         {subtext && (
-          <p className="text-xs text-zinc-500 font-normal leading-relaxed">
+          <p className="text-[13px] text-zinc-500 font-normal leading-normal">
             {subtext}
           </p>
         )}

@@ -395,23 +395,23 @@ export function VerificationScanner({
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs uppercase tracking-wider text-emerald-200 font-semibold">
+                  <span className="text-xs uppercase tracking-wider text-emerald-200 font-bold">
                     Access Granted
                   </span>
-                  <h2 className="text-3xl font-bold tracking-tight">
+                  <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
                     {lastResult.participantName}
                   </h2>
-                  <p className="text-sm text-emerald-100 font-medium">{lastResult.eventName}</p>
+                  <p className="text-base text-emerald-100 font-medium">{lastResult.eventName}</p>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-black/20 text-xs text-emerald-100 flex items-center justify-between">
-                  <span className="font-mono">Pass: #{lastResult.ticketNumber}</span>
-                  <span>{format(new Date(), "h:mm a")}</span>
+                <div className="p-3.5 rounded-2xl bg-black/20 text-sm text-emerald-100 flex items-center justify-between">
+                  <span className="font-mono font-semibold">Pass: #{lastResult.ticketNumber}</span>
+                  <span className="font-mono text-xs">{format(new Date(), "h:mm a")}</span>
                 </div>
 
                 <Button
                   onClick={handleResetForNext}
-                  className="w-full bg-white text-emerald-900 hover:bg-emerald-50 font-bold text-sm h-12 rounded-xl shadow-lg cursor-pointer"
+                  className="w-full bg-white text-emerald-900 hover:bg-emerald-50 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Next Attendee (Ready)
@@ -430,21 +430,21 @@ export function VerificationScanner({
                   <span className="text-xs uppercase tracking-wider text-amber-950 font-bold">
                     Duplicate Entrance Scan
                   </span>
-                  <h2 className="text-2xl font-bold tracking-tight">Already Checked In!</h2>
-                  <p className="text-sm text-amber-950 font-medium">
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Already Checked In!</h2>
+                  <p className="text-base text-amber-950 font-semibold">
                     Attendee: {lastResult.participantName || "Unknown"}
                   </p>
                 </div>
 
                 {lastResult.checkedInAt && (
-                  <div className="p-3 rounded-2xl bg-black/10 text-xs text-amber-950">
+                  <div className="p-3.5 rounded-2xl bg-black/10 text-sm text-amber-950 font-medium">
                     Prior admittance: {format(new Date(lastResult.checkedInAt), "MMM d, h:mm a")}
                   </div>
                 )}
 
                 <Button
                   onClick={handleResetForNext}
-                  className="w-full bg-zinc-950 text-white hover:bg-zinc-900 font-bold text-sm h-12 rounded-xl shadow-lg cursor-pointer"
+                  className="w-full bg-zinc-950 text-white hover:bg-zinc-900 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Next Scan
@@ -460,18 +460,18 @@ export function VerificationScanner({
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs uppercase tracking-wider text-amber-200 font-semibold">
+                  <span className="text-xs uppercase tracking-wider text-amber-200 font-bold">
                     Gate Mismatch
                   </span>
-                  <h2 className="text-2xl font-bold tracking-tight">Wrong Event Pass</h2>
-                  <p className="text-xs text-amber-100 max-w-xs mx-auto leading-relaxed">
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Wrong Event Pass</h2>
+                  <p className="text-sm text-amber-100 max-w-xs mx-auto leading-relaxed">
                     {lastResult.message}
                   </p>
                 </div>
 
                 <Button
                   onClick={handleResetForNext}
-                  className="w-full bg-white text-amber-950 hover:bg-amber-50 font-bold text-sm h-12 rounded-xl shadow-lg cursor-pointer"
+                  className="w-full bg-white text-amber-950 hover:bg-amber-50 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Dismiss / Next Pass
@@ -487,18 +487,18 @@ export function VerificationScanner({
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs uppercase tracking-wider text-rose-200 font-semibold">
+                  <span className="text-xs uppercase tracking-wider text-rose-200 font-bold">
                     Entrance Denied
                   </span>
-                  <h2 className="text-2xl font-bold tracking-tight">
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
                     {lastResult.status === "REVOKED" ? "Pass Revoked" : "Invalid Ticket"}
                   </h2>
-                  <p className="text-xs text-rose-100 max-w-xs mx-auto">{lastResult.message}</p>
+                  <p className="text-sm text-rose-100 max-w-xs mx-auto leading-relaxed">{lastResult.message}</p>
                 </div>
 
                 <Button
                   onClick={handleResetForNext}
-                  className="w-full bg-white text-rose-950 hover:bg-rose-50 font-bold text-sm h-12 rounded-xl shadow-lg cursor-pointer"
+                  className="w-full bg-white text-rose-950 hover:bg-rose-50 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Retry / Next Pass
@@ -514,16 +514,16 @@ export function VerificationScanner({
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs uppercase tracking-wider text-sky-200 font-semibold">
+                  <span className="text-xs uppercase tracking-wider text-sky-200 font-bold">
                     Gate Inactive
                   </span>
-                  <h2 className="text-2xl font-bold tracking-tight">Event Not Live</h2>
-                  <p className="text-xs text-sky-100 max-w-xs mx-auto">{lastResult.message}</p>
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Event Not Live</h2>
+                  <p className="text-sm text-sky-100 max-w-xs mx-auto leading-relaxed">{lastResult.message}</p>
                 </div>
 
                 <Button
                   onClick={handleResetForNext}
-                  className="w-full bg-white text-sky-950 hover:bg-sky-50 font-bold text-sm h-12 rounded-xl shadow-lg cursor-pointer"
+                  className="w-full bg-white text-sky-950 hover:bg-sky-50 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Dismiss
@@ -567,10 +567,10 @@ export function VerificationScanner({
                   <div className="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center mx-auto text-zinc-400">
                     <ScanLine className="h-7 w-7 text-emerald-400" />
                   </div>
-                  <p className="text-xs font-semibold text-zinc-200">
+                  <p className="text-sm font-semibold text-zinc-200">
                     {cameraError ? "Camera Inactive" : "Camera Paused"}
                   </p>
-                  <p className="text-[11px] text-zinc-400 max-w-[200px] mx-auto leading-relaxed">
+                  <p className="text-xs text-zinc-400 max-w-[200px] mx-auto leading-relaxed">
                     {cameraError || "Use barcode hardware scanner or click below to start camera."}
                   </p>
                   <Button
@@ -580,7 +580,7 @@ export function VerificationScanner({
                       setIsCameraActive(true);
                       startCameraStream();
                     }}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold h-8 px-3 rounded-lg cursor-pointer"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold h-9 px-3.5 rounded-lg cursor-pointer"
                   >
                     <Camera className="h-3.5 w-3.5 mr-1.5" />
                     Enable Camera
@@ -645,7 +645,7 @@ export function VerificationScanner({
               )}
             </div>
 
-            <p className="text-[11px] text-zinc-500 max-w-xs">
+            <p className="text-xs text-zinc-400 max-w-xs">
               Align attendee ticket QR code inside the viewfinder or scan via handheld laser.
             </p>
           </div>
@@ -667,7 +667,7 @@ export function VerificationScanner({
             <Button
               type="submit"
               disabled={isVerifying || !tokenInput.trim()}
-              className="h-12 px-5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shrink-0 cursor-pointer"
+              className="h-12 px-5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shrink-0 cursor-pointer"
             >
               {isVerifying ? "Verifying..." : "Admit"}
             </Button>
@@ -676,28 +676,28 @@ export function VerificationScanner({
 
         {/* Recent Scans Station Log */}
         {recentScans.length > 0 && (
-          <div className="pt-2 border-t border-zinc-900 space-y-1.5">
-            <span className="text-xs uppercase tracking-wider text-zinc-500 font-medium">
+          <div className="pt-2.5 border-t border-zinc-900 space-y-2">
+            <span className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
               Station Log (Last Scans)
             </span>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {recentScans.map((scan) => (
                 <div
                   key={scan.id}
-                  className="flex items-center justify-between p-2 rounded-lg bg-zinc-900/60 border border-zinc-800/60 text-xs"
+                  className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800/60 text-sm"
                 >
                   <div className="flex items-center gap-2 truncate">
                     <span
-                      className={`h-1.5 w-1.5 rounded-full ${
+                      className={`h-2 w-2 rounded-full ${
                         scan.status === "VALID" ? "bg-emerald-400" : "bg-amber-400"
                       }`}
                     />
                     <span className="text-zinc-200 truncate font-medium">{scan.name}</span>
-                    <span className="text-zinc-500 font-mono text-[11px]">
+                    <span className="text-zinc-400 font-mono text-xs">
                       #{scan.ticketNumber}
                     </span>
                   </div>
-                  <span className="text-zinc-500 text-xs font-mono">{scan.time}</span>
+                  <span className="text-zinc-400 text-xs font-mono">{scan.time}</span>
                 </div>
               ))}
             </div>

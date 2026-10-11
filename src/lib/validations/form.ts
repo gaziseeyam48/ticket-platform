@@ -128,10 +128,10 @@ export function validateSubmissionData(fields: FormField[], submission: Record<s
           break;
         }
         case "phone": {
-          const phoneRegex = /^[+0-9\s\-()]{6,25}$/;
           const str = typeof value === "string" ? value.trim() : "";
-          if (!str || !phoneRegex.test(str)) {
-            errors[field.id] = "Please provide a valid phone number";
+          const digits = str.replace(/\D/g, "");
+          if (digits.length !== 11) {
+            errors[field.id] = "Phone number must be 11 digits";
           }
           break;
         }

@@ -41,17 +41,17 @@ export default async function EventsListPage() {
     <div className="w-full space-y-6">
       {/* Title & Action Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200/80">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+        <div className="space-y-1.5">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 leading-tight">
             Events Directory
           </h1>
-          <p className="text-sm text-zinc-500 mt-1">
+          <p className="text-sm sm:text-base text-zinc-600">
             Configure registration forms, monitor capacities, and control entrance turnstiles.
           </p>
         </div>
 
         <Link href="/org/events/new">
-          <Button size="sm" className="font-semibold text-xs gap-1.5 shadow-xs h-9">
+          <Button size="sm" className="font-semibold text-sm gap-2 shadow-xs h-9 sm:h-10 px-3.5">
             <Plus className="h-4 w-4" />
             Create Event
           </Button>
@@ -64,14 +64,14 @@ export default async function EventsListPage() {
             <Calendar className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-semibold text-zinc-900">No events found</h3>
-            <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+            <h3 className="text-base font-semibold text-zinc-900">No events found</h3>
+            <p className="text-sm text-zinc-500 max-w-sm mx-auto leading-relaxed">
               Get started by creating your first event to configure passes and open registrations.
             </p>
           </div>
           <Link href="/org/events/new">
-            <Button size="sm" className="font-semibold text-xs">
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
+            <Button size="sm" className="font-semibold text-sm h-9 px-4">
+              <Plus className="mr-1.5 h-4 w-4" />
               Create Event
             </Button>
           </Link>
@@ -94,32 +94,32 @@ export default async function EventsListPage() {
 
                 {/* Event Name & Slug */}
                 <div>
-                  <h3 className="text-base font-semibold text-zinc-900 group-hover:text-black line-clamp-1">
+                  <h3 className="text-base sm:text-lg font-semibold text-zinc-900 group-hover:text-black line-clamp-1">
                     {event.name}
                   </h3>
-                  <p className="text-xs font-mono text-zinc-400 mt-0.5">
+                  <p className="text-xs font-mono text-zinc-500 mt-0.5">
                     /{event.slug}
                   </p>
                 </div>
 
                 {/* Description */}
-                <p className="text-xs text-zinc-500 line-clamp-2 leading-relaxed">
+                <p className="text-sm text-zinc-600 line-clamp-2 leading-relaxed">
                   {event.description || "No description provided."}
                 </p>
 
                 {/* Schedule & Venue Meta */}
-                <div className="space-y-1.5 pt-2 border-t border-zinc-100 text-xs text-zinc-600">
+                <div className="space-y-1.5 pt-2 border-t border-zinc-100 text-sm text-zinc-600">
                   {event.date_start ? (
-                    <div className="flex items-center gap-1.5 text-xs">
+                    <div className="flex items-center gap-1.5 text-sm text-zinc-700">
                       <Clock className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
                       <span>{format(new Date(event.date_start), "MMM d, yyyy h:mm a")}</span>
                     </div>
                   ) : (
-                    <span className="text-zinc-400 italic text-xs">Unscheduled</span>
+                    <span className="text-zinc-400 italic text-sm">Unscheduled</span>
                   )}
 
                   {event.location && (
-                    <div className="flex items-center gap-1.5 text-xs text-zinc-500 truncate">
+                    <div className="flex items-center gap-1.5 text-[13px] text-zinc-500 truncate">
                       <MapPin className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
                       <span className="truncate">{event.location}</span>
                     </div>
@@ -132,7 +132,7 @@ export default async function EventsListPage() {
                 <div className="flex items-center gap-1.5">
                   {event.status === "LIVE" && (
                     <Link href={`/verify?event_id=${event.id}`}>
-                      <Button variant="outline" size="sm" className="h-8 px-2 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200">
+                      <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200">
                         <QrCode className="h-3.5 w-3.5 mr-1 text-emerald-600" />
                         Gate
                       </Button>
@@ -140,7 +140,7 @@ export default async function EventsListPage() {
                   )}
 
                   <Link href={`/org/events/${event.id}/form`}>
-                    <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-zinc-500 hover:text-zinc-900">
+                    <Button variant="ghost" size="sm" className="h-8 px-2 text-xs font-medium text-zinc-600 hover:text-zinc-900">
                       <FileEdit className="h-3.5 w-3.5 mr-1" />
                       Form
                     </Button>
@@ -148,7 +148,7 @@ export default async function EventsListPage() {
 
                   {(event.status === "PUBLISHED" || event.status === "LIVE") && (
                     <Link href={`/events/${event.slug}`} target="_blank">
-                      <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-zinc-500 hover:text-zinc-900">
+                      <Button variant="ghost" size="sm" className="h-8 px-2 text-xs font-medium text-zinc-600 hover:text-zinc-900">
                         <ExternalLink className="h-3.5 w-3.5 mr-1" />
                         Page
                       </Button>

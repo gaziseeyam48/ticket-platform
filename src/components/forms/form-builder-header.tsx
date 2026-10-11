@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   ChevronRight,
   Eye,
+  EyeOff,
   Check,
   AlertCircle,
   RotateCcw,
@@ -22,6 +23,8 @@ interface FormBuilderHeaderProps {
   saveErrorMessage?: string;
   onSave: () => void;
   onOpenPreview: () => void;
+  isPreviewVisible?: boolean;
+  onTogglePreview?: () => void;
 }
 
 export function FormBuilderHeader({
@@ -33,18 +36,20 @@ export function FormBuilderHeader({
   saveErrorMessage,
   onSave,
   onOpenPreview,
+  isPreviewVisible,
+  onTogglePreview,
 }: FormBuilderHeaderProps) {
   return (
     <header className="space-y-3 pb-5 border-b border-zinc-200">
       {/* Breadcrumb Navigation */}
-      <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 text-xs text-zinc-500">
+      <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 text-sm font-medium text-zinc-500">
         <Link
           href="/org/events"
           className="hover:text-zinc-900 transition-colors focus-visible:outline-none focus-visible:underline"
         >
           Events
         </Link>
-        <ChevronRight className="h-3 w-3 text-zinc-400 shrink-0" aria-hidden="true" />
+        <ChevronRight className="h-3.5 w-3.5 text-zinc-400 shrink-0" aria-hidden="true" />
         <Link
           href={`/org/events/${eventId}`}
           className="hover:text-zinc-900 transition-colors truncate max-w-[200px] focus-visible:outline-none focus-visible:underline"
@@ -52,19 +57,19 @@ export function FormBuilderHeader({
         >
           {eventName}
         </Link>
-        <ChevronRight className="h-3 w-3 text-zinc-400 shrink-0" aria-hidden="true" />
-        <span className="font-medium text-zinc-900" aria-current="page">
+        <ChevronRight className="h-3.5 w-3.5 text-zinc-400 shrink-0" aria-hidden="true" />
+        <span className="font-semibold text-zinc-900" aria-current="page">
           Registration Form
         </span>
       </nav>
 
       {/* Main Title Bar & Action Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 leading-tight">
             Registration form
           </h1>
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-sm text-zinc-600">
             Choose what information to collect from attendees.
           </p>
         </div>
@@ -106,17 +111,26 @@ export function FormBuilderHeader({
             )}
           </div>
 
-          {/* Secondary Action: Preview Public Form */}
+          {/* Secondary Action: Toggle Live Preview (Optional) */}
           <Button
             type="button"
-            variant="outline"
+            variant={isPreviewVisible ? "secondary" : "outline"}
             size="sm"
-            onClick={onOpenPreview}
-            className="gap-1.5 text-xs h-9 px-3"
-            aria-label="Preview public form"
+            onClick={onTogglePreview || onOpenPreview}
+            className="gap-2 text-sm font-medium h-9 sm:h-10 px-3.5 shadow-2xs"
+            aria-label={isPreviewVisible ? "Hide live preview" : "Show live preview"}
           >
-            <Eye className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
-            Preview public form
+            {isPreviewVisible ? (
+              <>
+                <EyeOff className="h-4 w-4 text-zinc-500" aria-hidden="true" />
+                Hide preview
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4 text-zinc-500" aria-hidden="true" />
+                Live preview
+              </>
+            )}
           </Button>
 
           {/* Primary Action: Save changes (or Retry on failure) */}
@@ -126,9 +140,9 @@ export function FormBuilderHeader({
               variant="danger"
               size="sm"
               onClick={onSave}
-              className="gap-1.5 text-xs h-9 px-3"
+              className="gap-2 text-sm font-medium h-9 sm:h-10 px-3.5"
             >
-              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
               Retry Save
             </Button>
           ) : (
@@ -138,7 +152,7 @@ export function FormBuilderHeader({
               disabled={saveStatus === "saving" || !hasUnsavedChanges}
               onClick={onSave}
               isLoading={saveStatus === "saving"}
-              className="text-xs font-semibold h-9 px-4"
+              className="text-sm font-semibold h-9 sm:h-10 px-4 shadow-xs"
               aria-label="Save changes to registration form"
             >
               Save changes
