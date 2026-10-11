@@ -1,5 +1,4 @@
 import { connection } from "next/server";
-import { createServerDbClient } from "@/lib/db/server";
 import { getAdminClient } from "@/lib/db/admin";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -16,12 +15,10 @@ import {
   Clock,
   QrCode,
   FileEdit,
-  ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
-import { getEvents } from "@/app/actions/event.actions";
 import { format } from "date-fns";
-import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
+import { getCachedSession } from "@/lib/db/cached-session";
 
 export const metadata = {
   title: "Dashboard — Ticket Platform",
@@ -32,61 +29,52 @@ export const instant = false;
 
 export default async function DashboardPage() {
   await connection();
-  const supabase = await createServerDbClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  if (!user) return null;
+  // Reuses the deduplicated session from OrgLayout — zero extra DB call
+  const { user, orgInfo } = await getCachedSession();
 
-  const orgInfo = await getOrCreateUserOrganization(user.id, user.email);
-  if (!orgInfo) return null;
+  if (!user || !orgInfo) return null;
 
-  const events = await getEvents(orgInfo.organizationId);
-  const eventIds = events.map((e: any) => e.id);
+  const adminDb = getAdminClient();
+
+  // Fetch events and kick off all count queries in parallel
+  const [eventsResult, regCountResult, pendingCountResult, ticketCountResult, checkInCountResult] =
+    await Promise.all([
+      adminDb
+        .from("events")
+        .select("id, name, slug, status, event_type, date_start, location")
+        .eq("organization_id", orgInfo.organizationId)
+        .order("created_at", { ascending: false }) as any,
+      // These counts run in parallel — they'll resolve together
+      adminDb
+        .from("registrations")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", orgInfo.organizationId),
+      adminDb
+        .from("registrations")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", orgInfo.organizationId)
+        .eq("status", "PENDING_PAYMENT"),
+      adminDb
+        .from("tickets")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", orgInfo.organizationId),
+      adminDb
+        .from("tickets")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", orgInfo.organizationId)
+        .eq("status", "CHECKED_IN"),
+    ]);
+
+  const events: any[] = eventsResult.data || [];
+  const totalRegistrations = regCountResult.count || 0;
+  const pendingPaymentsCount = pendingCountResult.count || 0;
+  const ticketsIssuedCount = ticketCountResult.count || 0;
+  const checkedInCount = checkInCountResult.count || 0;
 
   const liveEvents = events.filter((e: any) => e.status === "LIVE");
   const publishedEvents = events.filter((e: any) => e.status === "PUBLISHED");
   const activeEventsCount = liveEvents.length + publishedEvents.length;
-
-  let totalRegistrations = 0;
-  let pendingPaymentsCount = 0;
-  let ticketsIssuedCount = 0;
-  let checkedInCount = 0;
-
-  if (eventIds.length > 0) {
-    const adminDb = getAdminClient();
-
-    // Query registrations count
-    const { count: regCount } = await adminDb
-      .from("registrations")
-      .select("id", { count: "exact", head: true })
-      .in("event_id", eventIds);
-    totalRegistrations = regCount || 0;
-
-    // Query pending payments count
-    const { count: pendingCount } = await adminDb
-      .from("registrations")
-      .select("id", { count: "exact", head: true })
-      .in("event_id", eventIds)
-      .eq("status", "PENDING_PAYMENT");
-    pendingPaymentsCount = pendingCount || 0;
-
-    // Query tickets issued count
-    const { count: ticketCount } = await adminDb
-      .from("tickets")
-      .select("id", { count: "exact", head: true })
-      .in("event_id", eventIds);
-    ticketsIssuedCount = ticketCount || 0;
-
-    // Query checked in count
-    const { count: checkInCount } = await adminDb
-      .from("tickets")
-      .select("id", { count: "exact", head: true })
-      .in("event_id", eventIds)
-      .eq("status", "CHECKED_IN");
-    checkedInCount = checkInCount || 0;
-  }
 
   // Determine intelligent verify button route
   const verifyTargetHref =
@@ -233,7 +221,7 @@ export default async function DashboardPage() {
                     <th className="py-3 px-4">Event name</th>
                     <th className="py-3 px-4">Status</th>
                     <th className="py-3 px-4">Pass type</th>
-                    <th className="py-3 px-4">Schedule & venue</th>
+                    <th className="py-3 px-4">Schedule &amp; venue</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>

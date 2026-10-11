@@ -1,7 +1,6 @@
 import { connection } from "next/server";
-import { createServerDbClient } from "@/lib/db/server";
-import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
-import { Building2, UserCheck, Mail, ShieldCheck, Key } from "lucide-react";
+import { getCachedSession } from "@/lib/db/cached-session";
+import { Building2, UserCheck, Mail, ShieldCheck } from "lucide-react";
 
 export const metadata = {
   title: "Organization Settings — Ticket Platform",
@@ -12,15 +11,10 @@ export const instant = false;
 
 export default async function SettingsPage() {
   await connection();
-  const supabase = await createServerDbClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  if (!user) return null;
-
-  const orgInfo = await getOrCreateUserOrganization(user.id, user.email);
-  if (!orgInfo) return null;
+  // Reuses deduplicated session from OrgLayout — zero extra DB call
+  const { user, orgInfo } = await getCachedSession();
+  if (!user || !orgInfo) return null;
 
   return (
     <div className="max-w-3xl space-y-6 mx-auto">

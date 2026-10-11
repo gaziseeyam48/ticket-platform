@@ -1,10 +1,9 @@
 import { connection } from "next/server";
-import { getEventById } from "@/app/actions/event.actions";
-import { getRegistrationForm } from "@/app/actions/form.actions";
-import { createServerDbClient } from "@/lib/db/server";
 import { getAdminClient } from "@/lib/db/admin";
 import { redirect } from "next/navigation";
-import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
+import { AppError } from "@/lib/errors/app-error";
+import { ERROR_CODES } from "@/lib/errors/error-codes";
+import { getCachedSession } from "@/lib/db/cached-session";
 import { EventWorkspace } from "@/components/events/event-workspace";
 
 export const metadata = {
@@ -21,84 +20,78 @@ export default async function EventDetailsPage(props: {
   const params = await props.params;
   const { id } = params;
 
-  const supabase = await createServerDbClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Reuses deduplicated session from OrgLayout — zero extra DB call
+  const { user, orgInfo } = await getCachedSession();
+  if (!user) redirect("/login");
+  if (!orgInfo) redirect("/login");
 
-  if (!user) {
-    redirect("/login");
-  }
+  const adminDb = getAdminClient();
 
-  const orgInfo = await getOrCreateUserOrganization(user.id, user.email);
-  if (!orgInfo) {
-    redirect("/login");
-  }
+  // Fetch event + form in parallel — no need to wait for event before fetching form
+  const [eventResult, formResult] = await Promise.all([
+    adminDb.from("events").select("*").eq("id", id).single() as any,
+    adminDb.from("registration_forms").select("*").eq("event_id", id).maybeSingle() as any,
+  ]);
 
-  const event = await getEventById(id);
+  const event = eventResult.data;
+  if (!event) redirect("/org/events");
 
   // Security check: event must belong to user's org
   if (event.organization_id !== orgInfo.organizationId) {
     redirect("/org");
   }
 
-  const form = await getRegistrationForm(event.id);
-  const adminDb = getAdminClient();
+  const form = formResult.data;
 
-  // 1. Fetch exact metric counts from database (fixing previous 20-cap defect)
+  // Fetch all metric counts + data lists in one parallel batch
   const [
     { count: totalRegsCount },
     { count: totalTicketsCount },
     { count: checkedInCount },
+    { count: pendingPaymentsRaw },
+    { data: registrations },
+    { data: tickets },
+    { data: verifiers },
   ] = await Promise.all([
     adminDb
       .from("registrations")
       .select("id", { count: "exact", head: true })
-      .eq("event_id", event.id),
+      .eq("event_id", id),
     adminDb
       .from("tickets")
       .select("id", { count: "exact", head: true })
-      .eq("event_id", event.id),
+      .eq("event_id", id),
     adminDb
       .from("tickets")
       .select("id", { count: "exact", head: true })
-      .eq("event_id", event.id)
+      .eq("event_id", id)
       .eq("status", "CHECKED_IN"),
-  ]);
-
-  // Fetch pending payments count if paid event
-  let pendingPaymentsCount = 0;
-  if (event.event_type === "PAID") {
-    const { count } = await adminDb
+    // Always include this query — it returns 0 for free events (avoids conditional waterfall)
+    adminDb
       .from("registrations")
       .select("id", { count: "exact", head: true })
-      .eq("event_id", event.id)
-      .in("payment_status", ["PENDING", "SUBMITTED"]);
-    pendingPaymentsCount = count || 0;
-  }
+      .eq("event_id", id)
+      .in("payment_status", ["PENDING", "SUBMITTED"]),
+    adminDb
+      .from("registrations")
+      .select("id, participant_name, email, status, created_at, form_data, payment_status, transaction_id")
+      .eq("event_id", id)
+      .order("created_at", { ascending: false })
+      .limit(100) as any,
+    adminDb
+      .from("tickets")
+      .select("id, ticket_number, status, participant_name, participant_email, issued_at, checked_in_at, revoked_at")
+      .eq("event_id", id)
+      .order("issued_at", { ascending: false })
+      .limit(100) as any,
+    adminDb
+      .from("event_verifiers")
+      .select("id, name, email, status, expires_at, last_accessed_at, created_at")
+      .eq("event_id", id)
+      .order("created_at", { ascending: false }) as any,
+  ]);
 
-  // 2. Query registrations for this event
-  const { data: registrations } = await (adminDb
-    .from("registrations")
-    .select("id, participant_name, email, status, created_at, form_data, payment_status, transaction_id")
-    .eq("event_id", event.id)
-    .order("created_at", { ascending: false })
-    .limit(100) as any);
-
-  // 3. Query tickets for this event
-  const { data: tickets } = await (adminDb
-    .from("tickets")
-    .select("id, ticket_number, status, participant_name, participant_email, issued_at, checked_in_at, revoked_at")
-    .eq("event_id", event.id)
-    .order("issued_at", { ascending: false })
-    .limit(100) as any);
-
-  // 4. Query verifiers for this event
-  const { data: verifiers } = await (adminDb
-    .from("event_verifiers")
-    .select("id, name, email, status, expires_at, last_accessed_at, created_at")
-    .eq("event_id", event.id)
-    .order("created_at", { ascending: false }) as any);
+  const pendingPaymentsCount = event.event_type === "PAID" ? (pendingPaymentsRaw || 0) : 0;
 
   return (
     <EventWorkspace

@@ -1,39 +1,39 @@
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import { connection } from "next/server";
-import { createServerDbClient } from "@/lib/db/server";
 import { redirect } from "next/navigation";
-import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
 import { OrgShell } from "@/components/layout/org-shell";
 import { getAdminClient } from "@/lib/db/admin";
+import { getCachedSession } from "@/lib/db/cached-session";
 
 export const instant = false;
 
+async function ActiveEventsCount({ organizationId }: { organizationId: string }) {
+  const adminDb = getAdminClient();
+  const { count } = await adminDb
+    .from("events")
+    .select("id", { count: "exact", head: true })
+    .eq("organization_id", organizationId)
+    .in("status", ["PUBLISHED", "LIVE"]);
+  return count || 0;
+}
+
 export default async function OrgLayout({ children }: { children: ReactNode }) {
   await connection();
-  const supabase = await createServerDbClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+
+  const { user, orgInfo } = await getCachedSession();
 
   if (!user) {
     redirect("/login");
   }
 
-  // Fetch or auto-provision organization for this user
-  const orgInfo = await getOrCreateUserOrganization(user.id, user.email);
-  const organization = orgInfo?.organization || null;
-
-  // Count active events for badge
-  let activeEventsCount = 0;
-  if (orgInfo?.organizationId) {
-    const adminDb = getAdminClient();
-    const { count } = await adminDb
-      .from("events")
-      .select("id", { count: "exact", head: true })
-      .eq("organization_id", orgInfo.organizationId)
-      .in("status", ["PUBLISHED", "LIVE"]);
-    activeEventsCount = count || 0;
+  if (!orgInfo) {
+    redirect("/login");
   }
+
+  const organization = orgInfo.organization;
+
+  // Fetch active events count in parallel (non-blocking for layout render)
+  const activeEventsCount = await ActiveEventsCount({ organizationId: orgInfo.organizationId });
 
   return (
     <OrgShell

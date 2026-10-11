@@ -1,5 +1,4 @@
 import { connection } from "next/server";
-import { createServerDbClient } from "@/lib/db/server";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import {
@@ -13,9 +12,9 @@ import {
   QrCode,
 } from "lucide-react";
 import Link from "next/link";
-import { getEvents } from "@/app/actions/event.actions";
 import { format } from "date-fns";
-import { getOrCreateUserOrganization } from "@/lib/db/org-helper";
+import { getCachedSession } from "@/lib/db/cached-session";
+import { getAdminClient } from "@/lib/db/admin";
 
 export const metadata = {
   title: "Events — Ticket Platform",
@@ -26,17 +25,17 @@ export const instant = false;
 
 export default async function EventsListPage() {
   await connection();
-  const supabase = await createServerDbClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  if (!user) return null;
+  // Reuses deduplicated session from OrgLayout — zero extra DB call
+  const { user, orgInfo } = await getCachedSession();
+  if (!user || !orgInfo) return null;
 
-  const orgInfo = await getOrCreateUserOrganization(user.id, user.email);
-  if (!orgInfo) return null;
-
-  const events = await getEvents(orgInfo.organizationId);
+  const adminDb = getAdminClient();
+  const { data: events } = await (adminDb
+    .from("events")
+    .select("id, name, slug, status, event_type, date_start, location, description")
+    .eq("organization_id", orgInfo.organizationId)
+    .order("created_at", { ascending: false }) as any);
 
   return (
     <div className="w-full space-y-6">
