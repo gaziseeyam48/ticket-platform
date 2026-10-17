@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/select";
 import { createEvent, updateEvent } from "@/app/actions/event.actions";
 import { createEventSchema } from "@/lib/validations/event";
-import { CreditCard, Info } from "lucide-react";
+import { CreditCard, Info, HelpCircle } from "lucide-react";
 
 interface EventFormProps {
   organizationId: string;
@@ -74,7 +75,11 @@ export function EventForm({ organizationId, eventId, initialData }: EventFormPro
         router.push(`/org/events/${eventId}`);
       } else {
         const event = await createEvent(organizationId, formData);
-        router.push(`/org/events/${event.id}`);
+        if (event.isOnboardingEligible) {
+          router.push(`/org/events/${event.id}/form?onboarding=1`);
+        } else {
+          router.push(`/org/events/${event.id}`);
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -118,7 +123,23 @@ export function EventForm({ organizationId, eventId, initialData }: EventFormPro
           <Input
             id="slug"
             name="slug"
-            label="Event URL Slug"
+            label={
+              <span className="inline-flex items-center gap-1.5">
+                <span>Event Link</span>
+                <span
+                  className="relative group/tooltip inline-flex items-center cursor-help"
+                  title="The web link attendees use to view and register for your event (e.g. /events/design-summit)"
+                >
+                  <HelpCircle className="h-3.5 w-3.5 text-[#667085] group-hover/tooltip:text-[#171923] transition-colors" />
+                  <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover/tooltip:flex flex-col items-center z-50">
+                    <span className="bg-[#171923] text-white text-[11px] font-normal px-2.5 py-1 rounded-lg whitespace-nowrap shadow-md">
+                      The web link attendees use to visit your event page (e.g. /events/your-link)
+                    </span>
+                    <span className="w-1.5 h-1.5 bg-[#171923] rotate-45 -mt-0.5" />
+                  </span>
+                </span>
+              </span>
+            }
             defaultValue={initialData?.slug || ""}
             placeholder="e.g. design-summit-2026"
             error={errors["slug"]}
@@ -127,7 +148,7 @@ export function EventForm({ organizationId, eventId, initialData }: EventFormPro
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="description" className="block text-xs font-medium text-zinc-700">
+          <label htmlFor="description" className="block text-xs sm:text-[13px] font-semibold text-[#171923] tracking-tight">
             Description
           </label>
           <textarea
@@ -135,32 +156,27 @@ export function EventForm({ organizationId, eventId, initialData }: EventFormPro
             name="description"
             rows={3}
             defaultValue={initialData?.description || ""}
-            className="flex w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:border-transparent transition-colors shadow-2xs"
+            className="flex w-full rounded-xl border border-[#DCE1E8] bg-[#FBFBFC] px-3.5 py-2.5 text-sm font-medium text-[#171923] placeholder:text-[#9AA4B2] placeholder:font-normal shadow-[0_1px_2px_rgba(23,25,35,0.04),inset_0_1px_1px_rgba(255,255,255,0.7)] hover:border-[#B4BDC9] hover:bg-white focus-visible:outline-none focus-visible:border-[#171923] focus-visible:ring-3 focus-visible:ring-[#171923]/10 focus-visible:bg-white transition-all duration-150"
             placeholder="Brief summary of the gathering..."
           />
           {errors["description"] && (
-            <p className="text-xs text-red-600 font-medium">{errors["description"]}</p>
+            <p className="text-xs text-[#C2415D] font-medium">{errors["description"]}</p>
           )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label htmlFor="event_type" className="block text-xs font-medium text-zinc-700">
-              Admission Model
-            </label>
-            <select
+          <div>
+            <NativeSelect
               id="event_type"
               name="event_type"
+              label="Admission Model"
               value={eventType}
               onChange={(e) => setEventType(e.target.value as "FREE" | "PAID")}
-              className="flex h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:border-transparent transition-colors shadow-2xs"
+              error={errors["event_type"]}
             >
-              <option value="FREE">Free Admission</option>
-              <option value="PAID">Paid Ticket (Manual Settlement)</option>
-            </select>
-            {errors["event_type"] && (
-              <p className="text-xs text-red-600 font-medium">{errors["event_type"]}</p>
-            )}
+              <option value="FREE">Free</option>
+              <option value="PAID">Paid</option>
+            </NativeSelect>
           </div>
 
           <Input
@@ -195,48 +211,48 @@ export function EventForm({ organizationId, eventId, initialData }: EventFormPro
 
       {/* Paid Event Banking & Settlement Configuration */}
       {eventType === "PAID" && (
-        <div className="pt-4 border-t border-zinc-200 space-y-4">
+        <div className="pt-4 border-t border-[#DCE1E8] space-y-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
               <CreditCard className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-zinc-900">
+              <h3 className="text-sm font-semibold text-[#171923]">
                 Payment & Banking Details
               </h3>
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-[#525B6B]">
                 These instructions will be displayed to attendees when submitting their registration.
               </p>
             </div>
           </div>
 
           {errors["payment_config"] && (
-            <p className="text-xs text-red-600 font-medium">{errors["payment_config"]}</p>
+            <p className="text-xs text-[#C2415D] font-medium">{errors["payment_config"]}</p>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <label htmlFor="payment_method" className="block text-xs font-medium text-zinc-700">
-                Payment Channel / Method <span className="text-red-500">*</span>
+              <label htmlFor="payment_method" className="block text-xs sm:text-[13px] font-semibold text-[#171923] tracking-tight">
+                Payment Channel / Method <span className="text-[#C2415D]">*</span>
               </label>
               <input
                 id="payment_method"
                 name="payment_method"
                 defaultValue={initialPayment.payment_method || "bKash / Bank Transfer"}
                 placeholder="e.g. bKash, Nagad, Wire"
-                className="flex h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 transition-colors shadow-2xs"
+                className="flex h-10 w-full rounded-xl border border-[#DCE1E8] bg-[#FBFBFC] px-3.5 py-2 text-sm font-medium text-[#171923] placeholder:text-[#9AA4B2] shadow-[0_1px_2px_rgba(23,25,35,0.04),inset_0_1px_1px_rgba(255,255,255,0.7)] hover:border-[#B4BDC9] hover:bg-white focus-visible:outline-none focus-visible:border-[#171923] focus-visible:ring-3 focus-visible:ring-[#171923]/10 focus-visible:bg-white transition-all duration-150"
                 required
               />
               {errors["payment_config.payment_method"] && (
-                <p className="text-xs text-red-600 font-medium">
+                <p className="text-xs text-[#C2415D] font-medium">
                   {errors["payment_config.payment_method"]}
                 </p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="amount" className="block text-xs font-medium text-zinc-700">
-                Ticket Price / Fee <span className="text-red-500">*</span>
+              <label htmlFor="amount" className="block text-xs sm:text-[13px] font-semibold text-[#171923] tracking-tight">
+                Ticket Price / Fee <span className="text-[#C2415D]">*</span>
               </label>
               <input
                 id="amount"
@@ -244,28 +260,28 @@ export function EventForm({ organizationId, eventId, initialData }: EventFormPro
                 type="text"
                 defaultValue={initialPayment.amount || "500"}
                 placeholder="e.g. 500"
-                className="flex h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 transition-colors shadow-2xs"
+                className="flex h-10 w-full rounded-xl border border-[#DCE1E8] bg-[#FBFBFC] px-3.5 py-2 text-sm font-medium text-[#171923] placeholder:text-[#9AA4B2] shadow-[0_1px_2px_rgba(23,25,35,0.04),inset_0_1px_1px_rgba(255,255,255,0.7)] hover:border-[#B4BDC9] hover:bg-white focus-visible:outline-none focus-visible:border-[#171923] focus-visible:ring-3 focus-visible:ring-[#171923]/10 focus-visible:bg-white transition-all duration-150"
                 required
               />
               {errors["payment_config.amount"] && (
-                <p className="text-xs text-red-600 font-medium">{errors["payment_config.amount"]}</p>
+                <p className="text-xs text-[#C2415D] font-medium">{errors["payment_config.amount"]}</p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="currency" className="block text-xs font-medium text-zinc-700">
-                Currency <span className="text-red-500">*</span>
+              <label htmlFor="currency" className="block text-xs sm:text-[13px] font-semibold text-[#171923] tracking-tight">
+                Currency <span className="text-[#C2415D]">*</span>
               </label>
               <input
                 id="currency"
                 name="currency"
                 defaultValue={initialPayment.currency || "BDT"}
                 placeholder="e.g. BDT or USD"
-                className="flex h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 transition-colors shadow-2xs uppercase"
+                className="flex h-10 w-full rounded-xl border border-[#DCE1E8] bg-[#FBFBFC] px-3.5 py-2 text-sm font-medium text-[#171923] placeholder:text-[#9AA4B2] shadow-[0_1px_2px_rgba(23,25,35,0.04),inset_0_1px_1px_rgba(255,255,255,0.7)] hover:border-[#B4BDC9] hover:bg-white focus-visible:outline-none focus-visible:border-[#171923] focus-visible:ring-3 focus-visible:ring-[#171923]/10 focus-visible:bg-white transition-all duration-150 uppercase"
                 required
               />
               {errors["payment_config.currency"] && (
-                <p className="text-xs text-red-600 font-medium">
+                <p className="text-xs text-[#C2415D] font-medium">
                   {errors["payment_config.currency"]}
                 </p>
               )}
@@ -274,38 +290,38 @@ export function EventForm({ organizationId, eventId, initialData }: EventFormPro
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label htmlFor="account_name" className="block text-xs font-medium text-zinc-700">
-                Account Holder / Organization Name <span className="text-red-500">*</span>
+              <label htmlFor="account_name" className="block text-xs sm:text-[13px] font-semibold text-[#171923] tracking-tight">
+                Account Holder / Organization Name <span className="text-[#C2415D]">*</span>
               </label>
               <input
                 id="account_name"
                 name="account_name"
                 defaultValue={initialPayment.account_name || ""}
                 placeholder="e.g. Acme Foundation"
-                className="flex h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 transition-colors shadow-2xs"
+                className="flex h-10 w-full rounded-xl border border-[#DCE1E8] bg-[#FBFBFC] px-3.5 py-2 text-sm font-medium text-[#171923] placeholder:text-[#9AA4B2] shadow-[0_1px_2px_rgba(23,25,35,0.04),inset_0_1px_1px_rgba(255,255,255,0.7)] hover:border-[#B4BDC9] hover:bg-white focus-visible:outline-none focus-visible:border-[#171923] focus-visible:ring-3 focus-visible:ring-[#171923]/10 focus-visible:bg-white transition-all duration-150"
                 required
               />
               {errors["payment_config.account_name"] && (
-                <p className="text-xs text-red-600 font-medium">
+                <p className="text-xs text-[#C2415D] font-medium">
                   {errors["payment_config.account_name"]}
                 </p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="account_number" className="block text-xs font-medium text-zinc-700">
-                Account / Wallet Number <span className="text-red-500">*</span>
+              <label htmlFor="account_number" className="block text-xs sm:text-[13px] font-semibold text-[#171923] tracking-tight">
+                Account / Wallet Number <span className="text-[#C2415D]">*</span>
               </label>
               <input
                 id="account_number"
                 name="account_number"
                 defaultValue={initialPayment.account_number || ""}
                 placeholder="e.g. 01700-000000 (Merchant/Personal)"
-                className="flex h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-mono text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 transition-colors shadow-2xs"
+                className="flex h-10 w-full rounded-xl border border-[#DCE1E8] bg-[#FBFBFC] px-3.5 py-2 text-sm font-mono font-medium text-[#171923] placeholder:text-[#9AA4B2] shadow-[0_1px_2px_rgba(23,25,35,0.04),inset_0_1px_1px_rgba(255,255,255,0.7)] hover:border-[#B4BDC9] hover:bg-white focus-visible:outline-none focus-visible:border-[#171923] focus-visible:ring-3 focus-visible:ring-[#171923]/10 focus-visible:bg-white transition-all duration-150"
                 required
               />
               {errors["payment_config.account_number"] && (
-                <p className="text-xs text-red-600 font-medium">
+                <p className="text-xs text-[#C2415D] font-medium">
                   {errors["payment_config.account_number"]}
                 </p>
               )}
@@ -313,7 +329,7 @@ export function EventForm({ organizationId, eventId, initialData }: EventFormPro
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="instructions" className="block text-xs font-medium text-zinc-700">
+            <label htmlFor="instructions" className="block text-xs sm:text-[13px] font-semibold text-[#171923] tracking-tight">
               Step-by-Step Payment Instructions
             </label>
             <textarea
@@ -324,13 +340,13 @@ export function EventForm({ organizationId, eventId, initialData }: EventFormPro
                 initialPayment.instructions ||
                 "Please send money via Send Money / Make Payment to the number above. Include your name in reference, and enter the Transaction ID (TrxID) below upon completion."
               }
-              className="flex w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 transition-colors shadow-2xs"
+              className="flex w-full rounded-xl border border-[#DCE1E8] bg-[#FBFBFC] px-3.5 py-2.5 text-sm font-medium text-[#171923] placeholder:text-[#9AA4B2] shadow-[0_1px_2px_rgba(23,25,35,0.04),inset_0_1px_1px_rgba(255,255,255,0.7)] hover:border-[#B4BDC9] hover:bg-white focus-visible:outline-none focus-visible:border-[#171923] focus-visible:ring-3 focus-visible:ring-[#171923]/10 focus-visible:bg-white transition-all duration-150"
               placeholder="Instructions shown to attendees..."
             />
           </div>
 
-          <div className="p-3 rounded-lg bg-zinc-50 border border-zinc-200/80 flex items-start gap-2 text-xs text-zinc-600">
-            <Info className="h-4 w-4 text-zinc-400 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#DCE1E8] flex items-start gap-2.5 text-xs text-[#525B6B]">
+            <Info className="h-4 w-4 text-[#667085] shrink-0 mt-0.5" />
             <span>
               Attendees will receive these details immediately after submitting the registration form and will be prompted to enter their payment reference/transaction ID. You can approve or reject their submission from the event workspace.
             </span>

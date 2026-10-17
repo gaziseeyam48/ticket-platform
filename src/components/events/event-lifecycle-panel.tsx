@@ -104,16 +104,16 @@ export function EventLifecyclePanel({
           description:
             "This event is private. Attendee registration is closed. Configure your registration questions and publish when you are ready to accept guests.",
           alert: !hasConfiguredForm ? (
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/80 text-xs text-amber-800 flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="p-3 bg-[#FFFBEB] rounded-xl border border-[#FDE68A] text-xs text-[#92400E] flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-[#B96B08] shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold">Registration form required</p>
-                <p className="text-[11px] text-amber-700 mt-0.5">
+                <p className="font-semibold text-[#78350F]">Registration form required</p>
+                <p className="text-[11px] text-[#92400E] mt-0.5">
                   You must configure at least one question in the form builder before publishing.
                 </p>
                 <Link
                   href={`/org/events/${eventId}/form`}
-                  className="inline-flex items-center gap-1 font-semibold text-amber-900 underline mt-1.5 hover:text-amber-950"
+                  className="inline-flex items-center gap-1 font-semibold text-[#78350F] underline mt-1.5 hover:text-[#451A03]"
                 >
                   <FileText className="h-3 w-3" />
                   Configure Form Questions
@@ -164,23 +164,23 @@ export function EventLifecyclePanel({
   return (
     <div className="space-y-4">
       {error && (
-        <div className="p-3 text-xs font-medium rounded-xl bg-red-50 text-red-700 border border-red-200 flex items-start gap-2">
-          <AlertTriangle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+        <div className="p-3 text-xs font-medium rounded-xl bg-[#FFF1F2] text-[#9F1239] border border-[#FECDD3] flex items-start gap-2">
+          <AlertTriangle className="h-4 w-4 text-[#C2415D] shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Status Explanatory Card */}
-      <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/60 p-4 space-y-3">
+      <div className="rounded-xl border border-[#DCE1E8] bg-[#F1F4F8] p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-semibold text-zinc-900 flex items-center gap-1.5">
-            <Radio className="h-3.5 w-3.5 text-zinc-500" />
+          <span className="text-xs font-semibold text-[#171923] flex items-center gap-1.5">
+            <Radio className="h-3.5 w-3.5 text-[#525B6B]" />
             Current Lifecycle State
           </span>
           <StatusBadge status={currentStatus} />
         </div>
 
-        <p className="text-xs text-zinc-600 leading-relaxed">
+        <p className="text-xs text-[#525B6B] leading-relaxed">
           {statusInfo.description}
         </p>
 
@@ -206,9 +206,9 @@ export function EventLifecyclePanel({
         {currentStatus === "PUBLISHED" && (
           <div className="space-y-2">
             <Button
-              variant="primary"
+              variant="positive"
               size="sm"
-              className="w-full text-xs font-semibold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+              className="w-full text-xs font-semibold gap-1.5 shadow-xs"
               onClick={() => requestTransition("LIVE")}
               isLoading={isLoading}
             >
@@ -219,7 +219,7 @@ export function EventLifecyclePanel({
             <Button
               variant="outline"
               size="sm"
-              className="w-full text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200/80 shadow-2xs"
+              className="w-full text-xs font-medium text-[#C2415D] hover:text-[#9F1239] hover:bg-[#FFF1F2] border-[#FECDD3] shadow-2xs"
               onClick={() => requestTransition("CANCELLED")}
               disabled={isLoading}
             >
@@ -233,9 +233,9 @@ export function EventLifecyclePanel({
           <div className="space-y-2">
             <Link href={`/verify?event_id=${eventId}`} className="block">
               <Button
-                variant="primary"
+                variant="positive"
                 size="sm"
-                className="w-full text-xs font-semibold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                className="w-full text-xs font-semibold gap-1.5 shadow-xs"
               >
                 <QrCode className="h-3.5 w-3.5" />
                 Open Entrance Scanner
@@ -245,7 +245,7 @@ export function EventLifecyclePanel({
             <Button
               variant="outline"
               size="sm"
-              className="w-full text-xs font-medium text-amber-700 hover:text-amber-800 hover:bg-amber-50 border-amber-200/80 shadow-2xs"
+              className="w-full text-xs font-medium text-[#B96B08] hover:text-[#92400E] hover:bg-[#FFFBEB] border-[#FDE68A] shadow-2xs"
               onClick={() => requestTransition("ENDED")}
               disabled={isLoading}
             >
@@ -255,7 +255,7 @@ export function EventLifecyclePanel({
         )}
 
         {(currentStatus === "ENDED" || currentStatus === "CANCELLED") && (
-          <div className="p-3 rounded-lg bg-zinc-100 text-zinc-500 text-xs text-center font-medium">
+          <div className="p-3 rounded-lg bg-[#F1F4F8] text-[#525B6B] border border-[#DCE1E8] text-xs text-center font-medium">
             Terminal state reached · No further transitions
           </div>
         )}
@@ -269,16 +269,16 @@ export function EventLifecyclePanel({
         maxWidth="md"
       >
         <div className="space-y-4">
-          <p className="text-xs text-zinc-600 leading-relaxed">
+          <p className="text-xs text-[#525B6B] leading-relaxed">
             {confirmModal.message}
           </p>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#F1F4F8]">
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="text-xs font-medium"
+              className="text-xs font-medium text-[#525B6B] border-[#DCE1E8] hover:bg-[#F1F4F8]"
               onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
               disabled={isLoading}
             >

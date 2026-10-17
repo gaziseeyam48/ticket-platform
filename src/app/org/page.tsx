@@ -45,7 +45,6 @@ export default async function DashboardPage() {
         .select("id, name, slug, status, event_type, date_start, location")
         .eq("organization_id", orgInfo.organizationId)
         .order("created_at", { ascending: false }) as any,
-      // These counts run in parallel — they'll resolve together
       adminDb
         .from("registrations")
         .select("id", { count: "exact", head: true })
@@ -85,17 +84,17 @@ export default async function DashboardPage() {
   return (
     <div className="w-full space-y-8">
       {/* Welcome & Quick Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#DCE1E8]">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#171923] leading-tight">
               Overview
             </h1>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-700 border border-zinc-200">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#F1F4F8] text-[#171923] border border-[#DCE1E8]">
               {orgInfo.organization.name}
             </span>
           </div>
-          <p className="text-sm sm:text-base text-zinc-600 leading-normal">
+          <p className="text-sm sm:text-base text-[#525B6B] leading-normal">
             Monitor active registrations, issued passes, and entrance check-in activity.
           </p>
         </div>
@@ -107,10 +106,10 @@ export default async function DashboardPage() {
               size="sm"
               className="font-medium text-sm gap-2 shadow-2xs h-9 sm:h-10 px-3.5"
             >
-              <QrCode className="h-4 w-4 text-zinc-600" />
+              <QrCode className="h-4 w-4 text-[#525B6B]" />
               <span>Verify Entrance</span>
               {liveEvents.length > 0 && (
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse ml-0.5" />
+                <span className="h-2 w-2 rounded-full bg-[#087F5B] animate-pulse ml-0.5" />
               )}
             </Button>
           </Link>
@@ -123,50 +122,51 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* 4 Refined Operational Metric Cards */}
+      {/* 4 Refined Operational Metric Cards with Coordinated Accents */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           label="Active Events"
           value={activeEventsCount}
           icon={Calendar}
-          iconColorClass="text-zinc-900"
-          iconBgClass="bg-zinc-100"
+          accent="blue"
           trendText={`${activeEventsCount} of ${events.length} total`}
           trendType="neutral"
-          subtext="Events currently accepting registrations or live"
+          subtext="Accepting registrations or live gates"
+          href="/org/events"
         />
 
         <MetricCard
           label="Total Registrations"
           value={totalRegistrations}
           icon={Users}
-          iconColorClass="text-sky-700"
-          iconBgClass="bg-sky-50"
+          accent="blue"
           trendText={pendingPaymentsCount > 0 ? `${pendingPaymentsCount} pending` : "All confirmed"}
           trendType={pendingPaymentsCount > 0 ? "warning" : "positive"}
-          subtext="Total participant registrations across your events"
+          subtext="Participant registrations across all events"
         />
 
         <MetricCard
           label="Tickets Issued"
           value={ticketsIssuedCount}
           icon={Ticket}
-          iconColorClass="text-emerald-700"
-          iconBgClass="bg-emerald-50"
+          accent="violet"
           trendText="Delivered"
           trendType="positive"
-          subtext="Digital passes delivered to confirmed attendees"
+          subtext="Digital passes dispatched to inboxes"
         />
 
         <MetricCard
           label="Successful Check-ins"
           value={checkedInCount}
           icon={CheckCircle2}
-          iconColorClass="text-indigo-700"
-          iconBgClass="bg-indigo-50"
-          trendText={ticketsIssuedCount > 0 ? `${Math.round((checkedInCount / ticketsIssuedCount) * 100)}% attendance` : "0% attendance"}
-          trendType="neutral"
-          subtext="Attendees admitted through entrance verification"
+          accent="green"
+          trendText={
+            ticketsIssuedCount > 0
+              ? `${Math.round((checkedInCount / ticketsIssuedCount) * 100)}% attendance`
+              : "0% attendance"
+          }
+          trendType={checkedInCount > 0 ? "positive" : "neutral"}
+          subtext="Attendees admitted through turnstiles"
         />
       </div>
 
@@ -174,10 +174,10 @@ export default async function DashboardPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-zinc-900">
+            <h2 className="text-lg font-semibold text-[#171923]">
               Events
             </h2>
-            <span className="text-xs font-medium text-zinc-500 bg-zinc-100 px-2.5 py-0.5 rounded-full border border-zinc-200">
+            <span className="text-xs font-mono font-medium text-[#525B6B] bg-[#F1F4F8] px-2.5 py-0.5 rounded-full border border-[#DCE1E8]">
               {events.length}
             </span>
           </div>
@@ -185,7 +185,7 @@ export default async function DashboardPage() {
           {events.length > 0 && (
             <Link
               href="/org/events"
-              className="text-sm font-semibold text-zinc-600 hover:text-zinc-900 transition-colors flex items-center gap-1"
+              className="text-sm font-semibold text-[#525B6B] hover:text-[#171923] transition-colors flex items-center gap-1"
             >
               View directory <ArrowRight className="h-3.5 w-3.5" />
             </Link>
@@ -194,13 +194,13 @@ export default async function DashboardPage() {
 
         {events.length === 0 ? (
           /* Empty state */
-          <div className="rounded-2xl border border-dashed border-zinc-200 bg-white p-12 text-center space-y-4 shadow-2xs">
-            <div className="mx-auto w-12 h-12 rounded-2xl bg-zinc-100 flex items-center justify-center text-zinc-500">
+          <div className="rounded-2xl border border-dashed border-[#DCE1E8] bg-white p-12 text-center space-y-4 shadow-2xs">
+            <div className="mx-auto w-12 h-12 rounded-2xl bg-[#F1F4F8] flex items-center justify-center text-[#525B6B]">
               <Calendar className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-semibold text-zinc-900">No events created yet</h3>
-              <p className="text-sm text-zinc-500 max-w-sm mx-auto leading-relaxed">
+              <h3 className="text-base font-semibold text-[#171923]">No events created yet</h3>
+              <p className="text-sm text-[#525B6B] max-w-sm mx-auto leading-relaxed">
                 Create your first event to configure registration questions, manage passes, and begin entrance check-in.
               </p>
             </div>
@@ -213,34 +213,34 @@ export default async function DashboardPage() {
           </div>
         ) : (
           /* Compact & Professional Event Table */
-          <div className="bg-white border border-zinc-200/80 rounded-2xl shadow-2xs overflow-hidden">
+          <div className="bg-white border border-[#DCE1E8] rounded-2xl shadow-2xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-200/80 bg-zinc-50/75 text-zinc-600 text-sm font-semibold">
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Event name</th>
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Status</th>
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Pass type</th>
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Schedule &amp; venue</th>
-                    <th className="py-3.5 px-4 text-right font-semibold text-zinc-600">Actions</th>
+                  <tr className="border-b border-[#DCE1E8] bg-[#F1F4F8] text-[#525B6B] text-xs font-mono uppercase tracking-wider">
+                    <th className="py-3 px-4 font-semibold">Event name</th>
+                    <th className="py-3 px-4 font-semibold">Status</th>
+                    <th className="py-3 px-4 font-semibold">Pass type</th>
+                    <th className="py-3 px-4 font-semibold">Schedule &amp; venue</th>
+                    <th className="py-3 px-4 text-right font-semibold">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 text-zinc-700">
+                <tbody className="divide-y divide-[#E9EDF2] text-[#525B6B]">
                   {events.map((event: any) => (
                     <tr
                       key={event.id}
-                      className="hover:bg-zinc-50/80 transition-colors group"
+                      className="hover:bg-[#F7F8FA] transition-colors group"
                     >
                       {/* Name & Slug */}
                       <td className="py-3.5 px-4 min-w-[200px]">
                         <div className="space-y-0.5">
                           <Link
                             href={`/org/events/${event.id}`}
-                            className="font-semibold text-zinc-900 group-hover:text-black hover:underline transition-colors text-sm line-clamp-1"
+                            className="font-semibold text-[#171923] group-hover:text-black hover:underline transition-colors text-sm line-clamp-1"
                           >
                             {event.name}
                           </Link>
-                          <div className="font-mono text-xs text-zinc-500">
+                          <div className="font-mono text-xs text-[#667085]">
                             /{event.slug}
                           </div>
                         </div>
@@ -253,26 +253,32 @@ export default async function DashboardPage() {
 
                       {/* Pass Type */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className="text-xs font-medium text-zinc-700 px-2.5 py-0.5 rounded-md bg-zinc-100 border border-zinc-200">
-                          {event.event_type === "FREE" ? "Free Admission" : "Paid Pass"}
+                        <span
+                          className={`text-xs font-medium px-2.5 py-0.5 rounded-md border ${
+                            event.event_type === "PAID"
+                              ? "bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]"
+                              : "bg-[#F1F4F8] text-[#525B6B] border-[#DCE1E8]"
+                          }`}
+                        >
+                          {event.event_type === "FREE" ? "Free" : "Paid"}
                         </span>
                       </td>
 
                       {/* Schedule & Location */}
                       <td className="py-3.5 px-4 min-w-[220px]">
-                        <div className="space-y-1 text-zinc-600">
+                        <div className="space-y-1 text-[#525B6B]">
                           {event.date_start ? (
-                            <div className="flex items-center gap-1.5 text-sm text-zinc-700">
-                              <Clock className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                            <div className="flex items-center gap-1.5 text-sm text-[#171923]">
+                              <Clock className="h-3.5 w-3.5 text-[#667085] shrink-0" />
                               <span>{format(new Date(event.date_start), "MMM d, yyyy h:mm a")}</span>
                             </div>
                           ) : (
-                            <span className="text-zinc-400 italic text-sm">Unscheduled</span>
+                            <span className="text-[#667085] italic text-sm">Unscheduled</span>
                           )}
 
                           {event.location && (
-                            <div className="flex items-center gap-1.5 text-[13px] text-zinc-500 truncate max-w-[220px]">
-                              <MapPin className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                            <div className="flex items-center gap-1.5 text-[13px] text-[#667085] truncate max-w-[220px]">
+                              <MapPin className="h-3.5 w-3.5 text-[#667085] shrink-0" />
                               <span className="truncate">{event.location}</span>
                             </div>
                           )}
@@ -290,9 +296,9 @@ export default async function DashboardPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-8 px-2.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200 gap-1"
+                                className="h-8 px-2.5 text-xs font-semibold text-[#06694A] bg-[#E6F7F0] hover:bg-[#D1F2E5] border-[#A3E6CD] gap-1"
                               >
-                                <QrCode className="h-3.5 w-3.5 text-emerald-600" />
+                                <QrCode className="h-3.5 w-3.5 text-[#087F5B]" />
                                 Scan Gate
                               </Button>
                             </Link>
@@ -304,14 +310,14 @@ export default async function DashboardPage() {
                               target="_blank"
                               title="Public Event Page"
                             >
-                              <Button variant="ghost" size="sm" className="h-8 px-2 text-zinc-500 hover:text-zinc-900">
+                              <Button variant="ghost" size="sm" className="h-8 px-2 text-[#525B6B] hover:text-[#171923]">
                                 <ExternalLink className="h-3.5 w-3.5" />
                               </Button>
                             </Link>
                           )}
 
                           <Link href={`/org/events/${event.id}/form`} title="Configure Registration Form">
-                            <Button variant="ghost" size="sm" className="h-8 px-2 text-zinc-500 hover:text-zinc-900">
+                            <Button variant="ghost" size="sm" className="h-8 px-2 text-[#525B6B] hover:text-[#171923]">
                               <FileEdit className="h-3.5 w-3.5" />
                             </Button>
                           </Link>

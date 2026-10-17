@@ -10,6 +10,7 @@ import {
   Check,
   AlertCircle,
   RotateCcw,
+  Sparkles,
 } from "lucide-react";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -25,6 +26,7 @@ interface FormBuilderHeaderProps {
   onOpenPreview: () => void;
   isPreviewVisible?: boolean;
   onTogglePreview?: () => void;
+  isWaitingForFormSave?: boolean;
 }
 
 export function FormBuilderHeader({
@@ -38,6 +40,7 @@ export function FormBuilderHeader({
   onOpenPreview,
   isPreviewVisible,
   onTogglePreview,
+  isWaitingForFormSave = false,
 }: FormBuilderHeaderProps) {
   return (
     <header className="space-y-3 pb-5 border-b border-zinc-200">
@@ -65,12 +68,22 @@ export function FormBuilderHeader({
 
       {/* Main Title Bar & Action Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 leading-tight">
-            Registration form
-          </h1>
+        <div className="space-y-1" data-tour="form-builder-heading">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 leading-tight">
+              Registration form
+            </h1>
+            {isWaitingForFormSave && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE]">
+                <Sparkles className="h-3 w-3" />
+                Setup Guide Active
+              </span>
+            )}
+          </div>
           <p className="text-sm text-zinc-600">
-            Choose what information to collect from attendees.
+            {isWaitingForFormSave
+              ? "Customize your questions at your own pace. Once you save your form, event setup will begin."
+              : "Choose what information to collect from attendees."}
           </p>
         </div>
 
@@ -114,6 +127,7 @@ export function FormBuilderHeader({
           {/* Secondary Action: Toggle Live Preview (Optional) */}
           <Button
             type="button"
+            data-tour="preview-button"
             variant={isPreviewVisible ? "secondary" : "outline"}
             size="sm"
             onClick={onTogglePreview || onOpenPreview}
@@ -137,6 +151,7 @@ export function FormBuilderHeader({
           {saveStatus === "error" ? (
             <Button
               type="button"
+              data-tour="save-form-button"
               variant="danger"
               size="sm"
               onClick={onSave}
@@ -148,14 +163,17 @@ export function FormBuilderHeader({
           ) : (
             <Button
               type="button"
+              data-tour="save-form-button"
               size="sm"
-              disabled={saveStatus === "saving" || !hasUnsavedChanges}
+              disabled={saveStatus === "saving" || (!hasUnsavedChanges && !isWaitingForFormSave)}
               onClick={onSave}
               isLoading={saveStatus === "saving"}
               className="text-sm font-semibold h-9 sm:h-10 px-4 shadow-xs"
               aria-label="Save changes to registration form"
             >
-              Save changes
+              {isWaitingForFormSave && !hasUnsavedChanges
+                ? "Save & Continue to Setup"
+                : "Save changes"}
             </Button>
           )}
         </div>

@@ -7,6 +7,7 @@ import { ERROR_CODES } from "@/lib/errors/error-codes";
 import { createEventSchema, updateEventSchema, updateEventStatusSchema } from "@/lib/validations/event";
 import { logAuditEvent } from "@/lib/services/audit.service";
 import { revalidatePath } from "next/cache";
+import { checkOnboardingEligibility, createInitialOnboardingState } from "@/lib/onboarding/server";
 
 async function verifyOrgMembership(adminDb: any, organizationId: string, userId: string) {
   const { data: membership } = await adminDb
@@ -69,6 +70,13 @@ export async function createEvent(organizationId: string, formData: FormData) {
 
   const data = validationResult.data;
 
+  // Evaluate onboarding walkthrough eligibility based on active mode & event history
+  const { isEligible } = await checkOnboardingEligibility(adminDb, organizationId);
+  const initialSettings: Record<string, any> = {};
+  if (isEligible) {
+    initialSettings.onboarding = createInitialOnboardingState();
+  }
+
   // Insert event
   const { data: event, error } = await ((adminDb as any)
     .from("events")
@@ -84,6 +92,7 @@ export async function createEvent(organizationId: string, formData: FormData) {
         location: data.location,
         status: "DRAFT",
         payment_config: data.event_type === "PAID" ? data.payment_config : null,
+        settings: initialSettings,
       },
     ])
     .select()
@@ -146,7 +155,10 @@ export async function createEvent(organizationId: string, formData: FormData) {
   revalidatePath("/org/events");
   revalidatePath("/org");
   
-  return event;
+  return {
+    ...event,
+    isOnboardingEligible: isEligible,
+  };
 }
 
 export async function getEvents(organizationId: string) {

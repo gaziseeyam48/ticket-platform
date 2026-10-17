@@ -8,11 +8,12 @@ import { cn } from "@/lib/utils/cn";
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title?: string;
-  description?: string;
+  title?: React.ReactNode;
+  description?: React.ReactNode;
   children: React.ReactNode;
   maxWidth?: "sm" | "md" | "lg" | "xl";
   className?: string;
+  hideHeader?: boolean;
 }
 
 export function Modal({
@@ -23,6 +24,7 @@ export function Modal({
   children,
   maxWidth = "md",
   className,
+  hideHeader = false,
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -72,30 +74,32 @@ export function Modal({
           className
         )}
       >
-        <div className="flex items-start justify-between gap-4 pb-4 border-b border-zinc-100">
-          <div>
-            {title && (
-              <h3 className="text-base font-semibold text-zinc-900 tracking-tight">
-                {title}
-              </h3>
-            )}
-            {description && (
-              <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">
-                {description}
-              </p>
-            )}
+        {!hideHeader && (title || description) && (
+          <div className="flex items-start justify-between gap-4 pb-4 border-b border-zinc-100">
+            <div>
+              {title && (
+                <div className="text-base font-semibold text-zinc-900 tracking-tight">
+                  {title}
+                </div>
+              )}
+              {description && (
+                <div className="text-xs text-zinc-500 mt-0.5 leading-relaxed">
+                  {description}
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors cursor-pointer"
+              aria-label="Close dialog"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
-            aria-label="Close dialog"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+        )}
 
-        <div className="pt-4">{children}</div>
+        <div className={cn(!hideHeader && (title || description) ? "pt-4" : "")}>{children}</div>
       </div>
     </div>
   );

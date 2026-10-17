@@ -2,17 +2,19 @@ import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: "default" | "success" | "warning" | "danger" | "info" | "outline";
+  variant?: "default" | "success" | "warning" | "danger" | "info" | "violet" | "teal" | "outline";
 }
 
 export function Badge({ className, variant = "default", children, ...props }: BadgeProps) {
   const variants = {
-    default: "bg-zinc-100 text-zinc-800 border-zinc-200",
-    success: "bg-emerald-50 text-emerald-700 border-emerald-200/80",
-    warning: "bg-amber-50 text-amber-700 border-amber-200/80",
-    danger: "bg-rose-50 text-rose-700 border-rose-200/80",
-    info: "bg-sky-50 text-sky-700 border-sky-200/80",
-    outline: "bg-white text-zinc-700 border-zinc-300",
+    default: "bg-[#F1F4F8] text-[#525B6B] border-[#DCE1E8]",
+    success: "bg-[#E6F7F0] text-[#06694A] border-[#A3E6CD]",
+    warning: "bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]",
+    danger: "bg-[#FFF1F2] text-[#9F1239] border-[#FECDD3]",
+    info: "bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]",
+    violet: "bg-[#F5F3FF] text-[#5B21B6] border-[#DDD6FE]",
+    teal: "bg-[#F0FDFA] text-[#0F766E] border-[#99F6E4]",
+    outline: "bg-white text-[#171923] border-[#DCE1E8]",
   };
 
   return (

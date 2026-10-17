@@ -168,7 +168,7 @@ export function InviteVerifierModal({
                 type="text"
                 readOnly
                 value={result.magicLink}
-                className="flex-1 h-10 px-3 rounded-lg bg-zinc-50 border border-zinc-300 text-xs font-mono text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 select-all shadow-2xs"
+                className="flex-1 h-10 px-3.5 rounded-xl bg-[#F8FAFC] border border-[#DCE1E8] text-xs font-mono text-[#171923] shadow-[inset_0_1px_1px_rgba(0,0,0,0.03)] focus:outline-none focus:border-[#087F5B] focus:ring-2 focus:ring-[#087F5B]/15 select-all"
               />
               <Button
                 type="button"

@@ -89,7 +89,7 @@ export async function issueTicket(params: IssueTicketParams): Promise<IssuedTick
   // 2. Fetch Event details for email template and metadata
   const { data: event, error: eventError } = await (adminDb
     .from("events")
-    .select("id, name, slug, status, date_start, date_end, location")
+    .select("id, name, slug, status, date_start, date_end, location, organization_id, settings, organizations(name)")
     .eq("id", eventId)
     .single() as any);
 
@@ -101,6 +101,12 @@ export async function issueTicket(params: IssueTicketParams): Promise<IssuedTick
   const rawToken = generateSecureToken(32);
   const tokenHash = hashToken(rawToken);
   const ticketNumber = generateTicketNumber("TKT");
+
+  // Preserve raw token inside internal participant_data for safe email resends
+  const enrichedParticipantData = {
+    ...(participantData || {}),
+    _raw_token: rawToken,
+  };
 
   // 4. Insert ticket record into the database
   const { data: ticket, error: insertError } = await ((adminDb as any)
@@ -114,7 +120,7 @@ export async function issueTicket(params: IssueTicketParams): Promise<IssuedTick
         status: "ISSUED",
         participant_name: participantName.trim(),
         participant_email: normalizedEmail,
-        participant_data: participantData || null,
+        participant_data: enrichedParticipantData,
         issued_by: issuedBy || null,
         issued_at: new Date().toISOString(),
       },
@@ -151,10 +157,13 @@ export async function issueTicket(params: IssueTicketParams): Promise<IssuedTick
       participantName: participantName.trim(),
       eventName: event.name,
       ticketNumber,
+      category: (participantData as any)?.category || "General Admission",
       eventDate: formattedDate,
       eventLocation: event.location,
+      organizationName: event.organizations?.name || "Event Organizer",
       ticketUrl,
       qrCodeDataUrl,
+      ticketDesign: event.settings?.ticket_design || null,
     });
     emailSent = emailResult.success;
   } catch (emailErr) {

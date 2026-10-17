@@ -28,19 +28,40 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  // refreshing the auth token
+  const pathname = request.nextUrl.pathname;
+  const isProtectedRoute = pathname.startsWith("/org");
+  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/signup");
+
+  // Skip remote network auth call entirely for public routes
+  if (!isProtectedRoute && !isAuthRoute) {
+    return supabaseResponse;
+  }
+
+  const allCookies = request.cookies.getAll();
+  const hasAuthCookie = allCookies.some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
+
+  // If visiting an auth route (/login, /signup) with no auth cookie, they are not logged in
+  if (isAuthRoute && !hasAuthCookie) {
+    return supabaseResponse;
+  }
+
+  // If visiting a protected route (/org) with no auth cookie, immediately redirect to /login without network delay
+  if (isProtectedRoute && !hasAuthCookie) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/login";
+    redirectUrl.searchParams.set("redirectedFrom", pathname);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // Only validate user token against Supabase when auth cookies are present
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Basic route protection
-  const isProtectedRoute = request.nextUrl.pathname.startsWith("/org");
-  const isAuthRoute = request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/signup");
-
   if (isProtectedRoute && !user) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
-    redirectUrl.searchParams.set("redirectedFrom", request.nextUrl.pathname);
+    redirectUrl.searchParams.set("redirectedFrom", pathname);
     return NextResponse.redirect(redirectUrl);
   }
 

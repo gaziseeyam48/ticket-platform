@@ -38,6 +38,15 @@ export async function signUpAction(prevState: any, formData: FormData) {
     return { error: result.error.issues[0].message };
   }
 
+  // Public signup is temporarily paused
+  const IS_PUBLIC_SIGNUP_PAUSED = true;
+  if (IS_PUBLIC_SIGNUP_PAUSED) {
+    return {
+      error:
+        "Public registration is currently paused. Please request an organizer demo on WhatsApp (+8801325881388) or Email (hellogaziseeyam@gmail.com).",
+    };
+  }
+
   const supabase = await createServerDbClient();
 
   // 1. Sign up the user

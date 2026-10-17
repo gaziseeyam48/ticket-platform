@@ -83,7 +83,7 @@ export default async function PublicTicketPage(props: {
 
   return (
     <div className="min-h-screen bg-[#fbfbf9] text-zinc-900 py-10 px-4 sm:px-6 flex flex-col items-center justify-center font-sans">
-      <TicketPassView ticket={ticket} />
+      <TicketPassView ticket={ticket} design={ticket.ticketDesign} />
     </div>
   );
 }

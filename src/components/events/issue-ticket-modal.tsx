@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { issueManualTicket } from "@/app/actions/ticket.actions";
 import {
   CheckCircle2,
@@ -274,28 +275,23 @@ export function IssueTicketModal({
               required
             />
 
-            <div className="space-y-1.5">
-              <label htmlFor="ticketCategory" className="block text-xs font-medium text-zinc-700">
-                Pass Allocation / Category
-              </label>
-              <select
-                id="ticketCategory"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                disabled={isLoading}
-                className="flex h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 transition-colors shadow-2xs"
-              >
-                <option value="General Admission">General Admission</option>
-                <option value="VIP">VIP Guest</option>
-                <option value="Speaker">Speaker / Panelist</option>
-                <option value="Organizer / Staff">Staff / Operations</option>
-                <option value="Sponsor">Sponsor / Partner</option>
-                <option value="Media">Media / Press</option>
-              </select>
-            </div>
+            <Select
+              label="Pass Allocation / Category"
+              value={category}
+              onChange={setCategory}
+              disabled={isLoading}
+              options={[
+                { value: "General Admission", label: "General Admission", indicatorColor: "#667085" },
+                { value: "VIP", label: "VIP Guest", indicatorColor: "#7356D8" },
+                { value: "Speaker", label: "Speaker / Panelist", indicatorColor: "#2563EB" },
+                { value: "Organizer / Staff", label: "Staff / Operations", indicatorColor: "#087F5B" },
+                { value: "Sponsor", label: "Sponsor / Partner", indicatorColor: "#B96B08" },
+                { value: "Media", label: "Media / Press", indicatorColor: "#0F8B8D" },
+              ]}
+            />
 
             <div className="space-y-1.5">
-              <label htmlFor="ticketNotes" className="block text-xs font-medium text-zinc-700">
+              <label htmlFor="ticketNotes" className="block text-xs sm:text-[13px] font-semibold text-[#171923] tracking-tight">
                 Internal Note (Optional)
               </label>
               <input
@@ -305,7 +301,7 @@ export function IssueTicketModal({
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="e.g. Issued on request of keynote speaker"
                 disabled={isLoading}
-                className="flex h-9 w-full rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 transition-colors shadow-2xs"
+                className="flex h-10 w-full rounded-xl border border-[#DCE1E8] bg-[#F8FAFC] px-3.5 py-2 text-xs font-medium text-[#171923] placeholder:text-[#8C96A5] shadow-[inset_0_1px_1px_rgba(0,0,0,0.03),0_1px_2px_rgba(23,25,35,0.03)] hover:border-[#B4BDC9] hover:bg-white focus-visible:outline-none focus-visible:border-[#171923] focus-visible:ring-3 focus-visible:ring-[#171923]/10 focus-visible:bg-white transition-all disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
           </div>

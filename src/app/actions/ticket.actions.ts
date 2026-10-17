@@ -13,6 +13,7 @@ import { revalidatePath } from "next/cache";
 
 import { rateLimiter } from "@/lib/utils/rate-limiter";
 import { headers } from "next/headers";
+import { DEFAULT_TICKET_DESIGN, TicketDesignConfig } from "@/lib/types/ticket-design";
 
 /**
  * Public action: retrieves a ticket by its unhashed public token.
@@ -45,7 +46,7 @@ export async function getTicketByPublicToken(publicToken: string) {
   // 2. Fetch strictly needed public ticket details (never expose internal system notes)
   const { data: ticket, error } = await (adminDb
     .from("tickets")
-    .select("id, ticket_number, status, participant_name, participant_email, participant_data, issued_at, checked_in_at, revoked_at, events(id, name, slug, status, date_start, date_end, location, organizations(name))")
+    .select("id, ticket_number, status, participant_name, participant_email, participant_data, issued_at, checked_in_at, revoked_at, events(id, name, slug, status, date_start, date_end, location, settings, organizations(name))")
     .eq("token_hash", tokenHash)
     .maybeSingle() as any);
 
@@ -66,6 +67,8 @@ export async function getTicketByPublicToken(publicToken: string) {
 
   const participantData = ticket.participant_data as Record<string, any> | null;
   const category = participantData?.category || "General Admission";
+  const eventSettings = ticket.events?.settings as Record<string, any> | null;
+  const ticketDesign = (eventSettings?.ticket_design as TicketDesignConfig) || DEFAULT_TICKET_DESIGN;
 
   return {
     ticketNumber: ticket.ticket_number,
@@ -86,6 +89,7 @@ export async function getTicketByPublicToken(publicToken: string) {
     organizationName: ticket.events.organizations?.name || "Event Organizer",
     qrCodeDataUrl,
     ticketUrl,
+    ticketDesign,
   };
 }
 
@@ -109,7 +113,7 @@ export async function resendTicketEmail(ticketId: string) {
   // Fetch ticket and event details
   const { data: ticket, error: ticketError } = await (adminDb
     .from("tickets")
-    .select("id, ticket_number, participant_name, participant_email, event_id, events(id, name, organization_id, date_start, date_end, location)")
+    .select("id, ticket_number, participant_name, participant_email, participant_data, event_id, events(id, name, organization_id, date_start, date_end, location, settings, organizations(name))")
     .eq("id", ticketId)
     .single() as any);
 
@@ -138,25 +142,40 @@ export async function resendTicketEmail(ticketId: string) {
     }
   }
 
-  // Generate fresh secure access token for direct /t/ entrance pass view
-  const rawToken = generateSecureToken(32);
-  const tokenHash = hashToken(rawToken);
-  await ((adminDb as any)
-    .from("tickets")
-    .update({ token_hash: tokenHash })
-    .eq("id", ticketId));
+  // Reuse existing raw token if present, preserving token invariance
+  let rawToken = ticket.participant_data?._raw_token;
+  if (!rawToken) {
+    rawToken = generateSecureToken(32);
+    const tokenHash = hashToken(rawToken);
+    const updatedData = {
+      ...(ticket.participant_data || {}),
+      _raw_token: rawToken,
+    };
+    await ((adminDb as any)
+      .from("tickets")
+      .update({ token_hash: tokenHash, participant_data: updatedData })
+      .eq("id", ticketId));
+  }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const viewUrl = `${appUrl}/t/${rawToken}`;
+  const qrCodeDataUrl = await generateQrCodeDataUrl(viewUrl);
+
+  const participantData = ticket.participant_data as Record<string, any> | null;
+  const category = participantData?.category || "General Admission";
 
   const sendResult = await sendTicketEmail({
     to: ticket.participant_email,
     participantName: ticket.participant_name,
     eventName: ticket.events.name,
     ticketNumber: ticket.ticket_number,
+    category,
     eventDate: formattedDate,
     eventLocation: ticket.events.location,
+    organizationName: ticket.events.organizations?.name || "Event Organizer",
     ticketUrl: viewUrl,
+    qrCodeDataUrl,
+    ticketDesign: ticket.events.settings?.ticket_design || null,
   });
 
   if (!sendResult.success) {
@@ -297,28 +316,83 @@ export async function verifyEntrancePass(
     // In background or test context where headers() is unavailable, proceed
   }
 
-  // Parse raw input: could be full URL (https://domain/t/TOKEN) or just TOKEN
-  let token = rawInput.trim();
-  if (token.includes("/t/")) {
-    const parts = token.split("/t/");
-    token = parts[parts.length - 1].split("?")[0].split("#")[0].trim();
+  // Parse raw input: could be a full URL (https://domain/t/TOKEN), raw TOKEN, or a ticket number (e.g. TKT-12345678, #TKT-12345678)
+  const trimmed = rawInput.trim();
+  const adminDb = getAdminClient();
+  let ticket: any = null;
+
+  if (trimmed.includes("/t/")) {
+    // QR Code URL format
+    const parts = trimmed.split("/t/");
+    const token = parts[parts.length - 1].split("?")[0].split("#")[0].trim();
+    const tokenHash = hashToken(token);
+
+    const { data } = await (adminDb
+      .from("tickets")
+      .select("id, ticket_number, status, participant_name, participant_email, issued_at, checked_in_at, revoked_at, event_id, events(id, name, slug, status, date_start, date_end, location, organization_id)")
+      .eq("token_hash", tokenHash)
+      .maybeSingle() as any);
+
+    if (data) {
+      ticket = data;
+    }
+  } else {
+    // Could be a ticket number (e.g. "TKT-ABC12345", "#TKT-ABC12345", "ABC12345") or raw token
+    const cleanTicketNum = trimmed.replace(/^#/, "").trim();
+
+    // 1. Try querying by ticket_number directly (case-insensitive)
+    let ticketNumQuery = adminDb
+      .from("tickets")
+      .select("id, ticket_number, status, participant_name, participant_email, issued_at, checked_in_at, revoked_at, event_id, events(id, name, slug, status, date_start, date_end, location, organization_id)")
+      .ilike("ticket_number", cleanTicketNum);
+
+    if (expectedEventId) {
+      ticketNumQuery = ticketNumQuery.eq("event_id", expectedEventId);
+    }
+
+    const { data: ticketByNum } = await (ticketNumQuery.maybeSingle() as any);
+
+    if (ticketByNum) {
+      ticket = ticketByNum;
+    } else {
+      // 2. If ticket number was entered without "TKT-" prefix (e.g. user typed only suffix), try matching with prefix
+      if (!cleanTicketNum.toUpperCase().startsWith("TKT-")) {
+        let prefixQuery = adminDb
+          .from("tickets")
+          .select("id, ticket_number, status, participant_name, participant_email, issued_at, checked_in_at, revoked_at, event_id, events(id, name, slug, status, date_start, date_end, location, organization_id)")
+          .ilike("ticket_number", `TKT-${cleanTicketNum}`);
+
+        if (expectedEventId) {
+          prefixQuery = prefixQuery.eq("event_id", expectedEventId);
+        }
+
+        const { data: ticketWithPrefix } = await (prefixQuery.maybeSingle() as any);
+        if (ticketWithPrefix) {
+          ticket = ticketWithPrefix;
+        }
+      }
+
+      // 3. Fallback: check if raw token matches token_hash (e.g. handheld hardware scanner)
+      if (!ticket) {
+        const tokenHash = hashToken(trimmed);
+        const { data: ticketByToken } = await (adminDb
+          .from("tickets")
+          .select("id, ticket_number, status, participant_name, participant_email, issued_at, checked_in_at, revoked_at, event_id, events(id, name, slug, status, date_start, date_end, location, organization_id)")
+          .eq("token_hash", tokenHash)
+          .maybeSingle() as any);
+
+        if (ticketByToken) {
+          ticket = ticketByToken;
+        }
+      }
+    }
   }
 
-  const tokenHash = hashToken(token);
-  const adminDb = getAdminClient();
-
-  // Fetch ticket details
-  const { data: ticket, error } = await (adminDb
-    .from("tickets")
-    .select("id, ticket_number, status, participant_name, participant_email, issued_at, checked_in_at, revoked_at, event_id, events(id, name, slug, status, date_start, date_end, location, organization_id)")
-    .eq("token_hash", tokenHash)
-    .maybeSingle() as any);
-
-  if (error || !ticket) {
+  if (!ticket) {
     return {
       success: false,
       status: "INVALID",
-      message: "Unrecognized pass. No matching ticket record exists in the system.",
+      message: "Unrecognized pass or ticket number. No matching ticket record exists in the system.",
     };
   }
 

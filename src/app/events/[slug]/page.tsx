@@ -53,7 +53,7 @@ export default async function PublicEventPage(props: { params: Promise<{ slug: s
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-zinc-100 text-zinc-800 border border-zinc-200">
-                  {event.event_type === "FREE" ? "Free Admission" : "Paid Pass"}
+                  {event.event_type === "FREE" ? "Free" : "Paid"}
                 </span>
                 <span className="text-sm text-zinc-500 font-medium">
                   Presented by {event.organizations.name}

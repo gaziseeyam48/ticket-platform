@@ -22,6 +22,29 @@ describe("Phase 11: Entrance Verification States & Anti-Fraud Logic", () => {
     expect(extractToken(urlWithParams)).toBe(rawToken);
   });
 
+  it("should normalize ticket numbers entered manually (stripping hashes and trimming)", () => {
+    const parseManualTicket = (input: string) => {
+      const clean = input.trim().replace(/^#/, "").trim();
+      if (!clean.toUpperCase().startsWith("TKT-")) {
+        return `TKT-${clean}`;
+      }
+      return clean;
+    };
+
+    expect(parseManualTicket("#TKT-948123")).toBe("TKT-948123");
+    expect(parseManualTicket("  TKT-ABCD1234  ")).toBe("TKT-ABCD1234");
+    expect(parseManualTicket("948123")).toBe("TKT-948123");
+    expect(parseManualTicket("#948123")).toBe("TKT-948123");
+  });
+
+  it("should differentiate QR code URLs from manual ticket numbers", () => {
+    const isQrUrl = (input: string) => input.trim().includes("/t/");
+    expect(isQrUrl("https://ticketkoi.com/t/sec-token-123")).toBe(true);
+    expect(isQrUrl("TKT-948123")).toBe(false);
+    expect(isQrUrl("#TKT-948123")).toBe(false);
+    expect(isQrUrl("948123")).toBe(false);
+  });
+
   it("should compute identical token hash for public URL presentation", () => {
     const token = "secure-unique-token-abc";
     const hash = hashToken(token);

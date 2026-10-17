@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "danger";
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "danger" | "positive";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
 }
@@ -17,15 +17,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary:
-        "bg-zinc-900 text-white hover:bg-zinc-800 active:bg-zinc-950 focus-visible:ring-zinc-900 shadow-xs",
+        "bg-[#171923] text-white hover:bg-[#252936] active:bg-[#0E1017] focus-visible:ring-[#171923] shadow-xs",
+      positive:
+        "bg-[#087F5B] text-white hover:bg-[#06694A] active:bg-[#05563D] focus-visible:ring-[#087F5B] shadow-xs",
       secondary:
-        "bg-zinc-100 text-zinc-900 hover:bg-zinc-200 active:bg-zinc-300 focus-visible:ring-zinc-400 border border-zinc-200/80",
+        "bg-[#F1F4F8] text-[#171923] hover:bg-[#E2E7F0] active:bg-[#D5DCE8] focus-visible:ring-[#717D96] border border-[#DCE1E8]",
       outline:
-        "border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 active:bg-zinc-100 focus-visible:ring-zinc-400 shadow-xs",
+        "border border-[#DCE1E8] bg-white text-[#171923] hover:bg-[#F7F8FA] active:bg-[#F1F4F8] focus-visible:ring-[#717D96] shadow-xs",
       ghost:
-        "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 focus-visible:ring-zinc-400",
+        "text-[#525B6B] hover:text-[#171923] hover:bg-[#F1F4F8] focus-visible:ring-[#717D96]",
       danger:
-        "bg-red-600 text-white hover:bg-red-700 active:bg-red-800 focus-visible:ring-red-600 shadow-xs",
+        "bg-[#C2415D] text-white hover:bg-[#A9324D] active:bg-[#8E283F] focus-visible:ring-[#C2415D] shadow-xs",
     };
 
     const sizes = {

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Plus, Search, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
+import { Menu, LogOut } from "lucide-react";
+import { logoutAction } from "@/app/actions/auth.actions";
 
 interface OrgHeaderProps {
   onMenuToggle?: () => void;
@@ -12,73 +13,127 @@ interface OrgHeaderProps {
 
 export function OrgHeader({
   onMenuToggle,
-  title = "Dashboard",
+  title,
   breadcrumbs,
 }: OrgHeaderProps) {
+  const pathname = usePathname();
+
+  // Dynamically resolve page title and breadcrumbs based on the active route
+  const resolveRoute = () => {
+    if (breadcrumbs && breadcrumbs.length > 0) {
+      return { activeTitle: title || "Dashboard", activeBreadcrumbs: breadcrumbs };
+    }
+
+    if (pathname === "/org") {
+      return { activeTitle: "Dashboard", activeBreadcrumbs: [] };
+    }
+    if (pathname === "/org/events") {
+      return { activeTitle: "Events", activeBreadcrumbs: [] };
+    }
+    if (pathname === "/org/events/new") {
+      return {
+        activeTitle: "Create Event",
+        activeBreadcrumbs: [
+          { label: "Events", href: "/org/events" },
+          { label: "Create Event" },
+        ],
+      };
+    }
+    if (pathname.endsWith("/form")) {
+      return {
+        activeTitle: "Form Builder",
+        activeBreadcrumbs: [
+          { label: "Events", href: "/org/events" },
+          { label: "Form Builder" },
+        ],
+      };
+    }
+    if (pathname.endsWith("/edit")) {
+      return {
+        activeTitle: "Edit Event",
+        activeBreadcrumbs: [
+          { label: "Events", href: "/org/events" },
+          { label: "Edit Event" },
+        ],
+      };
+    }
+    if (pathname.startsWith("/org/events/")) {
+      return {
+        activeTitle: "Event Workspace",
+        activeBreadcrumbs: [
+          { label: "Events", href: "/org/events" },
+          { label: "Event Workspace" },
+        ],
+      };
+    }
+    if (pathname === "/org/audit-logs") {
+      return { activeTitle: "Audit Logs", activeBreadcrumbs: [] };
+    }
+    if (pathname === "/org/settings") {
+      return { activeTitle: "Settings", activeBreadcrumbs: [] };
+    }
+    if (pathname.startsWith("/verify")) {
+      return { activeTitle: "Verify Entrance", activeBreadcrumbs: [] };
+    }
+
+    return { activeTitle: title || "Dashboard", activeBreadcrumbs: [] };
+  };
+
+  const { activeTitle, activeBreadcrumbs } = resolveRoute();
+
   return (
-    <header className="sticky top-0 z-20 h-15 border-b border-zinc-200/80 bg-white/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-4">
-      {/* Left: Mobile Menu & Breadcrumbs / Title */}
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-20 h-15 border-b border-[#DCE1E8] bg-white/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-4">
+      {/* Left: Mobile Menu & Breadcrumbs / Dynamic Title */}
+      <div className="flex items-center gap-3 min-w-0">
         {onMenuToggle && (
           <button
             type="button"
             onClick={onMenuToggle}
-            className="lg:hidden p-2 rounded-lg text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
+            className="lg:hidden p-2 rounded-lg text-[#525B6B] hover:text-[#171923] hover:bg-[#F1F4F8] transition-colors"
             aria-label="Toggle navigation menu"
           >
             <Menu className="h-5 w-5" />
           </button>
         )}
 
-        {breadcrumbs && breadcrumbs.length > 0 ? (
-          <nav className="flex items-center gap-1.5 text-sm font-medium text-zinc-500">
-            {breadcrumbs.map((crumb, idx) => {
-              const isLast = idx === breadcrumbs.length - 1;
+        {activeBreadcrumbs.length > 0 ? (
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm font-medium text-[#525B6B] truncate">
+            {activeBreadcrumbs.map((crumb, idx) => {
+              const isLast = idx === activeBreadcrumbs.length - 1;
               return (
-                <span key={idx} className="flex items-center gap-1.5">
+                <span key={idx} className="flex items-center gap-1.5 truncate">
                   {crumb.href && !isLast ? (
                     <Link
                       href={crumb.href}
-                      className="hover:text-zinc-900 transition-colors"
+                      className="hover:text-[#171923] transition-colors truncate"
                     >
                       {crumb.label}
                     </Link>
                   ) : (
-                    <span className="font-semibold text-zinc-900">{crumb.label}</span>
+                    <span className="font-semibold text-[#171923] truncate">{crumb.label}</span>
                   )}
-                  {!isLast && <span className="text-zinc-300">/</span>}
+                  {!isLast && <span className="text-[#DCE1E8]">/</span>}
                 </span>
               );
             })}
           </nav>
         ) : (
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-base font-semibold text-zinc-900">{title}</h1>
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live Sync
-            </span>
-          </div>
+          <h1 className="text-base font-bold text-[#171923] truncate">{activeTitle}</h1>
         )}
       </div>
 
-      {/* Right: Actions */}
-      <div className="flex items-center gap-2.5">
-        <Link href="/verify">
-          <Button variant="outline" size="sm" className="font-medium text-xs gap-1.5 shadow-2xs">
-            <ShieldCheck className="h-3.5 w-3.5 text-zinc-600" />
-            <span className="hidden sm:inline">Verify Entrance</span>
-            <span className="sm:hidden">Verify</span>
-          </Button>
-        </Link>
-
-        <Link href="/org/events/new">
-          <Button size="sm" className="font-semibold text-xs gap-1.5 shadow-xs">
-            <Plus className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Create Event</span>
-            <span className="sm:hidden">New</span>
-          </Button>
-        </Link>
+      {/* Right: Sign Out Action */}
+      <div className="flex items-center gap-2.5 shrink-0">
+        <form action={logoutAction}>
+          <button
+            type="submit"
+            title="Sign Out"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#DCE1E8] bg-[#F8FAFC] text-xs font-semibold text-[#525B6B] hover:text-[#C2415D] hover:bg-[#FFF1F2] hover:border-[#FECDD3] transition-all shadow-[inset_0_1px_1px_rgba(0,0,0,0.03),0_1px_2px_rgba(23,25,35,0.03)] cursor-pointer"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span>Sign Out</span>
+          </button>
+        </form>
       </div>
     </header>
   );

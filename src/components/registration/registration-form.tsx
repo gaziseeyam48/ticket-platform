@@ -5,6 +5,7 @@ import { FormField } from "@/lib/validations/form";
 import { submitRegistration, submitPaymentTransaction } from "@/app/actions/registration.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   CheckCircle2,
@@ -356,8 +357,8 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
     <Card className="border-zinc-200 bg-white shadow-xs overflow-hidden">
       <CardHeader className="border-b border-zinc-100 pb-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-zinc-100 text-zinc-700 border border-zinc-200">
-            {event.event_type === "FREE" ? "Free Admission" : "Paid Pass"}
+          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-zinc-100 text-zinc-700 border border-zinc-200">
+            {event.event_type === "FREE" ? "Free" : "Paid"}
           </span>
           <span className="text-xs text-zinc-500 flex items-center gap-1 font-medium">
             <ShieldCheck className="h-3.5 w-3.5 text-zinc-500" />
@@ -469,11 +470,10 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
 
                 {/* Dropdown Select */}
                 {field.type === "dropdown" && (
-                  <select
+                  <NativeSelect
                     required={field.required}
                     value={value as string}
                     onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent shadow-2xs"
                   >
                     <option value="">{field.placeholder || "Select an option..."}</option>
                     {(field.options || []).map((opt, i) => (
@@ -481,7 +481,7 @@ export function RegistrationForm({ event, fields }: RegistrationFormProps) {
                         {opt}
                       </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                 )}
 
                 {/* Radio Options */}

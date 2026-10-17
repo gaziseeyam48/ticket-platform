@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
@@ -35,19 +35,35 @@ import {
   RefreshCw,
   Ban,
   Play,
+  Sparkles,
+  MoreHorizontal,
+  Palette,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { MetricCard } from "@/components/ui/metric-card";
 import { Modal } from "@/components/ui/modal";
+import { Select } from "@/components/ui/select";
 import { EventLifecyclePanel } from "@/components/events/event-lifecycle-panel";
 import { IssueTicketModal } from "@/components/events/issue-ticket-modal";
 import { InviteVerifierModal } from "@/components/events/invite-verifier-modal";
 import { resendTicketEmail, revokeTicket } from "@/app/actions/ticket.actions";
 import { reviewRegistrationPayment } from "@/app/actions/registration.actions";
 import { resendVerifierInvite, revokeVerifier } from "@/app/actions/verifier.actions";
-import { startEvent, endEvent } from "@/app/actions/event.actions";
+import { startEvent, endEvent, updateEventStatus } from "@/app/actions/event.actions";
+import {
+  getWorkspaceStatusConfig,
+  evaluatePublicationChecklist,
+} from "@/components/events/workspace-status-config";
+import { WorkspaceActionBanner } from "@/components/events/workspace-action-banner";
+import { WorkspaceContextualMetrics } from "@/components/events/workspace-contextual-metrics";
+import { WorkspaceDraftView } from "@/components/events/workspace-draft-view";
+import { WorkspacePublishedView } from "@/components/events/workspace-published-view";
+import { WorkspaceLiveView } from "@/components/events/workspace-live-view";
+import { WorkspaceEndedView } from "@/components/events/workspace-ended-view";
+import { WorkspaceCancelledView } from "@/components/events/workspace-cancelled-view";
 import { cn } from "@/lib/utils/cn";
+import { useOnboarding } from "@/components/onboarding/onboarding-provider";
 
 export interface EventWorkspaceProps {
   event: {
@@ -122,6 +138,7 @@ export function EventWorkspace({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const { replayTour } = useOnboarding();
 
   // Active tab state
   const activeTabParam = searchParams.get("tab") || "overview";
@@ -151,6 +168,35 @@ export function EventWorkspace({
   // End Event Confirmation Modal
   const [isEndEventModalOpen, setIsEndEventModalOpen] = useState(false);
   const [isStartingEvent, setIsStartingEvent] = useState(false);
+
+  // Publish Event Confirmation Modal
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [isPublishingEvent, setIsPublishingEvent] = useState(false);
+
+  // Cancel Event Confirmation Modal
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isCancellingEvent, setIsCancellingEvent] = useState(false);
+
+  // Outcome Summary Copy Feedback
+  const [copiedSummary, setCopiedSummary] = useState(false);
+
+  // Secondary Actions Dropdown Menu state & ref
+  const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
+  const actionsMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (actionsMenuRef.current && !actionsMenuRef.current.contains(e.target as Node)) {
+        setIsActionsMenuOpen(false);
+      }
+    };
+    if (isActionsMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isActionsMenuOpen]);
 
   // Verifier State & Modal
   const [isInviteVerifierModalOpen, setIsInviteVerifierModalOpen] = useState(false);
@@ -222,6 +268,56 @@ export function EventWorkspace({
     } catch (err: any) {
       showToast(err.message || "Failed to end event", "error");
     }
+  };
+
+  // Publish Event action
+  const handlePublishEvent = async () => {
+    setIsPublishingEvent(true);
+    try {
+      await updateEventStatus(event.id, "PUBLISHED");
+      setIsPublishModalOpen(false);
+      showToast("Event is now Published! Public registration is open.");
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (err: any) {
+      showToast(err.message || "Failed to publish event", "error");
+    } finally {
+      setIsPublishingEvent(false);
+    }
+  };
+
+  // Cancel Event action
+  const handleCancelEvent = async () => {
+    setIsCancellingEvent(true);
+    try {
+      await updateEventStatus(event.id, "CANCELLED");
+      setIsCancelModalOpen(false);
+      showToast("Event has been cancelled. Public registration is offline.");
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (err: any) {
+      showToast(err.message || "Failed to cancel event", "error");
+    } finally {
+      setIsCancellingEvent(false);
+    }
+  };
+
+  // Copy Outcome Summary
+  const handleCopySummary = () => {
+    const summary = [
+      `Event Outcome Summary: ${event.name}`,
+      `Status: ${event.status}`,
+      `Turnout: ${checkinPercentage}% (${metrics.checkedInCount} of ${metrics.ticketsCount} ticket holders checked in)`,
+      `Total Registrations: ${metrics.registrationsCount}`,
+      `Total Passes Issued: ${metrics.ticketsCount}`,
+      `Total Attendees Admitted: ${metrics.checkedInCount}`,
+    ].join("\n");
+    navigator.clipboard.writeText(summary);
+    setCopiedSummary(true);
+    showToast("Event outcome summary copied to clipboard!");
+    setTimeout(() => setCopiedSummary(false), 2500);
   };
 
   // Resend Verifier Invite
@@ -417,6 +513,13 @@ export function EventWorkspace({
       ? ((metrics.checkedInCount / metrics.ticketsCount) * 100).toFixed(1)
       : "0";
 
+  // Contextual Status Config & Publication Checklist
+  const workspaceConfig = getWorkspaceStatusConfig(event, form, metrics);
+  const publicationChecklist = evaluatePublicationChecklist(event, form);
+  const activeVerifiersCount = verifiersList.filter(
+    (v) => v.status === "ACTIVE" || v.status === "INVITED"
+  ).length;
+
   return (
     <div className="w-full space-y-6">
       {/* Toast Notification */}
@@ -451,7 +554,7 @@ export function EventWorkspace({
         <span className="font-semibold text-zinc-800 truncate max-w-xs">{event.name}</span>
       </nav>
 
-      {/* 2. Cohesive Event Header */}
+      {/* 2. Cohesive Event Header with Clear State-Driven Primary CTA */}
       <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 sm:p-6 shadow-2xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           {/* Left: Event Identity */}
@@ -462,7 +565,7 @@ export function EventWorkspace({
               </h1>
               <StatusBadge status={event.status} />
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-700 border border-zinc-200">
-                {isPaid ? "Paid Pass" : "Free Admission"}
+                {isPaid ? "Paid" : "Free"}
               </span>
             </div>
 
@@ -488,7 +591,7 @@ export function EventWorkspace({
                 <button
                   type="button"
                   onClick={handleCopyLink}
-                  className="p-0.5 text-zinc-400 hover:text-zinc-800 transition-colors rounded"
+                  className="p-0.5 text-zinc-400 hover:text-zinc-800 transition-colors rounded cursor-pointer"
                   title="Copy registration link"
                   aria-label="Copy link"
                 >
@@ -503,190 +606,221 @@ export function EventWorkspace({
           </div>
 
           {/* Right: State-Dependent Action Hierarchy */}
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-zinc-100">
-            {/* Primary Action Based on Event Lifecycle State */}
-            {event.status === "LIVE" && (
-              <div className="flex items-center gap-2">
-                <Link href={`/verify?event_id=${event.id}`}>
+          <div className="flex items-center gap-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-zinc-100">
+            {/* Primary Action Determined by Persisted Event Lifecycle State */}
+            {event.status === "DRAFT" && (
+              <>
+                {!publicationChecklist.items.find((i) => i.id === "form")?.isComplete ? (
+                  <Link href={`/org/events/${event.id}/form`}>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="text-xs font-semibold gap-1.5 shadow-xs cursor-pointer"
+                    >
+                      <FileText className="h-3.5 w-3.5" />
+                      <span>Build Registration Form</span>
+                    </Button>
+                  </Link>
+                ) : (
                   <Button
+                    variant="primary"
                     size="sm"
-                    className="text-xs font-semibold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer"
+                    className="text-xs font-semibold gap-1.5 shadow-xs cursor-pointer"
+                    onClick={() => setIsPublishModalOpen(true)}
                   >
-                    <QrCode className="h-3.5 w-3.5" />
-                    Open Gate Scanner
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>Publish Event</span>
                   </Button>
-                </Link>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs font-medium text-amber-700 hover:text-amber-800 hover:bg-amber-50 border-amber-200/80 shadow-2xs cursor-pointer"
-                  onClick={() => setIsEndEventModalOpen(true)}
-                >
-                  End Event
-                </Button>
-              </div>
+                )}
+              </>
             )}
 
             {event.status === "PUBLISHED" && (
               <Button
                 size="sm"
-                className="text-xs font-semibold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer"
+                variant="positive"
+                className="text-xs font-semibold gap-1.5 shadow-xs cursor-pointer"
                 onClick={handleQuickStartEvent}
                 disabled={isStartingEvent}
               >
                 <Play className="h-3.5 w-3.5 fill-current" />
-                {isStartingEvent ? "Starting Event..." : "Start Event (Go Live)"}
+                <span>{isStartingEvent ? "Starting..." : "Start Event (Go Live)"}</span>
               </Button>
             )}
 
-            {event.status === "DRAFT" && (
-              <Link href={`/org/events/${event.id}/form`}>
+            {event.status === "LIVE" && (
+              <Link href={`/verify?event_id=${event.id}`}>
                 <Button
-                  variant="primary"
                   size="sm"
-                  className="text-xs font-semibold gap-1.5 shadow-xs"
+                  variant="positive"
+                  className="text-xs font-semibold gap-1.5 shadow-xs cursor-pointer"
                 >
-                  <FileText className="h-3.5 w-3.5 text-zinc-300" />
-                  Configure Form to Publish
+                  <QrCode className="h-3.5 w-3.5" />
+                  <span>Open Gate Scanner</span>
                 </Button>
               </Link>
             )}
 
             {event.status === "ENDED" && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 text-xs font-semibold text-zinc-600 border border-zinc-200">
-                <Clock className="h-3.5 w-3.5 text-zinc-400" />
-                Event Concluded (Gates Closed)
-              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs font-medium gap-1.5 shadow-2xs cursor-pointer"
+                onClick={handleCopySummary}
+              >
+                <Copy className="h-3.5 w-3.5 text-zinc-500" />
+                <span>{copiedSummary ? "Copied" : "Copy Summary"}</span>
+              </Button>
             )}
 
-            {/* Secondary Actions */}
+            {/* Secondary Action: Edit Event */}
             <Link href={`/org/events/${event.id}/edit`}>
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs font-medium gap-1.5 shadow-2xs"
+                className="text-xs font-medium gap-1.5 shadow-2xs cursor-pointer"
               >
                 <FileEdit className="h-3.5 w-3.5 text-zinc-400" />
-                Edit Event
+                <span>Edit Event</span>
               </Button>
             </Link>
 
-            {(event.status === "PUBLISHED" || event.status === "LIVE") && (
-              <Link href={`/events/${event.slug}`} target="_blank">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs font-medium gap-1.5 shadow-2xs"
-                >
-                  <ExternalLink className="h-3.5 w-3.5 text-zinc-400" />
-                  Public Page
-                </Button>
-              </Link>
-            )}
+            {/* Secondary Actions Dropdown Menu */}
+            <div className="relative" ref={actionsMenuRef}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs font-medium px-2 shadow-2xs cursor-pointer"
+                onClick={() => setIsActionsMenuOpen((prev) => !prev)}
+                aria-label="More actions"
+                aria-expanded={isActionsMenuOpen}
+              >
+                <MoreHorizontal className="h-4 w-4 text-zinc-600" />
+              </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs font-medium gap-1.5 shadow-2xs"
-              onClick={() => setIsIssueModalOpen(true)}
-            >
-              <Ticket className="h-3.5 w-3.5 text-zinc-400" />
-              Issue Pass
-            </Button>
+              {isActionsMenuOpen && (
+                <div className="absolute right-0 top-full mt-1.5 w-48 rounded-xl bg-white border border-zinc-200/90 shadow-lg py-1 z-30 animate-in fade-in-50 zoom-in-95 text-xs">
+                  <Link
+                    href={`/events/${event.slug}`}
+                    target="_blank"
+                    onClick={() => setIsActionsMenuOpen(false)}
+                    className="flex items-center gap-2 px-3.5 py-2 text-zinc-700 hover:bg-zinc-50 transition-colors"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 text-zinc-400" />
+                    <span>Public Page</span>
+                  </Link>
+
+                  <Link
+                    href={`/org/events/${event.id}/ticket-design`}
+                    onClick={() => setIsActionsMenuOpen(false)}
+                    className="flex items-center gap-2 px-3.5 py-2 text-zinc-700 hover:bg-zinc-50 transition-colors"
+                  >
+                    <Palette className="h-3.5 w-3.5 text-zinc-400" />
+                    <span>Customize Ticket</span>
+                  </Link>
+
+                  {(event.status === "PUBLISHED" || event.status === "LIVE") && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsActionsMenuOpen(false);
+                        setIsIssueModalOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2 px-3.5 py-2 text-zinc-700 hover:bg-zinc-50 transition-colors cursor-pointer text-left"
+                    >
+                      <Ticket className="h-3.5 w-3.5 text-zinc-400" />
+                      <span>Issue Pass</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsActionsMenuOpen(false);
+                      replayTour();
+                    }}
+                    className="w-full flex items-center gap-2 px-3.5 py-2 text-zinc-700 hover:bg-zinc-50 transition-colors cursor-pointer text-left"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+                    <span>Replay Tour</span>
+                  </button>
+
+                  {event.status === "LIVE" && (
+                    <div className="border-t border-zinc-100 my-1 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsActionsMenuOpen(false);
+                          setIsEndEventModalOpen(true);
+                        }}
+                        className="w-full flex items-center gap-2 px-3.5 py-2 text-amber-700 hover:bg-amber-50 transition-colors cursor-pointer text-left"
+                      >
+                        <Clock className="h-3.5 w-3.5" />
+                        <span>End Event</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {(event.status === "DRAFT" || event.status === "PUBLISHED") && (
+                    <div className="border-t border-zinc-100 my-1 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsActionsMenuOpen(false);
+                          setIsCancelModalOpen(true);
+                        }}
+                        className="w-full flex items-center gap-2 px-3.5 py-2 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-left"
+                      >
+                        <Ban className="h-3.5 w-3.5" />
+                        <span>Cancel Event</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 3. Event Key Metrics Row */}
-      <div
-        className={cn(
-          "grid gap-4",
-          isPaid
-            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-            : "grid-cols-1 sm:grid-cols-3"
-        )}
-      >
-        <MetricCard
-          label="Registrations"
-          value={metrics.registrationsCount}
-          icon={Users}
-          iconColorClass="text-sky-700"
-          iconBgClass="bg-sky-50"
-          trendText={
-            metrics.registrationsCount > 0
-              ? `${metrics.registrationsCount} attendees`
-              : "No submissions"
-          }
-          trendType="neutral"
-          subtext={
-            isPaid && metrics.pendingPaymentsCount > 0
-              ? `${metrics.pendingPaymentsCount} awaiting payment review`
-              : "Attendee submissions received via registration form"
-          }
-        />
+      {/* 3. Status-Specific Contextual Action Area */}
+      <WorkspaceActionBanner
+        event={event}
+        config={workspaceConfig}
+        checklist={publicationChecklist}
+        onPublishClick={() => setIsPublishModalOpen(true)}
+        onStartEventClick={handleQuickStartEvent}
+        onEndEventClick={() => setIsEndEventModalOpen(true)}
+        onCancelEventClick={() => setIsCancelModalOpen(true)}
+        onReviewPaymentsClick={() => handleTabChange("payments")}
+        onTabChange={handleTabChange}
+        isActionLoading={isStartingEvent || isPublishingEvent}
+      />
 
-        <MetricCard
-          label="Tickets Issued"
-          value={metrics.ticketsCount}
-          icon={Ticket}
-          iconColorClass="text-emerald-700"
-          iconBgClass="bg-emerald-50"
-          trendText={metrics.ticketsCount > 0 ? "Generated" : "None issued"}
-          trendType={metrics.ticketsCount > 0 ? "positive" : "neutral"}
-          subtext="Digital entrance passes created for confirmed attendees"
-        />
+      {/* 4. Contextual Metrics Row */}
+      <WorkspaceContextualMetrics
+        status={workspaceConfig.status}
+        isPaid={isPaid}
+        metrics={metrics}
+        checklist={publicationChecklist}
+        formFieldsCount={fields.length}
+        event={event}
+        verifiersCount={activeVerifiersCount}
+      />
 
-        <MetricCard
-          label="Successful Check-ins"
-          value={metrics.checkedInCount}
-          icon={CheckCircle2}
-          iconColorClass="text-indigo-700"
-          iconBgClass="bg-indigo-50"
-          trendText={
-            metrics.ticketsCount > 0
-              ? `${checkinPercentage}% of issued passes`
-              : "0% check-in"
-          }
-          trendType="neutral"
-          subtext="Attendees admitted through gate verification scanners"
-        />
-
-        {/* 4th Card: Only displayed for Paid Events */}
-        {isPaid && (
-          <MetricCard
-            label="Pending Payments"
-            value={metrics.pendingPaymentsCount}
-            icon={CreditCard}
-            iconColorClass={
-              metrics.pendingPaymentsCount > 0 ? "text-amber-700" : "text-zinc-600"
-            }
-            iconBgClass={
-              metrics.pendingPaymentsCount > 0 ? "bg-amber-50" : "bg-zinc-100"
-            }
-            trendText={
-              metrics.pendingPaymentsCount > 0 ? "Needs Review" : "All Reviewed"
-            }
-            trendType={metrics.pendingPaymentsCount > 0 ? "warning" : "positive"}
-            subtext="Submissions awaiting transaction verification & ticket generation"
-          />
-        )}
-      </div>
-
-      {/* 4. Event-Scoped Navigation Bar */}
-      <div className="border-b border-zinc-200/80">
-        <nav className="flex space-x-1 sm:space-x-3 overflow-x-auto" aria-label="Event Tabs">
+      {/* 5. Event Navigation Tabs */}
+      <div data-tour="workspace-tabs" className="border-b border-zinc-200">
+        <nav className="flex space-x-6 overflow-x-auto" aria-label="Event Tabs">
           <button
             type="button"
             onClick={() => handleTabChange("overview")}
             className={cn(
-              "px-3.5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
+              "pb-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors cursor-pointer",
               activeTab === "overview"
                 ? "border-zinc-900 text-zinc-900 font-semibold"
                 : "border-transparent text-zinc-500 hover:text-zinc-800 hover:border-zinc-300"
             )}
           >
-            <Eye className="h-4 w-4" />
             Overview
           </button>
 
@@ -694,20 +828,19 @@ export function EventWorkspace({
             type="button"
             onClick={() => handleTabChange("registrations")}
             className={cn(
-              "px-3.5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
+              "pb-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer",
               activeTab === "registrations"
                 ? "border-zinc-900 text-zinc-900 font-semibold"
                 : "border-transparent text-zinc-500 hover:text-zinc-800 hover:border-zinc-300"
             )}
           >
-            <Users className="h-4 w-4" />
-            Registrations
+            <span>Registrations</span>
             <span
               className={cn(
-                "px-2 py-0.5 rounded-full text-xs font-semibold tracking-normal",
+                "text-xs font-mono px-1.5 py-0.2 rounded",
                 activeTab === "registrations"
-                  ? "bg-zinc-900 text-white"
-                  : "bg-zinc-100 text-zinc-600"
+                  ? "bg-zinc-100 text-zinc-900 font-medium"
+                  : "text-zinc-400"
               )}
             >
               {metrics.registrationsCount}
@@ -718,20 +851,19 @@ export function EventWorkspace({
             type="button"
             onClick={() => handleTabChange("tickets")}
             className={cn(
-              "px-3.5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
+              "pb-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer",
               activeTab === "tickets"
                 ? "border-zinc-900 text-zinc-900 font-semibold"
                 : "border-transparent text-zinc-500 hover:text-zinc-800 hover:border-zinc-300"
             )}
           >
-            <Ticket className="h-4 w-4" />
-            Tickets
+            <span>Tickets</span>
             <span
               className={cn(
-                "px-2 py-0.5 rounded-full text-xs font-semibold tracking-normal",
+                "text-xs font-mono px-1.5 py-0.2 rounded",
                 activeTab === "tickets"
-                  ? "bg-zinc-900 text-white"
-                  : "bg-zinc-100 text-zinc-600"
+                  ? "bg-zinc-100 text-zinc-900 font-medium"
+                  : "text-zinc-400"
               )}
             >
               {metrics.ticketsCount}
@@ -743,16 +875,15 @@ export function EventWorkspace({
               type="button"
               onClick={() => handleTabChange("payments")}
               className={cn(
-                "px-3.5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
+                "pb-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer",
                 activeTab === "payments"
                   ? "border-zinc-900 text-zinc-900 font-semibold"
                   : "border-transparent text-zinc-500 hover:text-zinc-800 hover:border-zinc-300"
               )}
             >
-              <CreditCard className="h-4 w-4" />
-              Payments
+              <span>Payments</span>
               {metrics.pendingPaymentsCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
                   {metrics.pendingPaymentsCount}
                 </span>
               )}
@@ -763,20 +894,19 @@ export function EventWorkspace({
             type="button"
             onClick={() => handleTabChange("verifiers")}
             className={cn(
-              "px-3.5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-2",
+              "pb-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer",
               activeTab === "verifiers"
                 ? "border-zinc-900 text-zinc-900 font-semibold"
                 : "border-transparent text-zinc-500 hover:text-zinc-800 hover:border-zinc-300"
             )}
           >
-            <KeyRound className="h-4 w-4" />
-            Gate Staff
+            <span>Gate Staff</span>
             <span
               className={cn(
-                "px-2 py-0.5 rounded-full text-xs font-semibold tracking-normal",
+                "text-xs font-mono px-1.5 py-0.2 rounded",
                 activeTab === "verifiers"
-                  ? "bg-zinc-900 text-white"
-                  : "bg-zinc-100 text-zinc-600"
+                  ? "bg-zinc-100 text-zinc-900 font-medium"
+                  : "text-zinc-400"
               )}
             >
               {verifiersList.length}
@@ -786,443 +916,115 @@ export function EventWorkspace({
       </div>
 
       {/* 5. Workspace Tab Views */}
+      {/* 5. Workspace Tab Views */}
       {/* ========================================================================= */}
-      {/* TAB 1: OVERVIEW */}
+      {/* TAB 1: OVERVIEW (Status-Driven Contextual Architecture) */}
       {/* ========================================================================= */}
       {activeTab === "overview" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Main Left Workspace (8 cols) */}
-          <div className="lg:col-span-8 space-y-6">
-            {/* Event Information & Operational Parameters */}
-            <div className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-2xs space-y-5">
-              <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-semibold text-zinc-900">
-                    Event Parameters & Schedule
-                  </h2>
-                  <span className="text-xs font-mono text-zinc-400">
-                    ID: {event.id.slice(0, 8)}...
-                  </span>
-                </div>
-                <Link href={`/org/events/${event.id}/edit`}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs font-medium gap-1 shadow-2xs"
-                  >
-                    <FileEdit className="h-3 w-3 text-zinc-500" />
-                    Edit Details
-                  </Button>
-                </Link>
-              </div>
+        <>
+          {event.status === "DRAFT" && (
+            <WorkspaceDraftView
+              event={event}
+              form={form}
+              checklist={publicationChecklist}
+              onPublishClick={() => setIsPublishModalOpen(true)}
+              onCopyLink={handleCopyLink}
+              copiedLink={copiedLink}
+              isPublishing={isPublishingEvent}
+            />
+          )}
 
-              {/* Structured Parameters Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                {/* Schedule */}
-                <div className="sm:col-span-2 p-3.5 rounded-xl bg-zinc-50/70 border border-zinc-200/70">
-                  <p className="text-xs text-zinc-500 font-medium">Scheduled Schedule</p>
-                  <p className="text-sm font-semibold text-zinc-900 mt-1 flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-zinc-400" />
-                    {event.date_start ? (
-                      <>
-                        {format(new Date(event.date_start), "EEEE, MMMM d, yyyy 'at' h:mm a")}
-                        {event.date_end && ` – ${format(new Date(event.date_end), "h:mm a")}`}
-                      </>
-                    ) : (
-                      <span className="text-zinc-400 font-normal">Date not specified</span>
-                    )}
-                  </p>
-                </div>
+          {event.status === "PUBLISHED" && (
+            <WorkspacePublishedView
+              event={event}
+              metrics={metrics}
+              recentRegistrations={initialRegistrations}
+              verifiersCount={activeVerifiersCount}
+              onStartEventClick={handleQuickStartEvent}
+              onReviewPaymentClick={(reg) => setReviewingPayment(reg)}
+              onCopyLink={handleCopyLink}
+              onTabChange={handleTabChange}
+              onInviteVerifierClick={() => setIsInviteVerifierModalOpen(true)}
+              copiedLink={copiedLink}
+              isStartingEvent={isStartingEvent}
+              formFieldsCount={fields.length}
+            />
+          )}
 
-                {/* Location */}
-                <div className="p-3.5 rounded-xl bg-zinc-50/70 border border-zinc-200/70">
-                  <p className="text-xs text-zinc-500 font-medium">Venue & Location</p>
-                  <p className="text-sm font-semibold text-zinc-900 mt-1 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-zinc-400 shrink-0" />
-                    <span className="truncate">
-                      {event.location || (
-                        <span className="text-zinc-400 font-normal">Location not specified</span>
-                      )}
-                    </span>
-                  </p>
-                </div>
+          {event.status === "LIVE" && (
+            <WorkspaceLiveView
+              event={event}
+              metrics={metrics}
+              tickets={ticketsList}
+              verifiersList={verifiersList}
+              onEndEventClick={() => setIsEndEventModalOpen(true)}
+              onInviteVerifierClick={() => setIsInviteVerifierModalOpen(true)}
+              onTabChange={handleTabChange}
+            />
+          )}
 
-                {/* Admission Model */}
-                <div className="p-3.5 rounded-xl bg-zinc-50/70 border border-zinc-200/70">
-                  <p className="text-xs text-zinc-500 font-medium">Admission Model</p>
-                  <p className="text-sm font-semibold text-zinc-900 mt-1 flex items-center gap-2">
-                    <Tag className="h-4 w-4 text-zinc-400 shrink-0" />
-                    <span>{isPaid ? "Paid Pass" : "Free Admission"}</span>
-                  </p>
-                </div>
+          {event.status === "ENDED" && (
+            <WorkspaceEndedView
+              event={event}
+              metrics={metrics}
+              tickets={ticketsList}
+              onTabChange={handleTabChange}
+              onCopySummary={handleCopySummary}
+              copiedSummary={copiedSummary}
+            />
+          )}
 
-                {/* Public Link */}
-                <div className="sm:col-span-2 p-3.5 rounded-xl bg-zinc-50/70 border border-zinc-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <p className="text-xs text-zinc-500 font-medium">Public Event Slug</p>
-                    <p className="text-sm font-mono font-semibold text-zinc-800 mt-0.5">
-                      /{event.slug}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs font-medium gap-1 shadow-2xs"
-                      onClick={handleCopyLink}
-                    >
-                      <Copy className="h-3 w-3 text-zinc-400" />
-                      Copy Link
-                    </Button>
-                    {(event.status === "PUBLISHED" || event.status === "LIVE") && (
-                      <Link href={`/events/${event.slug}`} target="_blank">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-xs font-medium gap-1 shadow-2xs"
-                        >
-                          <ExternalLink className="h-3 w-3 text-zinc-400" />
-                          View Page
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Event Description */}
-              {event.description && (
-                <div className="pt-3 border-t border-zinc-100 text-xs space-y-1.5">
-                  <p className="text-xs text-zinc-500 font-medium">Description</p>
-                  <div className="p-3.5 rounded-xl bg-zinc-50/40 border border-zinc-200/60 text-zinc-700 whitespace-pre-wrap leading-relaxed text-xs">
-                    {event.description}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Payment & Settlement Parameters (Paid Events Only) */}
-            {isPaid && (
-              <div className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-700">
-                      <CreditCard className="h-3.5 w-3.5" />
-                    </div>
-                    <h2 className="text-sm font-semibold text-zinc-900">
-                      Payment & Settlement Parameters
-                    </h2>
-                  </div>
-                  <Link href={`/org/events/${event.id}/edit`}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs font-medium gap-1 shadow-2xs"
-                    >
-                      <FileEdit className="h-3 w-3 text-zinc-500" />
-                      Edit Banking Details
-                    </Button>
-                  </Link>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs">
-                  <div className="p-3 rounded-xl bg-zinc-50/70 border border-zinc-200/70">
-                    <p className="text-zinc-400 font-mono uppercase text-[10px] font-semibold">Payment Channel</p>
-                    <p className="text-sm font-semibold text-zinc-900 mt-0.5">
-                      {event.payment_config?.payment_method || "Direct Transfer"}
-                    </p>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-zinc-50/70 border border-zinc-200/70">
-                    <p className="text-zinc-400 font-mono uppercase text-[10px] font-semibold">Price per Pass</p>
-                    <p className="text-sm font-bold text-zinc-900 mt-0.5">
-                      {event.payment_config?.amount || "0"} {event.payment_config?.currency || "USD"}
-                    </p>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-zinc-50/70 border border-zinc-200/70">
-                    <p className="text-zinc-400 font-mono uppercase text-[10px] font-semibold">Account / Identifier</p>
-                    <p className="text-sm font-mono font-semibold text-zinc-900 mt-0.5">
-                      {event.payment_config?.account_number || "—"}
-                    </p>
-                  </div>
-                </div>
-
-                {event.payment_config?.account_name && (
-                  <div className="p-3 rounded-xl bg-zinc-50/70 border border-zinc-200/70 text-xs">
-                    <span className="text-zinc-500 font-medium">Beneficiary / Account Name: </span>
-                    <span className="font-semibold text-zinc-800">{event.payment_config.account_name}</span>
-                  </div>
-                )}
-
-                {event.payment_config?.instructions && (
-                  <div className="p-3.5 rounded-xl bg-amber-50/50 border border-amber-200/60 text-xs text-amber-900 leading-relaxed">
-                    <span className="font-semibold text-amber-950">Instructions for Attendees: </span>
-                    {event.payment_config.instructions}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Recent Registrations Preview Table */}
-            <div className="rounded-2xl border border-zinc-200/80 bg-white overflow-hidden shadow-2xs">
-              <div className="p-4 border-b border-zinc-200/80 bg-zinc-50/75 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-semibold text-zinc-900">
-                    Recent Registrations
-                  </h3>
-                  <span className="text-xs text-zinc-500 bg-white border border-zinc-200 px-2 py-0.5 rounded-full font-medium">
-                    {initialRegistrations.length}
-                  </span>
-                </div>
-                {initialRegistrations.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => handleTabChange("registrations")}
-                    className="text-xs font-semibold text-zinc-600 hover:text-zinc-900 transition-colors"
-                  >
-                    View All &rarr;
-                  </button>
-                )}
-              </div>
-
-              {initialRegistrations.length === 0 ? (
-                <div className="p-10 text-center space-y-3">
-                  <div className="mx-auto w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400">
-                    <Users className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-zinc-900">
-                      No registrations yet
-                    </h4>
-                    <p className="text-xs text-zinc-500 max-w-sm mx-auto mt-1">
-                      Your attendee registrations will appear here once participants submit the public registration form.
-                    </p>
-                  </div>
-                  <div className="pt-1 flex items-center justify-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs font-medium gap-1.5"
-                      onClick={handleCopyLink}
-                    >
-                      <Copy className="h-3 w-3" />
-                      Copy Registration Link
-                    </Button>
-                    {(event.status === "PUBLISHED" || event.status === "LIVE") && (
-                      <Link href={`/events/${event.slug}`} target="_blank">
-                        <Button variant="outline" size="sm" className="text-xs font-medium gap-1.5">
-                          <ExternalLink className="h-3 w-3" />
-                          Preview Public Page
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="border-b border-zinc-200/80 bg-zinc-50/50 text-zinc-600 font-semibold">
-                        <th className="py-2.5 px-4">Attendee</th>
-                        <th className="py-2.5 px-4">Status</th>
-                        {isPaid && <th className="py-2.5 px-4">Payment</th>}
-                        <th className="py-2.5 px-4">Date Registered</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-100 text-zinc-700">
-                      {initialRegistrations.slice(0, 5).map((reg) => (
-                        <tr key={reg.id} className="hover:bg-zinc-50/70 transition-colors">
-                          <td className="py-3 px-4">
-                            <p className="font-semibold text-zinc-900">{reg.participant_name}</p>
-                            <p className="text-xs text-zinc-400">{reg.email}</p>
-                          </td>
-                          <td className="py-3 px-4">
-                            <StatusBadge status={reg.status} />
-                          </td>
-                          {isPaid && (
-                            <td className="py-3 px-4">
-                              <StatusBadge status={reg.payment_status || "PENDING"} />
-                            </td>
-                          )}
-                          <td className="py-3 px-4 text-xs text-zinc-500">
-                            {format(new Date(reg.created_at), "MMM d, yyyy h:mm a")}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Contextual Sidebar (4 cols) */}
-          <div className="lg:col-span-4 space-y-6">
-            {/* 1. Lifecycle Governance Panel */}
-            <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-2xs space-y-3">
-              <div className="pb-2 border-b border-zinc-100 flex items-center justify-between">
-                <h3 className="text-xs font-semibold text-zinc-900 flex items-center gap-1.5">
-                  <ShieldCheck className="h-3.5 w-3.5 text-zinc-500" />
-                  Event Lifecycle
-                </h3>
-              </div>
-
-              <EventLifecyclePanel
-                eventId={event.id}
-                currentStatus={event.status}
-                hasConfiguredForm={hasFormFields}
-                formFieldsCount={fields.length}
-                onStatusChange={() => {
-                  startTransition(() => {
-                    router.refresh();
-                  });
-                }}
-              />
-            </div>
-
-            {/* 2. Registration Form Summary Card */}
-            <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
-                <div>
-                  <h3 className="text-xs font-semibold text-zinc-900 flex items-center gap-1.5">
-                    <FileText className="h-3.5 w-3.5 text-zinc-500" />
-                    Registration Form
-                  </h3>
-                  <p className="text-xs text-zinc-500 mt-0.5">
-                    {fields.length} questions configured
-                  </p>
-                </div>
-
-                <Link href={`/org/events/${event.id}/form`}>
-                  <Button size="sm" variant="outline" className="text-xs font-semibold shadow-2xs">
-                    Builder
-                  </Button>
-                </Link>
-              </div>
-
-              {fields.length === 0 ? (
-                <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-800 space-y-2">
-                  <p className="font-semibold flex items-center gap-1">
-                    <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-                    No form fields configured
-                  </p>
-                  <p className="text-[11px] text-amber-700">
-                    Add questions so attendees can sign up for this event.
-                  </p>
-                  <Link href={`/org/events/${event.id}/form`} className="block pt-1">
-                    <Button size="sm" variant="primary" className="w-full text-xs font-semibold">
-                      Configure Form
-                    </Button>
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-1.5">
-                  {fields.slice(0, 5).map((f) => (
-                    <div
-                      key={f.id}
-                      className="flex items-center justify-between p-2 rounded-lg bg-zinc-50 border border-zinc-200/80 text-xs"
-                    >
-                      <span className="font-medium text-zinc-800 truncate">{f.label}</span>
-                      {f.required ? (
-                        <span className="text-[10px] text-zinc-500 font-semibold uppercase shrink-0 bg-white px-1.5 py-0.5 rounded border border-zinc-200">
-                          Req
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-zinc-400 shrink-0">Opt</span>
-                      )}
-                    </div>
-                  ))}
-                  {fields.length > 5 && (
-                    <p className="text-xs text-center text-zinc-400 pt-1">
-                      +{fields.length - 5} more questions
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* 3. Entrance Verification Quick Hub */}
-            <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-2xs space-y-3">
-              <div className="pb-2 border-b border-zinc-100 flex items-center justify-between">
-                <h3 className="text-xs font-semibold text-zinc-900 flex items-center gap-1.5">
-                  <QrCode className="h-3.5 w-3.5 text-zinc-500" />
-                  Entrance Verification Gate
-                </h3>
-              </div>
-
-              <p className="text-xs text-zinc-600 leading-relaxed">
-                Scan attendee QR passes at entrance gates to prevent duplicate entry.
-              </p>
-
-              <div className="space-y-2">
-                <Link href={`/verify?event_id=${event.id}`} className="block">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-xs font-semibold gap-1.5 shadow-2xs"
-                  >
-                    <QrCode className="h-3.5 w-3.5 text-zinc-600" />
-                    Launch Scanner for This Event
-                  </Button>
-                </Link>
-
-                <div className="pt-2 border-t border-zinc-100 flex items-center justify-between text-xs">
-                  <span className="text-zinc-500">
-                    {verifiersList.filter((v) => v.status === "ACTIVE" || v.status === "INVITED").length} gate staff active
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setIsInviteVerifierModalOpen(true)}
-                    className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
-                  >
-                    <Plus className="h-3 w-3" /> Invite Staff
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          {event.status === "CANCELLED" && (
+            <WorkspaceCancelledView
+              event={event}
+              metrics={metrics}
+              registrations={initialRegistrations}
+              onTabChange={handleTabChange}
+            />
+          )}
+        </>
       )}
 
       {/* ========================================================================= */}
       {/* TAB 2: REGISTRATIONS */}
       {/* ========================================================================= */}
       {activeTab === "registrations" && (
-        <div className="rounded-2xl border border-zinc-200/80 bg-white shadow-2xs overflow-hidden space-y-0">
+        <div className="rounded-2xl border border-[#DCE1E8] bg-white shadow-2xs overflow-hidden space-y-0">
           {/* Header & Filter Controls */}
-          <div className="p-4 sm:p-5 border-b border-zinc-200/80 bg-zinc-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-4 sm:p-5 border-b border-[#DCE1E8] bg-[#F1F4F8]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-zinc-900">
+              <h3 className="text-sm font-semibold text-[#171923]">
                 All Event Registrations
               </h3>
-              <span className="text-xs text-zinc-500 bg-white border border-zinc-200 px-2.5 py-0.5 rounded-full font-medium">
+              <span className="text-xs text-[#525B6B] bg-white border border-[#DCE1E8] px-2.5 py-0.5 rounded-full font-medium">
                 {initialRegistrations.length}
               </span>
             </div>
 
             {/* Controls */}
             <div className="flex flex-wrap items-center gap-2">
-              <select
+              <Select
+                size="sm"
                 value={regFilter}
-                onChange={(e) => setRegFilter(e.target.value)}
-                className="text-xs py-1.5 px-2.5 rounded-lg border border-zinc-300 bg-white text-zinc-800 font-medium focus:outline-none"
-              >
-                <option value="ALL">All Statuses</option>
-                <option value="CONFIRMED">Confirmed / Registered</option>
-                <option value="PENDING">Pending Payment</option>
-                <option value="CANCELLED">Cancelled</option>
-              </select>
+                onChange={setRegFilter}
+                className="w-44"
+                options={[
+                  { value: "ALL", label: "All Statuses", indicatorColor: "#667085" },
+                  { value: "CONFIRMED", label: "Confirmed / Registered", indicatorColor: "#087F5B" },
+                  { value: "PENDING", label: "Pending Payment", indicatorColor: "#B96B08" },
+                  { value: "CANCELLED", label: "Cancelled", indicatorColor: "#C2415D" },
+                ]}
+              />
 
               {/* Search Input */}
               <div className="relative w-full sm:w-60">
-                <Search className="h-3.5 w-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="h-3.5 w-3.5 text-[#667085] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Search attendee or email..."
                   value={regSearch}
                   onChange={(e) => setRegSearch(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                  className="w-full pl-9 pr-3.5 py-2 text-xs font-medium rounded-xl border border-[#DCE1E8] bg-[#F8FAFC] text-[#171923] placeholder:text-[#8C96A5] shadow-[inset_0_1px_1px_rgba(0,0,0,0.03),0_1px_2px_rgba(23,25,35,0.03)] hover:border-[#B4BDC9] hover:bg-white focus:outline-none focus:border-[#171923] focus:ring-2 focus:ring-[#171923]/10 focus:bg-white transition-all"
                 />
               </div>
             </div>
@@ -1230,13 +1032,13 @@ export function EventWorkspace({
 
           {filteredRegistrations.length === 0 ? (
             <div className="p-12 text-center space-y-3">
-              <div className="mx-auto w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400">
+              <div className="mx-auto w-12 h-12 rounded-full bg-[#F1F4F8] flex items-center justify-center text-[#667085]">
                 <Users className="h-6 w-6" />
               </div>
-              <h4 className="text-sm font-semibold text-zinc-900">
+              <h4 className="text-sm font-semibold text-[#171923]">
                 {regSearch || regFilter !== "ALL" ? "No matching registrations" : "No registrations received yet"}
               </h4>
-              <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+              <p className="text-xs text-[#525B6B] max-w-sm mx-auto">
                 {regSearch || regFilter !== "ALL"
                   ? "Try adjusting your search query or filter selection."
                   : "Share your public event registration link to begin accepting attendee registrations."}
@@ -1259,21 +1061,21 @@ export function EventWorkspace({
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-200/80 bg-zinc-50/70 text-zinc-600 text-sm font-semibold">
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Attendee</th>
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Registration Status</th>
-                    {isPaid && <th className="py-3.5 px-4 font-semibold text-zinc-600">Payment Status</th>}
-                    {isPaid && <th className="py-3.5 px-4 font-semibold text-zinc-600">Transaction ID</th>}
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Registered At</th>
-                    <th className="py-3.5 px-4 text-right font-semibold text-zinc-600">Actions</th>
+                  <tr className="border-b border-[#DCE1E8] bg-[#F1F4F8] text-[#525B6B] text-xs font-semibold">
+                    <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Attendee</th>
+                    <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Registration Status</th>
+                    {isPaid && <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Payment Status</th>}
+                    {isPaid && <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Transaction ID</th>}
+                    <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Registered At</th>
+                    <th className="py-3.5 px-4 text-right font-semibold text-[#525B6B]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 text-zinc-700">
+                <tbody className="divide-y divide-[#E9EDF2] text-[#171923]">
                   {filteredRegistrations.map((reg) => (
-                    <tr key={reg.id} className="hover:bg-zinc-50/70 transition-colors">
+                    <tr key={reg.id} className="hover:bg-[#F7F8FA] transition-colors">
                       <td className="py-3.5 px-4">
-                        <p className="font-semibold text-zinc-900 text-sm">{reg.participant_name}</p>
-                        <p className="text-[13px] text-zinc-500">{reg.email}</p>
+                        <p className="font-semibold text-[#171923] text-sm">{reg.participant_name}</p>
+                        <p className="text-[13px] text-[#525B6B]">{reg.email}</p>
                       </td>
                       <td className="py-3.5 px-4">
                         <StatusBadge status={reg.status} />
@@ -1284,11 +1086,11 @@ export function EventWorkspace({
                         </td>
                       )}
                       {isPaid && (
-                        <td className="py-3.5 px-4 font-mono text-xs text-zinc-600">
+                        <td className="py-3.5 px-4 font-mono text-xs text-[#525B6B]">
                           {reg.transaction_id || "—"}
                         </td>
                       )}
-                      <td className="py-3.5 px-4 text-sm text-zinc-600">
+                      <td className="py-3.5 px-4 text-sm text-[#525B6B]">
                         {format(new Date(reg.created_at), "MMM d, yyyy h:mm a")}
                       </td>
                       <td className="py-3.5 px-4 text-right">
@@ -1296,10 +1098,10 @@ export function EventWorkspace({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-xs font-medium h-8 px-2.5 gap-1 text-zinc-700 shadow-2xs"
+                            className="text-xs font-medium h-8 px-2.5 gap-1 text-[#171923] shadow-2xs"
                             onClick={() => setInspectingRegistration(reg)}
                           >
-                            <Eye className="h-3.5 w-3.5 text-zinc-400" />
+                            <Eye className="h-3.5 w-3.5 text-[#525B6B]" />
                             Inspect
                           </Button>
                           {isPaid &&
@@ -1307,7 +1109,7 @@ export function EventWorkspace({
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="text-xs font-semibold h-8 px-2.5 bg-amber-50/50 text-amber-800 border-amber-200"
+                                className="text-xs font-semibold h-8 px-2.5 bg-[#FFFBEB] text-[#B96B08] border-[#FDE68A] hover:bg-[#FEF3C7]"
                                 onClick={() => setReviewingPayment(reg)}
                               >
                                 Review Payment
@@ -1328,42 +1130,56 @@ export function EventWorkspace({
       {/* TAB 3: TICKETS */}
       {/* ========================================================================= */}
       {activeTab === "tickets" && (
-        <div className="rounded-2xl border border-zinc-200/80 bg-white shadow-2xs overflow-hidden space-y-0">
+        <div className="rounded-2xl border border-[#DCE1E8] bg-white shadow-2xs overflow-hidden space-y-0">
           {/* Header & Filter Controls */}
-          <div className="p-4 sm:p-5 border-b border-zinc-200/80 bg-zinc-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-4 sm:p-5 border-b border-[#DCE1E8] bg-[#F1F4F8]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-zinc-900">
+              <h3 className="text-sm font-semibold text-[#171923]">
                 Entrance Passes & Tickets
               </h3>
-              <span className="text-xs text-zinc-500 bg-white border border-zinc-200 px-2.5 py-0.5 rounded-full font-medium">
+              <span className="text-xs text-[#525B6B] bg-white border border-[#DCE1E8] px-2.5 py-0.5 rounded-full font-medium">
                 {ticketsList.length}
               </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               {/* Filter */}
-              <select
+              <Select
+                size="sm"
                 value={ticketFilter}
-                onChange={(e) => setTicketFilter(e.target.value)}
-                className="text-xs py-1.5 px-2.5 rounded-lg border border-zinc-300 bg-white text-zinc-800 font-medium focus:outline-none"
-              >
-                <option value="ALL">All Passes</option>
-                <option value="ISSUED">Issued</option>
-                <option value="CHECKED_IN">Checked In</option>
-                <option value="REVOKED">Revoked</option>
-              </select>
+                onChange={setTicketFilter}
+                className="w-40"
+                options={[
+                  { value: "ALL", label: "All Passes", indicatorColor: "#667085" },
+                  { value: "ISSUED", label: "Issued", indicatorColor: "#2563EB" },
+                  { value: "CHECKED_IN", label: "Checked In", indicatorColor: "#087F5B" },
+                  { value: "REVOKED", label: "Revoked", indicatorColor: "#C2415D" },
+                ]}
+              />
 
               {/* Search */}
               <div className="relative w-48 sm:w-56">
-                <Search className="h-3.5 w-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="h-3.5 w-3.5 text-[#667085] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Ticket # or name..."
                   value={ticketSearch}
                   onChange={(e) => setTicketSearch(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
+                  className="w-full pl-9 pr-3.5 py-2 text-xs font-medium rounded-xl border border-[#DCE1E8] bg-[#F8FAFC] text-[#171923] placeholder:text-[#8C96A5] shadow-[inset_0_1px_1px_rgba(0,0,0,0.03),0_1px_2px_rgba(23,25,35,0.03)] hover:border-[#B4BDC9] hover:bg-white focus:outline-none focus:border-[#171923] focus:ring-2 focus:ring-[#171923]/10 focus:bg-white transition-all"
                 />
               </div>
+
+              {/* Customize Ticket Button */}
+              <Link href={`/org/events/${event.id}/ticket-design`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs font-semibold gap-1.5 border-[#DCE1E8] text-[#171923] hover:bg-white shadow-2xs"
+                >
+                  <Palette className="h-3.5 w-3.5 text-[#525B6B]" />
+                  Customize Ticket
+                </Button>
+              </Link>
 
               {/* Direct Issue Button */}
               <Button
@@ -1380,15 +1196,15 @@ export function EventWorkspace({
 
           {filteredTickets.length === 0 ? (
             <div className="p-12 text-center space-y-3">
-              <div className="mx-auto w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400">
+              <div className="mx-auto w-12 h-12 rounded-full bg-[#F1F4F8] flex items-center justify-center text-[#667085]">
                 <Ticket className="h-6 w-6" />
               </div>
-              <h4 className="text-sm font-semibold text-zinc-900">
+              <h4 className="text-sm font-semibold text-[#171923]">
                 {ticketSearch || ticketFilter !== "ALL"
                   ? "No matching passes found"
                   : "No passes issued yet"}
               </h4>
-              <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+              <p className="text-xs text-[#525B6B] max-w-sm mx-auto">
                 Entrance passes are generated when attendees register or when organizers manually issue them.
               </p>
               <div className="pt-2">
@@ -1407,38 +1223,38 @@ export function EventWorkspace({
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-200/80 bg-zinc-50/70 text-zinc-600 text-sm font-semibold">
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Pass Number</th>
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Attendee</th>
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Status</th>
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Issued At</th>
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Checked In At</th>
-                    <th className="py-3.5 px-4 text-right font-semibold text-zinc-600">Actions</th>
+                  <tr className="border-b border-[#DCE1E8] bg-[#F1F4F8] text-[#525B6B] text-xs font-semibold">
+                    <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Pass Number</th>
+                    <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Attendee</th>
+                    <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Status</th>
+                    <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Issued At</th>
+                    <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Checked In At</th>
+                    <th className="py-3.5 px-4 text-right font-semibold text-[#525B6B]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 text-zinc-700">
+                <tbody className="divide-y divide-[#E9EDF2] text-[#171923]">
                   {filteredTickets.map((t) => (
-                    <tr key={t.id} className="hover:bg-zinc-50/70 transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-semibold text-sm text-zinc-900">
+                    <tr key={t.id} className="hover:bg-[#F7F8FA] transition-colors">
+                      <td className="py-3.5 px-4 font-mono font-semibold text-sm text-[#171923]">
                         {t.ticket_number}
                       </td>
                       <td className="py-3.5 px-4">
-                        <p className="font-semibold text-zinc-900 text-sm">{t.participant_name}</p>
-                        <p className="text-[13px] text-zinc-500">{t.participant_email}</p>
+                        <p className="font-semibold text-[#171923] text-sm">{t.participant_name}</p>
+                        <p className="text-[13px] text-[#525B6B]">{t.participant_email}</p>
                       </td>
                       <td className="py-3.5 px-4">
                         <StatusBadge status={t.status} />
                       </td>
-                      <td className="py-3.5 px-4 text-sm text-zinc-600">
+                      <td className="py-3.5 px-4 text-sm text-[#525B6B]">
                         {format(new Date(t.issued_at), "MMM d, yyyy h:mm a")}
                       </td>
-                      <td className="py-3.5 px-4 text-sm text-zinc-600">
+                      <td className="py-3.5 px-4 text-sm text-[#525B6B]">
                         {t.checked_in_at ? (
-                          <span className="text-emerald-700 font-medium">
+                          <span className="text-[#087F5B] font-medium">
                             {format(new Date(t.checked_in_at), "MMM d, h:mm a")}
                           </span>
                         ) : (
-                          <span className="text-zinc-400">Not verified</span>
+                          <span className="text-[#667085]">Not verified</span>
                         )}
                       </td>
                       <td className="py-3.5 px-4 text-right">
@@ -1446,11 +1262,11 @@ export function EventWorkspace({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-xs font-medium h-8 px-2.5 gap-1 text-zinc-700 shadow-2xs"
+                            className="text-xs font-medium h-8 px-2.5 gap-1 text-[#171923] shadow-2xs"
                             onClick={() => setInspectingTicket(t)}
                             title="Inspect Pass"
                           >
-                            <Eye className="h-3.5 w-3.5 text-zinc-400" />
+                            <Eye className="h-3.5 w-3.5 text-[#525B6B]" />
                             Inspect
                           </Button>
                           <Button
@@ -1461,22 +1277,22 @@ export function EventWorkspace({
                             isLoading={resendingTicketId === t.id}
                             title="Resend Entrance Pass Email"
                           >
-                            <Mail className="h-3.5 w-3.5 text-zinc-400" />
+                            <Mail className="h-3.5 w-3.5 text-[#525B6B]" />
                             Resend
                           </Button>
                           {t.status !== "REVOKED" ? (
                             <Button
                               variant="outline"
                               size="sm"
-                              className="text-xs font-medium h-8 px-2.5 gap-1 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+                              className="text-xs font-medium h-8 px-2.5 gap-1 text-[#C2415D] hover:text-[#9F1239] hover:bg-[#FFF1F2] border-[#FECDD3]"
                               onClick={() => setRevokingTicket(t)}
                               title="Revoke Pass"
                             >
-                              <Ban className="h-3.5 w-3.5 text-rose-500" />
+                              <Ban className="h-3.5 w-3.5 text-[#C2415D]" />
                               Revoke
                             </Button>
                           ) : (
-                            <span className="text-xs font-medium text-rose-600 px-2 py-0.5 bg-rose-50 border border-rose-200 rounded">
+                            <span className="text-xs font-medium text-[#C2415D] px-2 py-0.5 bg-[#FFF1F2] border border-[#FECDD3] rounded">
                               Revoked
                             </span>
                           )}
@@ -1504,11 +1320,11 @@ export function EventWorkspace({
               className={cn(
                 "p-3 rounded-xl border text-left transition-all",
                 paymentFilter === "ALL"
-                  ? "bg-zinc-900 text-white border-zinc-900 shadow-xs"
-                  : "bg-white text-zinc-700 border-zinc-200/80 hover:border-zinc-300 shadow-2xs"
+                  ? "bg-[#171923] text-white border-[#171923] shadow-xs"
+                  : "bg-white text-[#171923] border-[#DCE1E8] hover:border-[#171923] shadow-2xs"
               )}
             >
-              <p className={cn("text-[10px] font-semibold uppercase tracking-wider", paymentFilter === "ALL" ? "text-zinc-400" : "text-zinc-400")}>
+              <p className={cn("text-[10px] font-semibold uppercase tracking-wider", paymentFilter === "ALL" ? "text-zinc-300" : "text-[#667085]")}>
                 Total
               </p>
               <p className="text-lg font-bold mt-0.5">{paymentStats.total}</p>
@@ -1520,11 +1336,11 @@ export function EventWorkspace({
               className={cn(
                 "p-3 rounded-xl border text-left transition-all",
                 paymentFilter === "SUBMITTED"
-                  ? "bg-amber-600 text-white border-amber-600 shadow-xs"
-                  : "bg-white text-zinc-700 border-zinc-200/80 hover:border-amber-300 shadow-2xs"
+                  ? "bg-[#B96B08] text-white border-[#B96B08] shadow-xs"
+                  : "bg-white text-[#B96B08] border-[#DCE1E8] hover:border-[#FDE68A] shadow-2xs"
               )}
             >
-              <p className={cn("text-[10px] font-semibold uppercase tracking-wider", paymentFilter === "SUBMITTED" ? "text-amber-100" : "text-amber-600")}>
+              <p className={cn("text-[10px] font-semibold uppercase tracking-wider", paymentFilter === "SUBMITTED" ? "text-amber-100" : "text-[#B96B08]")}>
                 Awaiting Verification
               </p>
               <p className="text-lg font-bold mt-0.5">{paymentStats.submitted}</p>
@@ -1536,11 +1352,11 @@ export function EventWorkspace({
               className={cn(
                 "p-3 rounded-xl border text-left transition-all",
                 paymentFilter === "PENDING"
-                  ? "bg-zinc-700 text-white border-zinc-700 shadow-xs"
-                  : "bg-white text-zinc-700 border-zinc-200/80 hover:border-zinc-300 shadow-2xs"
+                  ? "bg-[#525B6B] text-white border-[#525B6B] shadow-xs"
+                  : "bg-white text-[#525B6B] border-[#DCE1E8] hover:border-[#9AA4B2] shadow-2xs"
               )}
             >
-              <p className={cn("text-[10px] font-semibold uppercase tracking-wider", paymentFilter === "PENDING" ? "text-zinc-300" : "text-zinc-500")}>
+              <p className={cn("text-[10px] font-semibold uppercase tracking-wider", paymentFilter === "PENDING" ? "text-zinc-200" : "text-[#525B6B]")}>
                 Pending Submission
               </p>
               <p className="text-lg font-bold mt-0.5">{paymentStats.pending}</p>
@@ -1552,11 +1368,11 @@ export function EventWorkspace({
               className={cn(
                 "p-3 rounded-xl border text-left transition-all",
                 paymentFilter === "APPROVED"
-                  ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
-                  : "bg-white text-zinc-700 border-zinc-200/80 hover:border-emerald-300 shadow-2xs"
+                  ? "bg-[#087F5B] text-white border-[#087F5B] shadow-xs"
+                  : "bg-white text-[#087F5B] border-[#DCE1E8] hover:border-[#A3E6CD] shadow-2xs"
               )}
             >
-              <p className={cn("text-[10px] font-semibold uppercase tracking-wider", paymentFilter === "APPROVED" ? "text-emerald-100" : "text-emerald-600")}>
+              <p className={cn("text-[10px] font-semibold uppercase tracking-wider", paymentFilter === "APPROVED" ? "text-emerald-100" : "text-[#087F5B]")}>
                 Approved
               </p>
               <p className="text-lg font-bold mt-0.5">{paymentStats.approved}</p>
@@ -1568,50 +1384,52 @@ export function EventWorkspace({
               className={cn(
                 "p-3 rounded-xl border text-left transition-all",
                 paymentFilter === "REJECTED"
-                  ? "bg-rose-600 text-white border-rose-600 shadow-xs"
-                  : "bg-white text-zinc-700 border-zinc-200/80 hover:border-rose-300 shadow-2xs"
+                  ? "bg-[#C2415D] text-white border-[#C2415D] shadow-xs"
+                  : "bg-white text-[#C2415D] border-[#DCE1E8] hover:border-[#FECDD3] shadow-2xs"
               )}
             >
-              <p className={cn("text-[10px] font-semibold uppercase tracking-wider", paymentFilter === "REJECTED" ? "text-rose-100" : "text-rose-600")}>
+              <p className={cn("text-[10px] font-semibold uppercase tracking-wider", paymentFilter === "REJECTED" ? "text-rose-100" : "text-[#C2415D]")}>
                 Rejected
               </p>
               <p className="text-lg font-bold mt-0.5">{paymentStats.rejected}</p>
             </button>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200/80 bg-white shadow-2xs overflow-hidden space-y-0">
+          <div className="rounded-2xl border border-[#DCE1E8] bg-white shadow-2xs overflow-hidden space-y-0">
             {/* Header with Search and Filter */}
-            <div className="p-4 sm:p-5 border-b border-zinc-200/80 bg-zinc-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-4 sm:p-5 border-b border-[#DCE1E8] bg-[#F1F4F8]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-zinc-900">
+                <h3 className="text-sm font-semibold text-[#171923]">
                   Payment Submissions & Approvals
                 </h3>
-                <span className="text-xs text-zinc-500 bg-white border border-zinc-200 px-2.5 py-0.5 rounded-full font-medium">
+                <span className="text-xs text-[#525B6B] bg-white border border-[#DCE1E8] px-2.5 py-0.5 rounded-full font-medium">
                   {paymentRegistrations.length}
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
-                <select
+                <Select
+                  size="sm"
                   value={paymentFilter}
-                  onChange={(e) => setPaymentFilter(e.target.value)}
-                  className="text-xs py-1.5 px-2.5 rounded-lg border border-zinc-300 bg-white text-zinc-800 font-medium focus:outline-none"
-                >
-                  <option value="ALL">All Payments</option>
-                  <option value="SUBMITTED">Awaiting Verification</option>
-                  <option value="PENDING">Pending Submission</option>
-                  <option value="APPROVED">Approved</option>
-                  <option value="REJECTED">Rejected</option>
-                </select>
+                  onChange={setPaymentFilter}
+                  className="w-48"
+                  options={[
+                    { value: "ALL", label: "All Payments", indicatorColor: "#667085" },
+                    { value: "SUBMITTED", label: "Awaiting Verification", indicatorColor: "#B96B08" },
+                    { value: "PENDING", label: "Pending Submission", indicatorColor: "#B96B08" },
+                    { value: "APPROVED", label: "Approved", indicatorColor: "#087F5B" },
+                    { value: "REJECTED", label: "Rejected", indicatorColor: "#C2415D" },
+                  ]}
+                />
 
                 <div className="relative w-48 sm:w-56">
-                  <Search className="h-3.5 w-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="h-3.5 w-3.5 text-[#667085] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     placeholder="Search attendee or TrxID..."
                     value={paymentSearch}
                     onChange={(e) => setPaymentSearch(e.target.value)}
-                    className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs font-medium rounded-xl border border-[#DCE1E8] bg-[#F8FAFC] text-[#171923] placeholder:text-[#8C96A5] shadow-[inset_0_1px_1px_rgba(0,0,0,0.03),0_1px_2px_rgba(23,25,35,0.03)] hover:border-[#B4BDC9] hover:bg-white focus:outline-none focus:border-[#171923] focus:ring-2 focus:ring-[#171923]/10 focus:bg-white transition-all"
                   />
                 </div>
               </div>
@@ -1619,15 +1437,15 @@ export function EventWorkspace({
 
             {paymentRegistrations.length === 0 ? (
               <div className="p-12 text-center space-y-3">
-                <div className="mx-auto w-12 h-12 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400">
+                <div className="mx-auto w-12 h-12 rounded-full bg-[#F1F4F8] flex items-center justify-center text-[#667085]">
                   <CreditCard className="h-6 w-6" />
                 </div>
-                <h4 className="text-sm font-semibold text-zinc-900">
+                <h4 className="text-sm font-semibold text-[#171923]">
                   {paymentSearch || paymentFilter !== "ALL"
                     ? "No matching payment records found"
                     : "No payment submissions yet"}
                 </h4>
-                <p className="text-xs text-zinc-500 max-w-sm mx-auto">
+                <p className="text-xs text-[#525B6B] max-w-sm mx-auto">
                   When attendees register for this paid pass, their submitted transaction IDs will appear here for verification.
                 </p>
               </div>
@@ -1635,34 +1453,34 @@ export function EventWorkspace({
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
-                    <tr className="border-b border-zinc-200/80 bg-zinc-50/70 text-zinc-600 text-sm font-semibold">
-                      <th className="py-3.5 px-4 font-semibold text-zinc-600">Attendee</th>
-                      <th className="py-3.5 px-4 font-semibold text-zinc-600">Transaction ID / Reference</th>
-                      <th className="py-3.5 px-4 font-semibold text-zinc-600">Payment Status</th>
-                      <th className="py-3.5 px-4 font-semibold text-zinc-600">Date Submitted</th>
-                      <th className="py-3.5 px-4 text-right font-semibold text-zinc-600">Review Action</th>
+                    <tr className="border-b border-[#DCE1E8] bg-[#F1F4F8] text-[#525B6B] text-xs font-semibold">
+                      <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Attendee</th>
+                      <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Transaction ID / Reference</th>
+                      <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Payment Status</th>
+                      <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Date Submitted</th>
+                      <th className="py-3.5 px-4 text-right font-semibold text-[#525B6B]">Review Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-100 text-zinc-700">
+                  <tbody className="divide-y divide-[#E9EDF2] text-[#171923]">
                     {paymentRegistrations.map((reg) => (
-                      <tr key={reg.id} className="hover:bg-zinc-50/70 transition-colors">
+                      <tr key={reg.id} className="hover:bg-[#F7F8FA] transition-colors">
                         <td className="py-3.5 px-4">
-                          <p className="font-semibold text-zinc-900 text-sm">{reg.participant_name}</p>
-                          <p className="text-[13px] text-zinc-500">{reg.email}</p>
+                          <p className="font-semibold text-[#171923] text-sm">{reg.participant_name}</p>
+                          <p className="text-[13px] text-[#525B6B]">{reg.email}</p>
                         </td>
-                        <td className="py-3.5 px-4 font-mono font-semibold text-sm text-zinc-900">
+                        <td className="py-3.5 px-4 font-mono font-semibold text-sm text-[#171923]">
                           {reg.transaction_id ? (
-                            <span className="px-2 py-0.5 rounded bg-zinc-100 border border-zinc-200/80">
+                            <span className="px-2 py-0.5 rounded bg-[#F1F4F8] border border-[#DCE1E8]">
                               {reg.transaction_id}
                             </span>
                           ) : (
-                            <span className="text-zinc-400 font-normal">Pending submission</span>
+                            <span className="text-[#667085] font-normal">Pending submission</span>
                           )}
                         </td>
                         <td className="py-3.5 px-4">
                           <StatusBadge status={reg.payment_status || "PENDING"} />
                         </td>
-                        <td className="py-3.5 px-4 text-sm text-zinc-600">
+                        <td className="py-3.5 px-4 text-sm text-[#525B6B]">
                           {format(new Date(reg.created_at), "MMM d, yyyy h:mm a")}
                         </td>
                         <td className="py-3.5 px-4 text-right">
@@ -1676,7 +1494,7 @@ export function EventWorkspace({
                               Review & Verify
                             </Button>
                           ) : (
-                            <span className="text-xs text-zinc-400 font-medium">Reviewed</span>
+                            <span className="text-xs text-[#667085] font-medium">Reviewed</span>
                           )}
                         </td>
                       </tr>
@@ -1693,38 +1511,39 @@ export function EventWorkspace({
       {/* TAB 5: GATE STAFF & VERIFIERS */}
       {/* ========================================================================= */}
       {activeTab === "verifiers" && (
-        <div className="rounded-2xl border border-zinc-200/80 bg-white shadow-2xs overflow-hidden space-y-0">
+        <div className="rounded-2xl border border-[#DCE1E8] bg-white shadow-2xs overflow-hidden space-y-0">
           {/* Header & Controls */}
-          <div className="p-4 sm:p-5 border-b border-zinc-200/80 bg-zinc-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-4 sm:p-5 border-b border-[#DCE1E8] bg-[#F1F4F8]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-zinc-900">
+                <h3 className="text-sm font-semibold text-[#171923]">
                   Entrance Gate Staff & Verifiers
                 </h3>
-                <span className="text-xs text-zinc-500 bg-white border border-zinc-200 px-2.5 py-0.5 rounded-full font-medium">
+                <span className="text-xs text-[#525B6B] bg-white border border-[#DCE1E8] px-2.5 py-0.5 rounded-full font-medium">
                   {verifiersList.length}
                 </span>
               </div>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <p className="text-xs text-[#525B6B] mt-0.5">
                 Delegate temporary QR ticket verification access via single-click magic links.
               </p>
             </div>
 
             <div className="flex items-center gap-2">
               <div className="relative w-full sm:w-56">
-                <Search className="h-3.5 w-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="h-3.5 w-3.5 text-[#667085] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Filter staff by name or email..."
                   value={verifierSearch}
                   onChange={(e) => setVerifierSearch(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                  className="w-full pl-8.5 pr-3 py-2 text-xs font-medium rounded-xl border border-[#DCE1E8] bg-[#FBFBFC] text-[#171923] placeholder:text-[#9AA4B2] placeholder:font-normal shadow-[0_1px_2px_rgba(23,25,35,0.04),inset_0_1px_1px_rgba(255,255,255,0.7)] hover:border-[#B4BDC9] hover:bg-white focus:outline-none focus:border-[#171923] focus:ring-2 focus:ring-[#171923]/10 focus:bg-white transition-all"
                 />
               </div>
 
               <Button
+                variant="positive"
                 size="sm"
-                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold gap-1.5 shrink-0"
+                className="text-xs font-semibold gap-1.5 shrink-0"
                 onClick={() => setIsInviteVerifierModalOpen(true)}
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -1740,22 +1559,23 @@ export function EventWorkspace({
               v.email.toLowerCase().includes(verifierSearch.toLowerCase())
           ).length === 0 ? (
             <div className="py-16 text-center space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-zinc-100 flex items-center justify-center mx-auto text-zinc-400">
+              <div className="w-12 h-12 rounded-2xl bg-[#F1F4F8] flex items-center justify-center mx-auto text-[#667085]">
                 <KeyRound className="h-6 w-6" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-zinc-900">
+                <h4 className="text-sm font-semibold text-[#171923]">
                   {verifiersList.length === 0 ? "No gate staff invited yet" : "No staff match your search"}
                 </h4>
-                <p className="text-xs text-zinc-500 max-w-sm mx-auto mt-1">
+                <p className="text-xs text-[#525B6B] max-w-sm mx-auto mt-1">
                   Invite security personnel or event volunteers to scan attendee entrance passes.
                   They do not need an account or password to verify passes.
                 </p>
               </div>
               {verifiersList.length === 0 && (
                 <Button
+                  variant="positive"
                   size="sm"
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold gap-1.5"
+                  className="text-xs font-semibold gap-1.5"
                   onClick={() => setIsInviteVerifierModalOpen(true)}
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -1767,15 +1587,15 @@ export function EventWorkspace({
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-200/80 bg-zinc-50/50 text-zinc-600 text-sm font-semibold">
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Staff Member</th>
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Access Status</th>
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Access Window / Expiry</th>
-                    <th className="py-3.5 px-4 font-semibold text-zinc-600">Last Entrance Scan</th>
-                    <th className="py-3.5 px-4 text-right font-semibold text-zinc-600">Actions</th>
+                  <tr className="border-b border-[#DCE1E8] bg-[#F1F4F8] text-[#525B6B] text-xs font-semibold">
+                    <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Staff Member</th>
+                    <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Access Status</th>
+                    <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Access Window / Expiry</th>
+                    <th className="py-3.5 px-4 font-semibold text-[#525B6B]">Last Entrance Scan</th>
+                    <th className="py-3.5 px-4 text-right font-semibold text-[#525B6B]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 text-zinc-700">
+                <tbody className="divide-y divide-[#E9EDF2] text-[#171923]">
                   {verifiersList
                     .filter(
                       (v) =>
@@ -1788,29 +1608,29 @@ export function EventWorkspace({
                       const displayStatus = isExpired && v.status === "ACTIVE" ? "EXPIRED" : v.status;
 
                       return (
-                        <tr key={v.id} className="hover:bg-zinc-50/70 transition-colors">
+                        <tr key={v.id} className="hover:bg-[#F7F8FA] transition-colors">
                           <td className="py-3.5 px-4">
-                            <p className="font-semibold text-zinc-900 text-sm">{v.name}</p>
-                            <p className="text-xs text-zinc-500 font-mono">{v.email}</p>
+                            <p className="font-semibold text-[#171923] text-sm">{v.name}</p>
+                            <p className="text-xs text-[#525B6B] font-mono">{v.email}</p>
                           </td>
                           <td className="py-3.5 px-4">
                             <StatusBadge status={displayStatus} />
                           </td>
-                          <td className="py-3.5 px-4 text-sm text-zinc-600">
-                            <span className="font-medium">
+                          <td className="py-3.5 px-4 text-sm text-[#525B6B]">
+                            <span className="font-medium text-[#171923]">
                               {format(new Date(v.expires_at), "MMM d, yyyy h:mm a")}
                             </span>
                             {isExpired && (
-                              <span className="block text-xs text-rose-500 font-medium">
+                              <span className="block text-xs text-[#C2415D] font-medium">
                                 (Window lapsed)
                               </span>
                             )}
                           </td>
-                          <td className="py-3.5 px-4 text-sm text-zinc-500">
+                          <td className="py-3.5 px-4 text-sm text-[#525B6B]">
                             {v.last_accessed_at ? (
                               format(new Date(v.last_accessed_at), "MMM d, yyyy h:mm a")
                             ) : (
-                              <span className="text-zinc-400">Never checked in</span>
+                              <span className="text-[#667085]">Never checked in</span>
                             )}
                           </td>
                           <td className="py-3.5 px-4 text-right">
@@ -1820,7 +1640,7 @@ export function EventWorkspace({
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-xs h-8 px-2.5 text-zinc-700 border-zinc-200 hover:bg-zinc-100 shadow-2xs"
+                                    className="text-xs h-8 px-2.5 text-[#171923] border-[#DCE1E8] hover:bg-[#F1F4F8] shadow-2xs"
                                     disabled={resendingVerifierId === v.id}
                                     onClick={() => handleResendVerifier(v.id, v.email)}
                                     title="Resend invitation email & copy fresh magic link"
@@ -1833,7 +1653,7 @@ export function EventWorkspace({
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-xs h-7 px-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+                                    className="text-xs h-7 px-2 text-[#C2415D] hover:text-[#9F1239] hover:bg-[#FFF1F2] border-[#FECDD3]"
                                     disabled={revokingVerifierId === v.id}
                                     onClick={() => handleRevokeVerifier(v.id, v.name)}
                                     title="Revoke gate scanner credentials immediately"
@@ -1843,7 +1663,7 @@ export function EventWorkspace({
                                 </>
                               )}
                               {v.status === "REVOKED" && (
-                                <span className="text-[11px] text-rose-500 font-medium italic pr-2">
+                                <span className="text-[11px] text-[#C2415D] font-medium italic pr-2">
                                   Access Revoked
                                 </span>
                               )}
@@ -1945,12 +1765,12 @@ export function EventWorkspace({
               Approving this payment will immediately generate and email an authentic entrance pass to the participant with a unique QR code.
             </p>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#F1F4F8]">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
+                className="text-xs font-medium text-[#C2415D] hover:text-[#9F1239] hover:bg-[#FFF1F2] border-[#FECDD3]"
                 onClick={() => handleReviewPaymentAction("REJECT")}
                 disabled={isReviewingLoading}
               >
@@ -1958,9 +1778,9 @@ export function EventWorkspace({
               </Button>
               <Button
                 type="button"
-                variant="primary"
+                variant="positive"
                 size="sm"
-                className="text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="text-xs font-semibold"
                 onClick={() => handleReviewPaymentAction("APPROVE")}
                 isLoading={isReviewingLoading}
               >
@@ -1980,19 +1800,19 @@ export function EventWorkspace({
         maxWidth="md"
       >
         <div className="space-y-4">
-          <p className="text-xs text-zinc-600 leading-relaxed">
-            Ending <strong className="text-zinc-900">{event.name}</strong> will immediately close entrance gate
+          <p className="text-xs text-[#525B6B] leading-relaxed">
+            Ending <strong className="text-[#171923]">{event.name}</strong> will immediately close entrance gate
             verification scanners and deactivate delegated verifier links. Attendee records and check-in
             history will be permanently preserved.
           </p>
 
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-zinc-100">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#F1F4F8]">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsEndEventModalOpen(false)}
-              className="text-xs font-medium text-zinc-700 border-zinc-200 hover:bg-zinc-100 cursor-pointer"
+              className="text-xs font-medium text-[#525B6B] border-[#DCE1E8] hover:bg-[#F1F4F8] cursor-pointer"
             >
               Keep Live
             </Button>
@@ -2000,9 +1820,94 @@ export function EventWorkspace({
               type="button"
               size="sm"
               onClick={handleQuickEndEvent}
-              className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 h-9 rounded-lg shadow-2xs cursor-pointer"
+              className="bg-[#B96B08] hover:bg-[#92400E] text-white text-xs font-semibold px-4 h-9 rounded-lg shadow-2xs cursor-pointer"
             >
               End Event & Close Gates
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Publish Event Confirmation Modal */}
+      <Modal
+        isOpen={isPublishModalOpen}
+        onClose={() => setIsPublishModalOpen(false)}
+        title="Publish Event to the Public?"
+        description="Make this event accessible to attendees."
+        maxWidth="md"
+      >
+        <div className="space-y-4 text-xs">
+          <p className="text-[#525B6B] leading-relaxed">
+            Publishing <strong className="text-[#171923]">{event.name}</strong> will activate the public registration page at{" "}
+            <code className="font-mono bg-zinc-100 px-1 py-0.5 rounded text-zinc-800">
+              /events/{event.slug}
+            </code>
+            . Attendees will be able to register and receive entrance tickets immediately.
+          </p>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#F1F4F8]">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsPublishModalOpen(false)}
+              className="text-xs font-medium"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={handlePublishEvent}
+              isLoading={isPublishingEvent}
+              className="text-xs font-semibold gap-1.5"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Publish Event Now</span>
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Cancel Event Confirmation Modal (Destructive Guard) */}
+      <Modal
+        isOpen={isCancelModalOpen}
+        onClose={() => setIsCancelModalOpen(false)}
+        title="Cancel This Event?"
+        description="Irreversible cancellation."
+        maxWidth="md"
+      >
+        <div className="space-y-4 text-xs">
+          <div className="p-3.5 rounded-xl bg-[#FFF1F2] border border-[#FECDD3] text-[#9F1239] space-y-2">
+            <div className="flex items-center gap-2 font-semibold text-[#881337]">
+              <AlertTriangle className="h-4 w-4 text-[#C2415D] shrink-0" />
+              <span>Warning: Permanent Cancellation</span>
+            </div>
+            <p className="leading-relaxed text-[#9F1239]">
+              Cancelling <strong className="text-[#171923]">{event.name}</strong> will immediately stop participant registrations, void all existing entrance tickets, and mark the event as inactive. Turnstile scanners will reject any attempts to scan tickets for this event. This action cannot be undone.
+            </p>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#F1F4F8]">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCancelModalOpen(false)}
+              className="text-xs font-medium"
+            >
+              Keep Event Active
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              onClick={handleCancelEvent}
+              isLoading={isCancellingEvent}
+              className="text-xs font-semibold"
+            >
+              Yes, Cancel Event
             </Button>
           </div>
         </div>
@@ -2023,41 +1928,41 @@ export function EventWorkspace({
           maxWidth="md"
         >
           <div className="space-y-4">
-            <div className="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200/80 text-xs text-rose-900 space-y-2">
-              <div className="flex items-center gap-2 font-semibold text-rose-950">
-                <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
+            <div className="p-3.5 rounded-xl bg-[#FFF1F2] border border-[#FECDD3] text-xs text-[#9F1239] space-y-2">
+              <div className="flex items-center gap-2 font-semibold text-[#881337]">
+                <AlertTriangle className="h-4 w-4 text-[#C2415D] shrink-0" />
                 <span>Dangerous Action: Irreversible Pass Invalidation</span>
               </div>
-              <p className="leading-relaxed text-rose-800">
+              <p className="leading-relaxed text-[#9F1239]">
                 Revoking this pass will immediately void ticket{" "}
                 <strong className="font-mono">#{revokingTicket.ticket_number}</strong>. Turnstile gates and
                 gate verifiers will reject this pass if scanned. This action is recorded in the organization audit log.
               </p>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-zinc-50 border border-zinc-200/80 text-xs space-y-2">
+            <div className="p-3.5 rounded-xl bg-[#F1F4F8] border border-[#DCE1E8] text-xs space-y-2">
               <div className="flex justify-between">
-                <span className="text-zinc-500">Ticket Number:</span>
-                <span className="font-mono font-semibold text-zinc-900">
+                <span className="text-[#525B6B]">Ticket Number:</span>
+                <span className="font-mono font-semibold text-[#171923]">
                   #{revokingTicket.ticket_number}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">Attendee:</span>
-                <span className="font-semibold text-zinc-900">{revokingTicket.participant_name}</span>
+                <span className="text-[#525B6B]">Attendee:</span>
+                <span className="font-semibold text-[#171923]">{revokingTicket.participant_name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">Email:</span>
-                <span className="font-mono text-zinc-700">{revokingTicket.participant_email}</span>
+                <span className="text-[#525B6B]">Email:</span>
+                <span className="font-mono text-[#525B6B]">{revokingTicket.participant_email}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">Current Status:</span>
+                <span className="text-[#525B6B]">Current Status:</span>
                 <StatusBadge status={revokingTicket.status} />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-700">
+              <label className="text-xs font-medium text-[#171923]">
                 Revocation Reason (Optional):
               </label>
               <input
@@ -2065,11 +1970,11 @@ export function EventWorkspace({
                 placeholder="e.g. Duplicate registration, refund requested, disciplinary action"
                 value={revokeReason}
                 onChange={(e) => setRevokeReason(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                className="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#DCE1E8] bg-[#FBFBFC] text-[#171923] placeholder:text-[#9AA4B2] placeholder:font-normal shadow-[0_1px_2px_rgba(23,25,35,0.04),inset_0_1px_1px_rgba(255,255,255,0.7)] hover:border-[#B4BDC9] hover:bg-white focus:outline-none focus:border-[#171923] focus:ring-2 focus:ring-[#171923]/10 focus:bg-white transition-all"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-zinc-100">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#F1F4F8]">
               <Button
                 type="button"
                 variant="outline"
@@ -2079,16 +1984,17 @@ export function EventWorkspace({
                   setRevokeReason("");
                 }}
                 disabled={isRevokingTicketLoading}
-                className="text-xs font-medium"
+                className="text-xs font-medium text-[#525B6B] border-[#DCE1E8] hover:bg-[#F1F4F8]"
               >
                 Keep Pass Active
               </Button>
               <Button
                 type="button"
+                variant="danger"
                 size="sm"
                 onClick={handleRevokeTicketConfirm}
                 isLoading={isRevokingTicketLoading}
-                className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 h-9 rounded-lg"
+                className="text-xs font-semibold px-4 h-9"
               >
                 Confirm Revocation
               </Button>

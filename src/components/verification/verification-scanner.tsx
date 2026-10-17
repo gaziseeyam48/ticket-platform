@@ -84,6 +84,7 @@ export function VerificationScanner({
   const [torchSupported, setTorchSupported] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [showManualEntry, setShowManualEntry] = useState(false);
 
   // Monitor network status for field operators
   useEffect(() => {
@@ -107,10 +108,12 @@ export function VerificationScanner({
   const lastScannedTime = useRef<number>(0);
   const mediaStreamRef = useRef<MediaStream | null>(null);
 
-  // Focus hardware keyboard scanner input
+  // Focus manual input only when manual entry is actively opened
   useEffect(() => {
-    inputRef.current?.focus();
-  }, [lastResult]);
+    if (showManualEntry) {
+      inputRef.current?.focus();
+    }
+  }, [lastResult, showManualEntry]);
 
   // Central verify function for both Camera QR and Hardware Barcode gun
   const processVerification = useCallback(
@@ -389,7 +392,7 @@ export function VerificationScanner({
           <div className="flex-1 flex flex-col justify-center">
             {/* 1. VALID PASS */}
             {lastResult.status === "VALID" && (
-              <div className="p-6 rounded-3xl bg-emerald-600 text-white shadow-2xl text-center space-y-5 animate-in zoom-in-95 duration-150">
+              <div className="p-6 rounded-3xl bg-[#087F5B] text-white shadow-2xl text-center space-y-5 animate-in zoom-in-95 duration-150">
                 <div className="mx-auto w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
                   <CheckCircle2 className="h-10 w-10 text-white" />
                 </div>
@@ -411,7 +414,7 @@ export function VerificationScanner({
 
                 <Button
                   onClick={handleResetForNext}
-                  className="w-full bg-white text-emerald-900 hover:bg-emerald-50 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
+                  className="w-full bg-white text-[#06694A] hover:bg-emerald-50 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Next Attendee (Ready)
@@ -421,30 +424,30 @@ export function VerificationScanner({
 
             {/* 2. ALREADY CHECKED IN (DUPLICATE) */}
             {lastResult.status === "ALREADY_CHECKED_IN" && (
-              <div className="p-6 rounded-3xl bg-amber-500 text-zinc-950 shadow-2xl text-center space-y-5 animate-in zoom-in-95 duration-150">
-                <div className="mx-auto w-16 h-16 rounded-full bg-black/10 flex items-center justify-center">
-                  <AlertTriangle className="h-10 w-10 text-zinc-950" />
+              <div className="p-6 rounded-3xl bg-[#B96B08] text-white shadow-2xl text-center space-y-5 animate-in zoom-in-95 duration-150">
+                <div className="mx-auto w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
+                  <AlertTriangle className="h-10 w-10 text-white" />
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs uppercase tracking-wider text-amber-950 font-bold">
+                  <span className="text-xs uppercase tracking-wider text-amber-200 font-bold">
                     Duplicate Entrance Scan
                   </span>
                   <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Already Checked In!</h2>
-                  <p className="text-base text-amber-950 font-semibold">
+                  <p className="text-base text-amber-100 font-semibold">
                     Attendee: {lastResult.participantName || "Unknown"}
                   </p>
                 </div>
 
                 {lastResult.checkedInAt && (
-                  <div className="p-3.5 rounded-2xl bg-black/10 text-sm text-amber-950 font-medium">
+                  <div className="p-3.5 rounded-2xl bg-black/20 text-sm text-amber-100 font-medium">
                     Prior admittance: {format(new Date(lastResult.checkedInAt), "MMM d, h:mm a")}
                   </div>
                 )}
 
                 <Button
                   onClick={handleResetForNext}
-                  className="w-full bg-zinc-950 text-white hover:bg-zinc-900 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
+                  className="w-full bg-white text-[#78350F] hover:bg-amber-50 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Next Scan
@@ -454,7 +457,7 @@ export function VerificationScanner({
 
             {/* 3. WRONG EVENT */}
             {lastResult.status === "WRONG_EVENT" && (
-              <div className="p-6 rounded-3xl bg-amber-600 text-white shadow-2xl text-center space-y-5 animate-in zoom-in-95 duration-150">
+              <div className="p-6 rounded-3xl bg-[#B96B08] text-white shadow-2xl text-center space-y-5 animate-in zoom-in-95 duration-150">
                 <div className="mx-auto w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
                   <ShieldAlert className="h-10 w-10 text-white" />
                 </div>
@@ -471,7 +474,7 @@ export function VerificationScanner({
 
                 <Button
                   onClick={handleResetForNext}
-                  className="w-full bg-white text-amber-950 hover:bg-amber-50 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
+                  className="w-full bg-white text-[#78350F] hover:bg-amber-50 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Dismiss / Next Pass
@@ -481,7 +484,7 @@ export function VerificationScanner({
 
             {/* 4. INVALID OR REVOKED */}
             {(lastResult.status === "INVALID" || lastResult.status === "REVOKED") && (
-              <div className="p-6 rounded-3xl bg-rose-600 text-white shadow-2xl text-center space-y-5 animate-in zoom-in-95 duration-150">
+              <div className="p-6 rounded-3xl bg-[#C2415D] text-white shadow-2xl text-center space-y-5 animate-in zoom-in-95 duration-150">
                 <div className="mx-auto w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
                   <XCircle className="h-10 w-10 text-white" />
                 </div>
@@ -498,7 +501,7 @@ export function VerificationScanner({
 
                 <Button
                   onClick={handleResetForNext}
-                  className="w-full bg-white text-rose-950 hover:bg-rose-50 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
+                  className="w-full bg-white text-[#881337] hover:bg-rose-50 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Retry / Next Pass
@@ -508,22 +511,22 @@ export function VerificationScanner({
 
             {/* 5. EVENT NOT LIVE */}
             {lastResult.status === "EVENT_NOT_LIVE" && (
-              <div className="p-6 rounded-3xl bg-sky-600 text-white shadow-2xl text-center space-y-5 animate-in zoom-in-95 duration-150">
+              <div className="p-6 rounded-3xl bg-[#2563EB] text-white shadow-2xl text-center space-y-5 animate-in zoom-in-95 duration-150">
                 <div className="mx-auto w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
                   <Clock className="h-10 w-10 text-white" />
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs uppercase tracking-wider text-sky-200 font-bold">
+                  <span className="text-xs uppercase tracking-wider text-blue-200 font-bold">
                     Gate Inactive
                   </span>
                   <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Event Not Live</h2>
-                  <p className="text-sm text-sky-100 max-w-xs mx-auto leading-relaxed">{lastResult.message}</p>
+                  <p className="text-sm text-blue-100 max-w-xs mx-auto leading-relaxed">{lastResult.message}</p>
                 </div>
 
                 <Button
                   onClick={handleResetForNext}
-                  className="w-full bg-white text-sky-950 hover:bg-sky-50 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
+                  className="w-full bg-white text-[#1E3A8A] hover:bg-blue-50 font-bold text-base h-12 rounded-xl shadow-lg cursor-pointer"
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   Dismiss
@@ -646,33 +649,76 @@ export function VerificationScanner({
             </div>
 
             <p className="text-xs text-zinc-400 max-w-xs">
-              Align attendee ticket QR code inside the viewfinder or scan via handheld laser.
+              Align attendee ticket QR code inside the viewfinder.
             </p>
           </div>
         )}
 
-        {/* Input Form for Handheld Hardware Scanners & Manual Entry */}
-        <form onSubmit={handleManualSubmit} className="space-y-2">
-          <div className="flex gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={tokenInput}
-              onChange={(e) => setTokenInput(e.target.value)}
-              placeholder="Laser scan or paste ticket URL..."
-              aria-label="Ticket pass token or URL"
-              disabled={isVerifying}
-              className="flex-1 h-12 px-4 rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-500 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-            <Button
-              type="submit"
-              disabled={isVerifying || !tokenInput.trim()}
-              className="h-12 px-5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shrink-0 cursor-pointer"
-            >
-              {isVerifying ? "Verifying..." : "Admit"}
-            </Button>
-          </div>
-        </form>
+        {/* Optional Manual Entry for Ticket Number Verification */}
+        <div className="space-y-3 pt-1">
+          {!showManualEntry ? (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowManualEntry(true);
+                  setTimeout(() => inputRef.current?.focus(), 50);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-xs font-medium text-zinc-400 hover:text-zinc-200 flex items-center gap-2 transition-colors cursor-pointer"
+              >
+                <Keyboard className="h-4 w-4 text-zinc-400" />
+                <span>Enter Ticket Number Manually</span>
+              </button>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/90 p-4 space-y-3 animate-in fade-in-50 duration-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Keyboard className="h-4 w-4 text-emerald-400" />
+                  <span className="text-xs font-semibold text-zinc-200">
+                    Manual Ticket Verification
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowManualEntry(false);
+                    setTokenInput("");
+                  }}
+                  className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors px-2 py-1 rounded-md hover:bg-zinc-800 cursor-pointer"
+                  aria-label="Close manual entry"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              <form onSubmit={handleManualSubmit} className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={tokenInput}
+                    onChange={(e) => setTokenInput(e.target.value)}
+                    placeholder="Enter ticket number (e.g. TKT-XXXXXXXX)..."
+                    aria-label="Ticket number"
+                    disabled={isVerifying}
+                    className="flex-1 h-11 px-3.5 rounded-xl bg-zinc-950 border border-zinc-700 text-white placeholder:text-zinc-500 font-mono text-sm uppercase tracking-wide focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={isVerifying || !tokenInput.trim()}
+                    className="h-11 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shrink-0 cursor-pointer"
+                  >
+                    {isVerifying ? "Verifying..." : "Verify & Admit"}
+                  </Button>
+                </div>
+                <p className="text-[11px] text-zinc-400">
+                  Type the ticket number printed on the attendee&apos;s pass or invoice.
+                </p>
+              </form>
+            </div>
+          )}
+        </div>
 
         {/* Recent Scans Station Log */}
         {recentScans.length > 0 && (

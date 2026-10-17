@@ -9,6 +9,7 @@ import { FieldConfigPanel } from "./field-config-panel";
 import { FormPreview } from "./form-preview";
 import { AddFieldModal } from "./add-field-modal";
 import { ListOrdered, Sliders, Eye } from "lucide-react";
+import { useOnboarding } from "@/components/onboarding/onboarding-provider";
 
 interface FormBuilderProps {
   eventId: string;
@@ -63,6 +64,8 @@ export function FormBuilder({
   eventName,
   eventSlug,
 }: FormBuilderProps) {
+  const { handleFormSaved, isWaitingForFormSave } = useOnboarding();
+
   // Working fields state
   const [fields, setFields] = useState<FormField[]>(initialFields);
   const [savedFieldsSnapshot, setSavedFieldsSnapshot] = useState<string>(
@@ -188,6 +191,12 @@ export function FormBuilder({
       setSaveStatus("saved");
       setAnnouncement("Registration form saved successfully.");
 
+      // If onboarding is in progress, transition seamlessly to Journey B (Event Setup)
+      if (isWaitingForFormSave) {
+        await handleFormSaved();
+        return;
+      }
+
       // Reset saved state back to idle after 4 seconds
       setTimeout(() => {
         setSaveStatus((current) => (current === "saved" ? "idle" : current));
@@ -223,6 +232,7 @@ export function FormBuilder({
         onOpenPreview={() => setIsPreviewModalOpen(true)}
         isPreviewVisible={showPreviewPanel}
         onTogglePreview={() => setShowPreviewPanel(!showPreviewPanel)}
+        isWaitingForFormSave={isWaitingForFormSave}
       />
 
       {/* Mobile / Tablet Tab Navigation Bar (< lg screens) */}

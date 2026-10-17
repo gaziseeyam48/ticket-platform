@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FormField } from "@/lib/validations/form";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import {
@@ -222,11 +223,11 @@ export function FormPreview({
               {/* Dropdown Select */}
               {field.type === "dropdown" && (
                 <div>
-                  <select
+                  <NativeSelect
                     id={`preview-${field.id}`}
                     value={val}
                     onChange={(e) => handleTestChange(field.id, e.target.value)}
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 shadow-2xs"
+                    error={error}
                   >
                     <option value="">{field.placeholder || "Select an option..."}</option>
                     {(field.options || []).map((opt, i) => (
@@ -234,8 +235,7 @@ export function FormPreview({
                         {opt}
                       </option>
                     ))}
-                  </select>
-                  {error && <p className="text-xs text-red-600 mt-1 font-medium">{error}</p>}
+                  </NativeSelect>
                 </div>
               )}
 

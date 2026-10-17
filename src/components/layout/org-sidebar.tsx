@@ -7,15 +7,12 @@ import {
   Calendar,
   Settings,
   QrCode,
-  LogOut,
   Building2,
   Ticket,
-  ChevronRight,
   X,
   ExternalLink,
   ScrollText,
 } from "lucide-react";
-import { logoutAction } from "@/app/actions/auth.actions";
 import { cn } from "@/lib/utils/cn";
 
 interface OrgSidebarProps {
@@ -96,17 +93,18 @@ export function OrgSidebar({
   const sidebarContent = (
     <div className="flex flex-col h-full bg-white select-none">
       {/* Brand Header */}
-      <div className="p-5 border-b border-zinc-100 flex items-center justify-between">
+      <div className="p-5 border-b border-[#DCE1E8] flex items-center justify-between">
         <Link href="/org" className="flex items-center gap-2.5 group">
-          <div className="h-9 w-9 rounded-xl bg-zinc-900 flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform">
+          <div className="h-9 w-9 rounded-xl bg-[#171923] flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform">
             <Ticket className="h-4.5 w-4.5 text-zinc-100" />
           </div>
           <div>
-            <div className="text-base font-bold tracking-tight text-zinc-900 leading-none">
-              TicketKoi
+            <div className="text-base font-bold tracking-tight text-[#171923] leading-none flex items-center gap-1.5">
+              <span>TicketKoi</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-[#087F5B]" />
             </div>
-            <div className="text-xs text-zinc-500 mt-1 flex items-center gap-1.5 truncate max-w-[140px]">
-              <Building2 className="h-3 w-3 text-zinc-400 shrink-0" />
+            <div className="text-xs text-[#525B6B] mt-1 flex items-center gap-1.5 truncate max-w-[140px]">
+              <Building2 className="h-3 w-3 text-[#667085] shrink-0" />
               <span className="truncate">{organizationName}</span>
             </div>
           </div>
@@ -116,7 +114,7 @@ export function OrgSidebar({
           <button
             type="button"
             onClick={onClose}
-            className="lg:hidden p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+            className="lg:hidden p-1.5 rounded-lg text-[#667085] hover:text-[#171923] hover:bg-[#F1F4F8] transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -127,7 +125,7 @@ export function OrgSidebar({
       <div className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6">
         {navItems.map((group, gIdx) => (
           <div key={gIdx} className="space-y-1">
-            <div className="px-2.5 pb-1.5 text-xs uppercase tracking-wider text-zinc-400 font-semibold">
+            <div className="px-2.5 pb-1.5 text-[11px] uppercase tracking-wider text-[#667085] font-semibold">
               {group.group}
             </div>
 
@@ -143,8 +141,8 @@ export function OrgSidebar({
                   className={cn(
                     "flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
                     active
-                      ? "bg-zinc-900 text-white font-semibold shadow-xs"
-                      : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/70"
+                      ? "bg-[#171923] text-white font-semibold shadow-xs"
+                      : "text-[#525B6B] hover:text-[#171923] hover:bg-[#F1F4F8]"
                   )}
                 >
                   <div className="flex items-center gap-2.5">
@@ -153,7 +151,7 @@ export function OrgSidebar({
                         "h-4 w-4 transition-colors shrink-0",
                         active
                           ? "text-white"
-                          : "text-zinc-400 group-hover:text-zinc-700"
+                          : "text-[#667085] group-hover:text-[#171923]"
                       )}
                     />
                     <span>{item.label}</span>
@@ -165,7 +163,7 @@ export function OrgSidebar({
                         "text-xs font-semibold px-2 py-0.5 rounded-full shrink-0",
                         active
                           ? "bg-zinc-800 text-zinc-200"
-                          : "bg-zinc-100 text-zinc-600 border border-zinc-200"
+                          : "bg-[#F1F4F8] text-[#525B6B] border border-[#DCE1E8]"
                       )}
                     >
                       {item.badge}
@@ -182,40 +180,28 @@ export function OrgSidebar({
           <Link
             href="/"
             target="_blank"
-            className="flex items-center justify-between p-2.5 rounded-xl border border-dashed border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50/50 transition-all text-sm font-medium"
+            className="flex items-center justify-between p-2.5 rounded-xl border border-dashed border-[#DCE1E8] text-[#525B6B] hover:text-[#171923] hover:border-[#9AA4B2] hover:bg-[#F1F4F8] transition-all text-sm font-medium"
           >
             <span>Public Portal</span>
-            <ExternalLink className="h-3.5 w-3.5 text-zinc-400" />
+            <ExternalLink className="h-3.5 w-3.5 text-[#667085]" />
           </Link>
         </div>
       </div>
 
-      {/* User Profile & Sign Out Footer */}
-      <div className="p-3 border-t border-zinc-100 bg-zinc-50/40">
-        <div className="p-2.5 rounded-xl bg-white border border-zinc-200/80 shadow-2xs flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="h-8 w-8 rounded-lg bg-zinc-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
-              {userInitial}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-zinc-900 truncate">
-                {userEmail.split("@")[0]}
-              </p>
-              <p className="text-xs text-zinc-500 truncate">
-                Organizer Admin
-              </p>
-            </div>
+      {/* User Profile Footer */}
+      <div className="p-3 border-t border-[#DCE1E8] bg-[#F7F8FA]">
+        <div className="p-2.5 rounded-xl bg-white border border-[#DCE1E8] shadow-2xs flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-lg bg-[#171923] text-white font-bold text-xs flex items-center justify-center shrink-0">
+            {userInitial}
           </div>
-
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              title="Sign Out"
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </form>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-[#171923] truncate">
+              {userEmail.split("@")[0]}
+            </p>
+            <p className="text-xs text-[#525B6B] truncate">
+              Organizer Admin
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -224,7 +210,7 @@ export function OrgSidebar({
   return (
     <>
       {/* Desktop Persistent Sidebar */}
-      <aside className="hidden lg:flex w-64 border-r border-zinc-200/80 bg-white shrink-0 sticky top-0 h-screen z-30 flex-col">
+      <aside className="hidden lg:flex w-64 border-r border-[#DCE1E8] bg-white shrink-0 sticky top-0 h-screen z-30 flex-col">
         {sidebarContent}
       </aside>
 
