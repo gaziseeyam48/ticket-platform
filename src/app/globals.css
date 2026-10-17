@@ -14,10 +14,31 @@
     --ring: #171923;
     --radius: 0.5rem;
 
-    /* Coordinated Brand & Accents */
+    /* Coordinated Dashboard Accents (Preserved for Dashboard Compatibility) */
     --brand-primary: #171923;
     --brand-accent: #087F5B;
     --brand-accent-hover: #06694A;
+
+    /* Official TicketKoi Brand Tokens (Landing & Brand Identity) */
+    --color-brand-primary: #006B5B;
+    --color-brand-primary-hover: #00564A;
+    --color-brand-primary-active: #00443A;
+    --color-brand-secondary: #FFBE2E;
+    --color-brand-secondary-hover: #EAA81D;
+    --color-brand-accent: #F04A24;
+    --color-brand-accent-hover: #D73C18;
+
+    /* Supporting Neutral Palette */
+    --color-background-main: #FFFFFF;
+    --color-background-muted: #F5F7F8;
+    --color-surface-tinted: #EDF4F2;
+    --color-text-primary: #17211F;
+    --color-text-secondary: #52615D;
+    --color-text-muted: #66736F;
+    --color-border-main: #DDE5E2;
+    --color-section-dark: #102A26;
+    --color-section-dark-surface: #163631;
+    --color-section-dark-border: #1E4741;
 
     /* Semantic Status Tokens */
     --status-success-bg: #E6F7F0;

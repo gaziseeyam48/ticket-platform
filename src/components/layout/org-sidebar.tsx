@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -95,13 +96,19 @@ export function OrgSidebar({
       {/* Brand Header */}
       <div className="p-5 border-b border-[#DCE1E8] flex items-center justify-between">
         <Link href="/org" className="flex items-center gap-2.5 group">
-          <div className="h-9 w-9 rounded-xl bg-[#171923] flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform">
-            <Ticket className="h-4.5 w-4.5 text-zinc-100" />
+          <div className="h-9 w-9 rounded-xl bg-white border border-[#DCE1E8] p-1 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+            <Image
+              src="/logo.png"
+              alt="TicketKoi Logo"
+              width={32}
+              height={32}
+              className="h-7 w-7 object-contain"
+            />
           </div>
           <div>
             <div className="text-base font-bold tracking-tight text-[#171923] leading-none flex items-center gap-1.5">
               <span>TicketKoi</span>
-              <span className="h-1.5 w-1.5 rounded-full bg-[#087F5B]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#006B5B]" />
             </div>
             <div className="text-xs text-[#525B6B] mt-1 flex items-center gap-1.5 truncate max-w-[140px]">
               <Building2 className="h-3 w-3 text-[#667085] shrink-0" />

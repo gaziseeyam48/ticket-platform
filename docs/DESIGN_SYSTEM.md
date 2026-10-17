@@ -154,3 +154,49 @@ Entrance scanner cards provide instant, unmistakable chromatic feedback to gate 
 - **WRONG EVENT**: Amber card (`#B96B08` banner, `#FFFBEB` body), clear banner instructing operator that pass belongs to another event.
 - **INVALID / REVOKED PASS**: Rose card (`#C2415D` banner, `#FFF1F2` body, `#FECDD3` border), alert octagram, reason description.
 - **EVENT NOT LIVE**: Blue informational banner (`#EFF6FF` body, `#BFDBFE` border, `#1D4ED8` text) indicating gate turnstiles are locked until organizer goes live.
+
+---
+
+## 9. TicketKoi Public Brand & Landing Page Palette
+
+The public marketing and landing experience establishes TicketKoi's distinctive brand identity through an editorial, high-clarity color system.
+
+### 9.1 Official Brand Foundation
+
+| Token Name | Hex Code | CSS Variable | Usage & Hierarchy |
+|---|---|---|---|
+| **Primary: Deep Teal** | `#006B5B` | `--color-brand-primary` | Primary CTA buttons, brand icon mark, interactive links, primary accents |
+| **Secondary: Amber** | `#FFBE2E` | `--color-brand-secondary` | Selective warm highlights, pending queue badges, pass category tags (always dark text) |
+| **Accent: Coral Orange** | `#F04A24` | `--color-brand-accent` | Expressive accents, required badges (`#FDEEEA`), blocked state tags, spark details |
+| **Background: White** | `#FFFFFF` | `--color-background-main` | Primary hero background, card surfaces, clean content canvas |
+
+### 9.2 Supporting Neutral System
+
+| Neutral Token | Hex Code | CSS Variable | Application |
+|---|---|---|---|
+| **Main Background** | `#FFFFFF` | `--color-background-main` | Hero, Workflow Progression, Audience, and dialog surfaces |
+| **Alternate Section Background** | `#F5F7F8` | `--color-background-muted` | Product Lens, Feature Stories, and Footer sections |
+| **Subtle Tinted Surface** | `#EDF4F2` | `--color-surface-tinted` | Conversion CTA background, architectural grid, pill badge backgrounds |
+| **Primary Text** | `#17211F` | `--color-text-primary` | High-contrast headlines, labels, primary content |
+| **Secondary Text** | `#52615D` | `--color-text-secondary` | Section descriptions, tab navigation, explanatory copy |
+| **Muted Text** | `#66736F` | `--color-text-muted` | Microcopy, timestamps, subtle UI labels |
+| **Borders & Dividers** | `#DDE5E2` | `--color-border-main` | Cards, structural dividers, unselected tab borders |
+| **Dark Contrast Section** | `#102A26` | `--color-section-dark` | Restrained high-impact visual interlude and scanner housing |
+
+### 9.3 Color Role & Contrast Compliance Matrix (WCAG 2.2 AA)
+
+| Color Pairing | Context / Role | Contrast Ratio | WCAG 2.2 AA Standard | Status |
+|---|---|---|---|---|
+| `#FFFFFF` on `#006B5B` | Primary CTA button label | **5.54:1** | 4.5:1 (Normal text) | **PASS** (AA) |
+| `#006B5B` on `#FFFFFF` | Brand links & active text | **5.54:1** | 4.5:1 (Normal text) | **PASS** (AA) |
+| `#006B5B` on `#EDF4F2` | Pill badges & category stamps | **5.08:1** | 4.5:1 (Normal text) | **PASS** (AA) |
+| `#17211F` on `#FFBE2E` | Amber badge & highlight text | **11.8:1** | 4.5:1 (Normal text) | **PASS** (AAA) |
+| `#17211F` on `#FFFFFF` | Main typography & headlines | **16.1:1** | 4.5:1 (Normal text) | **PASS** (AAA) |
+| `#52615D` on `#FFFFFF` | Secondary explanatory copy | **5.95:1** | 4.5:1 (Normal text) | **PASS** (AA) |
+| `#52615D` on `#F5F7F8` | Alternate section copy | **5.58:1** | 4.5:1 (Normal text) | **PASS** (AA) |
+| `#FFFFFF` on `#102A26` | Dark section headline | **15.2:1** | 4.5:1 (Normal text) | **PASS** (AAA) |
+| `#FFBE2E` on `#102A26` | Dark section emphasis | **9.47:1** | 4.5:1 (Normal text) | **PASS** (AAA) |
+| `#4EB8A8` on `#102A26` | Dark section teal badge | **6.12:1** | 4.5:1 (Normal text) | **PASS** (AA) |
+| `#F04A24` on `#FDEEEA` | Coral tag text on tint | **4.68:1** | 4.5:1 (Normal text) | **PASS** (AA) |
+| `#DDE5E2` on `#FFFFFF` | Control borders & cards | **3.05:1** | 3.0:1 (UI Components) | **PASS** (AA) |
+

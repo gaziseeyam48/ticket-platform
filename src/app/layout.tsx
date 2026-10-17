@@ -4,6 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "TicketKoi | Event Ticket Generation & Verification",
   description: "Production-grade, lean event ticketing and atomic entrance verification system.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

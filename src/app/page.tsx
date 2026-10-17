@@ -28,11 +28,11 @@ export default function HomePage() {
   return (
     <DemoModalProvider>
       <ScrollRevealProvider>
-        <div className="min-h-screen bg-[#fbfbf9] text-zinc-900 flex flex-col selection:bg-zinc-900 selection:text-white antialiased">
+        <div className="min-h-screen bg-white text-[#17211F] flex flex-col selection:bg-[#006B5B] selection:text-white antialiased">
         {/* Accessible skip link */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-zinc-900 focus:text-white focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white text-xs font-medium"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#006B5B] focus:text-white focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#006B5B] focus:ring-offset-2 text-xs font-medium"
         >
           Skip to main content
         </a>
