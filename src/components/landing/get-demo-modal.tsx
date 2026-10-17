@@ -125,6 +125,7 @@ export function GetDemoModal({ isOpen, onClose }: GetDemoModalProps) {
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-umami-event="Demo Request - Open WhatsApp"
                 className="h-9.5 px-3 rounded-lg bg-[#006B5B] hover:bg-[#00564A] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006B5B]"
               >
                 <span>Open WhatsApp</span>
@@ -134,6 +135,7 @@ export function GetDemoModal({ isOpen, onClose }: GetDemoModalProps) {
               <button
                 type="button"
                 onClick={() => handleCopy(whatsappNumber, "whatsapp")}
+                data-umami-event="Demo Request - Copy WhatsApp"
                 className="h-9.5 px-3 rounded-lg bg-white hover:bg-[#EDF4F2]/50 border border-[#DDE5E2] text-xs font-medium text-[#17211F] hover:border-[#006B5B] flex items-center justify-center gap-1.5 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006B5B]"
               >
                 {copiedType === "whatsapp" ? (
@@ -182,6 +184,7 @@ export function GetDemoModal({ isOpen, onClose }: GetDemoModalProps) {
                 href={gmailWebUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-umami-event="Demo Request - Open Gmail"
                 className="h-9.5 px-3 rounded-lg bg-[#006B5B] hover:bg-[#00564A] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006B5B]"
               >
                 <span>Open Gmail</span>
@@ -191,6 +194,7 @@ export function GetDemoModal({ isOpen, onClose }: GetDemoModalProps) {
               <button
                 type="button"
                 onClick={() => handleCopy(emailAddress, "gmail")}
+                data-umami-event="Demo Request - Copy Email"
                 className="h-9.5 px-3 rounded-lg bg-white hover:bg-[#EDF4F2]/50 border border-[#DDE5E2] text-xs font-medium text-[#17211F] hover:border-[#006B5B] flex items-center justify-center gap-1.5 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006B5B]"
               >
                 {copiedType === "gmail" ? (

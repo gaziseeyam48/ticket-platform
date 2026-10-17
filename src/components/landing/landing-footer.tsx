@@ -89,7 +89,9 @@ export function LandingFooter() {
               <li>
                 <button
                   type="button"
-                  onClick={openDemoModal}
+                  onClick={() => openDemoModal("footer")}
+                  data-umami-event="Get Demo Click"
+                  data-umami-event-source="footer"
                   className="hover:text-[#006B5B] transition-colors cursor-pointer text-left"
                 >
                   Request a Demo (Early Access)

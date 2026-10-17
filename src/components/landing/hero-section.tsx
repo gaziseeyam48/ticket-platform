@@ -49,7 +49,9 @@ export function HeroSection() {
             <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
               <button
                 type="button"
-                onClick={openDemoModal}
+                onClick={() => openDemoModal("hero")}
+                data-umami-event="Get Demo Click"
+                data-umami-event-source="hero"
                 className="inline-flex items-center justify-center gap-2.5 h-12 px-7 rounded-md bg-[#006B5B] text-white text-sm font-medium hover:bg-[#00564A] transition-all shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006B5B] focus-visible:ring-offset-2 active:scale-[0.98]"
               >
                 <span>Get demo</span>

@@ -1,10 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 import { GetDemoModal } from "@/components/landing/get-demo-modal";
 
 interface DemoModalContextType {
-  openDemoModal: () => void;
+  openDemoModal: (source?: string) => void;
   closeDemoModal: () => void;
   isDemoModalOpen: boolean;
 }
@@ -14,16 +14,34 @@ const DemoModalContext = createContext<DemoModalContextType | undefined>(undefin
 export function DemoModalProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  const openDemoModal = useCallback((source: string = "direct") => {
+    if (typeof window !== "undefined") {
+      const umami = (
+        window as unknown as {
+          umami?: { track: (event: string, data?: Record<string, unknown>) => void };
+        }
+      ).umami;
+      if (typeof umami?.track === "function") {
+        umami.track("Get Demo Click", { source });
+      }
+    }
+    setIsOpen(true);
+  }, []);
+
+  const closeDemoModal = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
   return (
     <DemoModalContext.Provider
       value={{
-        openDemoModal: () => setIsOpen(true),
-        closeDemoModal: () => setIsOpen(false),
+        openDemoModal,
+        closeDemoModal,
         isDemoModalOpen: isOpen,
       }}
     >
       {children}
-      <GetDemoModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <GetDemoModal isOpen={isOpen} onClose={closeDemoModal} />
     </DemoModalContext.Provider>
   );
 }

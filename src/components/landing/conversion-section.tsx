@@ -41,7 +41,9 @@ export function ConversionSection() {
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
             type="button"
-            onClick={openDemoModal}
+            onClick={() => openDemoModal("conversion-section")}
+            data-umami-event="Get Demo Click"
+            data-umami-event-source="conversion-section"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 h-12 px-8 rounded-md bg-[#006B5B] text-white text-sm font-medium hover:bg-[#00564A] transition-all shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006B5B] focus-visible:ring-offset-2 active:scale-[0.98]"
           >
             <span>Get demo</span>

@@ -101,7 +101,9 @@ export function LandingHeader() {
           </Link>
           <button
             type="button"
-            onClick={openDemoModal}
+            onClick={() => openDemoModal("header-desktop")}
+            data-umami-event="Get Demo Click"
+            data-umami-event-source="header-desktop"
             className="inline-flex items-center gap-2 h-10 px-5 rounded-md bg-[#006B5B] text-white text-sm font-medium hover:bg-[#00564A] transition-all shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006B5B] focus-visible:ring-offset-2 active:scale-[0.98]"
           >
             <span>Get demo</span>
@@ -176,8 +178,10 @@ export function LandingHeader() {
               type="button"
               onClick={() => {
                 setMobileMenuOpen(false);
-                openDemoModal();
+                openDemoModal("header-mobile");
               }}
+              data-umami-event="Get Demo Click"
+              data-umami-event-source="header-mobile"
               className="w-full text-center py-2.5 text-sm font-medium text-white bg-[#006B5B] rounded-md hover:bg-[#00564A] transition-colors cursor-pointer"
             >
               Get demo
